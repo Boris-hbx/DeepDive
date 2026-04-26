@@ -60,9 +60,73 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 
 ## Prompt 思路
 
-（实现 rank/summarize 阶段后填）
+> 实战回填（2026-04-26 端到端跑通后）。
 
-预想：多步分解。先逐条 rank（give a score 1-5 + 一句理由），再逐条 summarize（1-2 句中性摘要），最后合成 brief 时只做"取前 N 条 + 写一句话总摘要 + 套模板"，不让 LLM 自由发挥。
+### 整体策略：多步分解 + system 缓存
+
+不让 LLM 一次性做"读 27 条 → 选 3 条 → 写完整 brief"，而是拆 4 步，每步只做一件清晰的事：
+
+| 步骤 | LLM 调用次数 | 输入 | 输出 |
+|---|---|---|---|
+| rank | N=27（每条独立） | 单条原始 RSS 条目 | `{score: 1-5, reason: 一句话}` |
+| summarize | M=11（仅 score≥3） | 单条 ranked + 源摘要 | `{short: ≤30字, long: 60-150字}` |
+| render | 0（纯 Python） | 全部 summaries | brief Markdown |
+
+理由：
+- **可控性**：单次任务越简单，模型越听话；让模型一次性吐 brief 容易出现幻觉、漏链接、JSON 截断
+- **可复跑**：哪一步失败重跑哪一步，不用从头来
+- **缓存友好**：system prompt 在每步内是固定的，每步内 N-1 次缓存命中（实测 cache_read 命中率 40%）
+
+### system prompt 设计
+
+每步 system prompt **写"够丰满"**，刻意做到 ≥ 2048 token（Sonnet 4.6 的 cacheable prefix 阈值）。这不是"为缓存而冗长"——把"角色 + 主题定义 + 评分/摘要标准 + 边界 case + 示例"都塞进 system 本来就该是这样写。
+
+具体来说每个 system 都包含：
+- **角色 + 项目背景**：让模型知道它在替谁工作（"DeepDive 团队的信号筛选员/摘要员"）
+- **主题边界**：什么算 Agentic SE 内 / 外 / 边缘（节省后续每条都要解释）
+- **评分/摘要原则**：5 档评分含义 + 边界案例 + 评分原则（用例：批量发布、第三方转引、过期信号）
+- **输出格式**：JSON schema + 示例
+- **反向负面例子**：什么是 ❌ 不合格（比直接说"应该这样"更有效）
+
+效果：rank 把 8 条 OpenAI Codex 文档批量发布**正确合并降权到 score=2**（mock 直接关键词命中全打 4），靠的就是 system prompt 里那条「同源 + 同时戳的批量发布按文档站事件聚合视角降级」。
+
+### user prompt 设计
+
+每条只放变化的部分：source / title / URL / published_iso / 源 RSS 摘要 / ranker 给的分数。开头加 `今日日期（UTC）：YYYY-MM-DD`——这是在排查 yibuapi 时发现的"模型为查日期去调 bash 工具"问题的预防针。结尾收一句 `直接返回 JSON，不要任何前后文字、不要代码块标记、不要调用任何工具`，把"想用工具/想加 prose"的倾向压住。
+
+### 输出格式：从"强制 schema"退到"prompt 引导 + 容错解析"
+
+最初版用 `output_config={"format": {"type": "json_schema", ...}}`（Anthropic 结构化输出）。
+
+走兼容代理后**全部失效**：
+- 代理把请求当 Claude Code 用，强行注入 Bash 工具；
+- Anthropic adaptive thinking 内容被代理 inline 在 `<thinking>...</thinking>` XML 里返回；
+- 中文 long 摘要里模型偶尔用未转义双引号做强调（"模型卡死"）破坏 JSON。
+
+最后稳定的姿势：
+1. **prompt 引导**：在 system + user 都写明 schema 字段名 + 类型 + 长度限制
+2. **解析三层防御**：
+   a. 剥 `<thinking>...</thinking>` 块（regex）
+   b. 剥 ` ```json ... ``` ` 围栏
+   c. 找最外层 `{...}`（regex）
+   d. `json.loads` 失败 → 用更松散的 regex 直接抠 short/long 字段
+3. **重试**：每条最多重试 1 次
+4. **graceful skip**：还失败的条目记 warn 跳过，整批不挂
+
+### 对 LLM 自由度的态度
+
+整套设计的隐含原则：**不让 LLM 写决定 brief 形态的东西**。
+
+- URL 不让 LLM 写（防幻觉）—— render 阶段从 fetch 透传
+- "最关注 vs 值得一看"由 score 阈值决定，不让 LLM 自己分类
+- 标题、来源、链接全部从结构化字段拼，不是 LLM 重写
+- 一句话总摘要的"今天最值得关注的方向"由 render 用 top-1 标题套，不让 LLM 写
+
+LLM 只做两件事：评分 + 摘要。其他全是规则。这是本周最重要的工程判断。
+
+### Prompt caching 实测
+
+Anthropic 直访（spec 默认）和 yibuapi 走 OpenAI 兼容协议都验证了 caching 透传。命中率 40%（首条写、后续读）。Sonnet 4.6 cacheable 前缀最小 2048 token，本来担心 system 不够长——结果按"丰满"标准写够了，不是 caching 强制写长，是丰满刚好满足。
 
 ## 成本 / 时延
 
@@ -84,6 +148,24 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 - cache 命中率 40% 说明代理透传了 OpenAI 兼容协议下的 prompt caching；首条写、后续读
 - 主要瓶颈在 LLM 调用（rank+summarize 各占一半），fetch/dedup/render 加起来不到 1 秒——**真要并发 LLM 调用，时间能再压一半**
 - 第一次完整跑通后做横向对比：和 dry-run 跑出来的 mock brief 比，真 LLM 把 8 条 Codex 文档**正确合并降权到 score=2**（mock 全打 4 分），单这一点就证明真 LLM 的 rank 远比规则强
+
+### 兜底文案实测
+
+构造空数据日（2099-01-01 raw.json + summaries.json 都为 `[]`），跑 `python -m deep_dive render --date 2099-01-01`，输出符合 spec/mvp.md 的兜底契约：
+
+```
+# Daily Brief — 2099-01-01
+
+> 今日无重要事件。
+>
+> 数据源：5 个 / 已扫条目：0 / 入选条目：0
+
+## 说明
+
+今日扫描的 5 个源中，没有达到入选标准的事项。明天再来。
+```
+
+测试 artifact 验证后已删除。生产场景兜底触发条件：所有 raw 条目经 dedup → rank → summarize 后没有 score ≥ 3 的入选；render 看到 summaries 为空就走 fallback。
 
 ## 出乎意料的事
 
@@ -142,7 +224,10 @@ cd experiments/Dong && uv sync
 cp .env.example .env
 # 编辑 .env 填 ANTHROPIC_API_KEY（+ 走代理时也填 ANTHROPIC_BASE_URL）
 
-# 端到端跑当日 brief
+# 端到端跑当日 brief（一键）
+uv run python -m deep_dive run            # 加 --dry-run 走 mock 不调 LLM
+
+# 或分步（调试时用）
 uv run python -m deep_dive fetch
 uv run python -m deep_dive dedup
 uv run python -m deep_dive rank          # 加 --dry-run 不调 LLM
