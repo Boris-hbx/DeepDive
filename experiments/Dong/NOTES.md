@@ -78,6 +78,9 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 1. **Astro 5 的 `import.meta.glob` 跨目录吃 markdown** 比想象中顺。`site/src/pages/index.astro` 直接 `glob('../../../briefs/*.md', { eager: true })` 就拿到全部，连 content collection 都不用配。
 2. **macOS 装了全局 `http_proxy` 把 localhost 也代理了**，curl 验证一直 502，要 `--noproxy '*'` 才能走本地。这种"环境配置外溢"会咬死自动化测试，未来要在 README 显式提醒。
 3. **AI 协作的"作弊版优先"心智** 比想象中重要。spec 里第 6 条开放问题选了"先 1 篇手敲打通端到端"，效果是半小时端到端有结果，比先铺架构爽得多——AI 协作下"快速把信号回路闭合"的价值放大了。
+4. **Anthropic 没公开 RSS**，而且踩这个坑的代价是直到 fetch 跑起来才发现——spec 里讨论"信息源选哪 5 个"时根本没人想到去 ping 一下 URL。教训：spec 里的"已选定 5 个核心源"应该带 health check（`curl -I` 200 OK）作为锁定前置条件。
+5. **OpenAI RSS 是历史全量**（实测 918 条），DeepMind 100 条也偏多。两天窗口能压到 7 条但漏掉 04-23 的 GPT-5.5 主公告（核心信号），三天窗口拿到 27 条且关键信号齐——所以默认 `--window-days=3`。
+6. **同一时间戳批量发布**会让 dedup 错把"一次文档站发布"当 N 条独立信号：04-23 10:00 OpenAI 一次性推了 8 条 Codex 文档到 RSS。标题 fuzzy 匹配抓不住（标题都不一样），但靠"同源 + 同时戳" 可以。这条留给 rank 阶段用 LLM 处理（让模型理解"这 8 条是同一事件"），先不在 dedup 里硬编码规则。
 
 ## 如果再来一次
 

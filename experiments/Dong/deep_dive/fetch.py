@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 import feedparser
@@ -22,7 +24,24 @@ class Item:
     title: str
     url: str
     published: str | None
+    published_iso: str | None
     summary: str
+
+
+def _parse_date(s: str | None) -> str | None:
+    """Parse RFC 822 / ISO 8601 date string → UTC ISO 8601, or None."""
+    if not s:
+        return None
+    try:
+        dt = parsedate_to_datetime(s)
+    except (TypeError, ValueError):
+        try:
+            dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).isoformat()
 
 
 def _fetch_one(source: Source, client: httpx.Client) -> list[Item]:
@@ -45,12 +64,14 @@ def _fetch_one(source: Source, client: httpx.Client) -> list[Item]:
         title = (entry.get("title") or "").strip()
         if not url or not title:
             continue
+        published = entry.get("published") or entry.get("updated")
         items.append(
             Item(
                 source=source.name,
                 title=title,
                 url=url,
-                published=entry.get("published") or entry.get("updated"),
+                published=published,
+                published_iso=_parse_date(published),
                 summary=(entry.get("summary") or "").strip(),
             )
         )
