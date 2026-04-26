@@ -17,6 +17,7 @@ on:
     paths:
       - 'experiments/Dong/site/**'
       - 'experiments/Dong/briefs/**'
+      - 'experiments/Dong/observations/**'
       - '.github/workflows/deploy-dong-pages.yml'
   workflow_dispatch:
 
