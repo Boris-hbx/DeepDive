@@ -64,15 +64,16 @@ mvp.md 已有的（沿用）：
 
 候选清单（按"信噪比"粗排）：
 
-**已选定 5 个核心源**（2026-04-26 锁定）：
+**已选定 5 个核心源**（2026-04-26 锁定，2026-04-26 修正 1 项）：
 
-- [x] **Anthropic blog** — `https://www.anthropic.com/news/rss.xml`
-- [x] **OpenAI blog** — `https://openai.com/blog/rss.xml`
+- [x] **DeepMind blog** — `https://deepmind.google/blog/rss.xml` _（2026-04-26 替换 Anthropic：实测 Anthropic 无公开 RSS）_
+- [x] **OpenAI blog** — `https://openai.com/blog/rss.xml`（实测会重定向到 `/news/rss.xml`，httpx follow_redirects 已处理）
 - [x] **Simon Willison's Weblog** — `https://simonwillison.net/atom/everything/`
 - [x] **GitHub Blog** — `https://github.blog/feed/`
-- [x] **Latent Space (Swyx)** — Substack RSS
+- [x] **Latent Space (Swyx)** — `https://www.latent.space/feed`
 
-**未选**（备查）：DeepMind blog、HN front page、Pragmatic Engineer、Cursor、LangChain、Anthropic Twitter、arXiv —— 第二周复盘后视情况扩。
+**未选**（备查）：HN front page、Pragmatic Engineer、Cursor、LangChain、Anthropic Twitter、arXiv —— 第二周复盘后视情况扩。
+**待解决**：Anthropic 模型/产品动态目前依赖 Simon Willison 转引覆盖，如需直接源得做 HTML scrape。
 
 ## 流水线设计（**建议方案，待 Dong 改**）
 
