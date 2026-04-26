@@ -131,8 +131,15 @@ def run(in_path: Path, out_path: Path, dry_run: bool, backend: str | None = None
 
         system_prompt = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
         totals = {"input": 0, "cache_read": 0, "cache_create": 0, "output": 0}
+        skipped = 0
         for i, it in enumerate(items, 1):
-            score, reason, usage = _score_item_real(client, it, system_prompt)
+            try:
+                score, reason, usage = _score_item_real(client, it, system_prompt)
+            except Exception as e:
+                # 单条失败 graceful skip：记 warn 不丢整批
+                log.warning("[%d/%d] 跳过 (%s): %s", i, len(items), type(e).__name__, it.title[:60])
+                skipped += 1
+                continue
             ranked.append(RankedItem(**asdict(it), score=score, reason=reason))
             totals["input"] += usage["input_tokens"]
             totals["cache_read"] += usage["cache_read_input_tokens"]
@@ -145,8 +152,9 @@ def run(in_path: Path, out_path: Path, dry_run: bool, backend: str | None = None
                 it.title[:60],
             )
         log.info(
-            "totals: input=%d  cache_read=%d  cache_create=%d  output=%d",
+            "totals: input=%d  cache_read=%d  cache_create=%d  output=%d  (skipped %d/%d)",
             totals["input"], totals["cache_read"], totals["cache_create"], totals["output"],
+            skipped, len(items),
         )
 
     ranked.sort(key=lambda r: (-r.score, r.published_iso or ""))

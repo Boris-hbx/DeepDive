@@ -144,8 +144,15 @@ def run(in_path: Path, out_path: Path, dry_run: bool, min_score: int, backend: s
 
         system_prompt = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
         totals = {"input": 0, "cache_read": 0, "cache_create": 0, "output": 0}
+        skipped = 0
         for i, it in enumerate(selected, 1):
-            short, long_, usage = _summarize_real(client, it, system_prompt)
+            try:
+                short, long_, usage = _summarize_real(client, it, system_prompt)
+            except Exception as e:
+                # 单条失败 graceful skip：丢这条也不影响其余 brief 出
+                log.warning("[%d/%d] 跳过 (%s): %s", i, len(selected), type(e).__name__, it["title"][:60])
+                skipped += 1
+                continue
             summarized.append(SummarizedItem(
                 source=it["source"], title=it["title"], url=it["url"],
                 published=it.get("published"), published_iso=it.get("published_iso"),
@@ -163,8 +170,9 @@ def run(in_path: Path, out_path: Path, dry_run: bool, min_score: int, backend: s
                 it["title"][:60],
             )
         log.info(
-            "totals: input=%d  cache_read=%d  cache_create=%d  output=%d",
+            "totals: input=%d  cache_read=%d  cache_create=%d  output=%d  (skipped %d/%d)",
             totals["input"], totals["cache_read"], totals["cache_create"], totals["output"],
+            skipped, len(selected),
         )
 
     _write_summaries(summarized, out_path)
