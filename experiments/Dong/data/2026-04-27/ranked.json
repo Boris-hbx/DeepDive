@@ -1,0 +1,412 @@
+[
+  {
+    "source": "simonwillison",
+    "title": "A pelican for GPT-5.5 via the semi-official Codex backdoor API",
+    "url": "https://simonwillison.net/2026/Apr/23/gpt-5-5/#atom-everything",
+    "published": "2026-04-23T19:59:47+00:00",
+    "published_iso": "2026-04-23T19:59:47+00:00",
+    "summary": "<p><a href=\"https://openai.com/index/introducing-gpt-5-5/\">GPT-5.5 is out</a>. It's available in OpenAI Codex and is rolling out to paid ChatGPT subscribers. I've had some preview access and found it to be a fast, effective and highly capable model. As is usually the case these days, it's hard to put into words what's good about it - I ask it to build things and it builds exactly what I ask for!</p>\n<p>There's one notable omission from today's release - the API:</p>\n<blockquote>\n<p>API deployments require different safeguards and we are working closely with partners and customers on the safety and security requirements for serving it at scale. We'll bring GPT‑5.5 and GPT‑5.5 Pro to the API very soon.</p>\n</blockquote>\n<p>When I run my <a href=\"https://simonwillison.net/tags/pelican-riding-a-bicycle/\">pelican benchmark</a> I always prefer to use an API, to avoid hidden system prompts in ChatGPT or other agent harnesses from impacting the results.</p>\n<h4 id=\"the-openclaw-backdoor\">The OpenClaw backdoor</h4>\n<p>One of the ongoing tension points in the AI world over the past few months has concerned how agent harnesses like OpenClaw and Pi interact with the APIs provided by the big providers.</p>\n<p>Both OpenAI and Anthropic offer popular monthly subscriptions which provide access to their models at a significant discount to their raw API.</p>\n<p>OpenClaw integrated directly with this mechanism, and was then <a href=\"https://www.theverge.com/ai-artificial-intelligence/907074/anthropic-openclaw-claude-subscription-ban\">blocked from doing so</a> by Anthropic. This kicked off a whole thing. OpenAI - who recently hired OpenClaw creator Peter Steinberger - saw an opportunity for an easy karma win and announced that OpenClaw was welcome to continue integrating with OpenAI's subscriptions via the same mechanism used by their (open source) Codex CLI tool.</p>\n<p>Does this mean <em>anyone</em> can write code that integrates with OpenAI's Codex-specific APIs to hook into those existing subscriptions?</p>\n<p>The other day <a href=\"https://twitter.com/jeremyphoward/status/2046537816834965714\">Jeremy Howard asked</a>:</p>\n<blockquote>\n<p>Anyone know whether OpenAI officially supports the use of the <code>/backend-api/codex/responses</code> endpoint that Pi and Opencode (IIUC) uses?</p>\n</blockquote>\n<p>It turned out that on March 30th OpenAI's Romain Huet <a href=\"https://twitter.com/romainhuet/status/2038699202834841962\">had tweeted</a>:</p>\n<blockquote>\n<p>We want people to be able to use Codex, and their ChatGPT subscription, wherever they like! That means in the app, in the terminal, but also in JetBrains, Xcode, OpenCode, Pi, and now Claude Code.</p>\n<p>That’s why Codex CLI and Codex app server are open source too! 🙂</p>\n</blockquote>\n<p>And Peter Steinberger <a href=\"https://twitter.com/steipete/status/2046775849769148838\">replied to Jeremy</a> that:</p>\n<blockquote>\n<p>OpenAI sub is officially supported.</p>\n</blockquote>\n<h4 id=\"llm-openai-via-codex\">llm-openai-via-codex</h4>\n<p>So... I had Claude Code reverse-engineer the <a href=\"https://github.com/openai/codex\">openai/codex</a> repo, figure out how authentication tokens were stored and build me <a href=\"https://github.com/simonw/llm-openai-via-codex\">llm-openai-via-codex</a>, a new plugin for <a href=\"https://llm.datasette.io/\">LLM</a> which picks up your existing Codex subscription and uses it to run prompts!</p>\n<p>(With hindsight I wish I'd used GPT-5.4 or the GPT-5.5 preview, it would have been funnier. I genuinely considered rewriting the project from scratch using Codex and GPT-5.5 for the sake of the joke, but decided not to spend any more time on this!)</p>\n<p>Here's how to use it:</p>\n<ol>\n<li>Install Codex CLI, buy an OpenAI plan, login to Codex</li>\n<li>Install LLM: <code>uv tool install llm</code>\n</li>\n<li>Install the new plugin: <code>llm install llm-openai-via-codex</code>\n</li>\n<li>Start prompting: <code>llm -m openai-codex/gpt-5.5 'Your prompt goes here'</code>\n</li>\n</ol>\n<p>All existing LLM features should also work - use <code>-a filepath.jpg/URL</code> to attach an image, <code>llm chat -m openai-codex/gpt-5.5</code> to start an ongoing chat, <code>llm logs</code> to view logged conversations and <code>llm --tool ...</code> to <a href=\"https://llm.datasette.io/en/stable/tools.html\">try it out with tool support</a>.</p>\n<h4 id=\"and-some-pelicans\">And some pelicans</h4>\n<p>Let's generate a pelican!</p>\n<div class=\"highlight highlight-source-shell\"><pre>llm install llm-openai-via-codex\nllm -m openai-codex/gpt-5.5 <span class=\"pl-s\"><span class=\"pl-pds\">'</span>Generate an SVG of a pelican riding a bicycle<span class=\"pl-pds\">'</span></span></pre></div>\n<p>Here's <a href=\"https://gist.github.com/simonw/edda1d98f7ba07fd95eeff473cb16634\">what I got back</a>:</p>\n<p><img alt=\"It is a bit mangled to be honest - good beak, pelican body shapes are slightly weird, legs do at least extend to the pedals, bicycle frame is not quite right.\" src=\"https://static.simonwillison.net/static/2026/gpt-5.5-pelican.png\" /></p>\n<p>I've seen better <a href=\"https://simonwillison.net/2026/Mar/17/mini-and-nano/#pelicans\">from GPT-5.4</a>, so I tagged on <code>-o reasoning_effort xhigh</code> and <a href=\"https://gist.github.com/simonw/a6168e4165a258e4d664aeae8e602cc5\">tried again</a>:</p>\n<p>That one took almost four minutes to generate, but I think it's a much better effort.</p>\n<p><img alt=\"Pelican has gradients now, body is much better put together, bicycle is nearly the right shape albeit with one extra bar between pedals and front wheel, clearly a better image overall.\" src=\"https://static.simonwillison.net/static/2026/gpt-5.5-pelican-xhigh.png\" /></p>\n<p>If you compare the SVG code (<a href=\"https://gist.github.com/simonw/edda1d98f7ba07fd95eeff473cb16634#response\">default</a>, <a href=\"https://gist.github.com/simonw/a6168e4165a258e4d664aeae8e602cc5#response\">xhigh</a>) the <code>xhigh</code> one took a very different approach, which is much more CSS-heavy - as demonstrated by those gradients. <code>xhigh</code> used 9,322 reasoning tokens where the default used just 39.</p>\n<h4 id=\"a-few-more-notes-on-gpt-5-5\">A few more notes on GPT-5.5</h4>\n<p>One of the most notable things about GPT-5.5 is the pricing. Once it goes live in the API it's <a href=\"https://openai.com/index/introducing-gpt-5-5/#availability-and-pricing\">going to be priced</a> at <em>twice</em> the cost of GPT-5.4 - $5 per 1M input tokens and $30 per 1M output tokens, where 5.4 is $2.5 and $15.</p>\n<p>GPT-5.5 Pro will be even more: $30 per 1M input tokens and $180 per 1M output tokens.</p>\n<p>GPT-5.4 will remain available. At half the price of 5.5 this feels like 5.4 is to 5.5 as Claude Sonnet is to Claude Opus.</p>\n<p>Ethan Mollick has a <a href=\"https://www.oneusefulthing.org/p/sign-of-the-future-gpt-55\">detailed review of GPT-5.5</a> where he put it (and GPT-5.5 Pro) through an array of interesting challenges. His verdict: the jagged frontier continues to hold, with GPT-5.5 excellent at some things and challenged by others in a way that remains difficult to predict.</p>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/openai\">openai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/chatgpt\">chatgpt</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/llm\">llm</a>, <a href=\"https://simonwillison.net/tags/llm-pricing\">llm-pricing</a>, <a href=\"https://simonwillison.net/tags/pelican-riding-a-bicycle\">pelican-riding-a-bicycle</a>, <a href=\"https://simonwillison.net/tags/llm-reasoning\">llm-reasoning</a>, <a href=\"https://simonwillison.net/tags/llm-release\">llm-release</a>, <a href=\"https://simonwillison.net/tags/codex-cli\">codex-cli</a>, <a href=\"https://simonwillison.net/tags/gpt\">gpt</a></p>",
+    "score": 4,
+    "reason": "GPT-5.5 发布并上线 Codex，Simon 分享实测体验及 API 变通方法，agentic 底座直接相关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "An update on recent Claude Code quality reports",
+    "url": "https://simonwillison.net/2026/Apr/24/recent-claude-code-quality-reports/#atom-everything",
+    "published": "2026-04-24T01:31:25+00:00",
+    "published_iso": "2026-04-24T01:31:25+00:00",
+    "summary": "<p><strong><a href=\"https://www.anthropic.com/engineering/april-23-postmortem\">An update on recent Claude Code quality reports</a></strong></p>\nIt turns out the high volume of complaints that Claude Code was providing worse quality results over the past two months was grounded in real problems.</p>\n<p>The models themselves were not to blame, but three separate issues in the Claude Code harness caused complex but material problems which directly affected users.</p>\n<p>Anthropic's postmortem describes these in detail. This one in particular stood out to me:</p>\n<blockquote>\n<p>On March 26, we shipped a change to clear Claude's older thinking from sessions that had been idle for over an hour, to reduce latency when users resumed those sessions. A bug caused this to keep happening every turn for the rest of the session instead of just once, which made Claude seem forgetful and repetitive.</p>\n</blockquote>\n<p>I <em>frequently</em> have Claude Code sessions which I leave for an hour (or often a day or longer) before returning to them. Right now I have 11 of those (according to <code>ps aux  | grep 'claude '</code>) and that's after closing down dozens more the other day.</p>\n<p>I estimate I spend more time prompting in these \"stale\" sessions than sessions that I've recently started!</p>\n<p>If you're building agentic systems it's worth reading this article in detail - the kinds of bugs that affect harnesses are deeply complicated, even if you put aside the inherent non-deterministic nature of the models themselves.\n\n    <p><small></small>Via <a href=\"https://news.ycombinator.com/item?id=47878905\">Hacker News</a></small></p>\n\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/prompt-engineering\">prompt-engineering</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/anthropic\">anthropic</a>, <a href=\"https://simonwillison.net/tags/coding-agents\">coding-agents</a>, <a href=\"https://simonwillison.net/tags/claude-code\">claude-code</a></p>",
+    "score": 4,
+    "reason": "Anthropic 发布 Claude Code 质量下降事后分析，三个 harness 层 bug 导致两个月体验劣化，对用户有实操价值"
+  },
+  {
+    "source": "latent-space",
+    "title": "[AINews] GPT 5.5 and OpenAI Codex Superapp",
+    "url": "https://www.latent.space/p/ainews-gpt-55-and-openai-codex-superapp",
+    "published": "Fri, 24 Apr 2026 04:40:43 GMT",
+    "published_iso": "2026-04-24T04:40:43+00:00",
+    "summary": "Spud lives!",
+    "score": 4,
+    "reason": "Latent Space 对 GPT-5.5 及 Codex 超级应用的综合解读，核心 agentic 事件但属第三方转述"
+  },
+  {
+    "source": "simonwillison",
+    "title": "GPT-5.5 prompting guide",
+    "url": "https://simonwillison.net/2026/Apr/25/gpt-5-5-prompting-guide/#atom-everything",
+    "published": "2026-04-25T04:13:36+00:00",
+    "published_iso": "2026-04-25T04:13:36+00:00",
+    "summary": "<p><strong><a href=\"https://developers.openai.com/api/docs/guides/prompt-guidance?model=gpt-5.5\">GPT-5.5 prompting guide</a></strong></p>\nNow that GPT-5.5 is <a href=\"https://developers.openai.com/api/docs/models/gpt-5.5\">available in the API</a>, OpenAI have released a wealth of useful tips on how best to prompt the new model.</p>\n<p>Here's a neat trick they recommend for applications that might spend considerable time thinking before returning a user-visible response:</p>\n<blockquote>\n<p><code>Before any tool calls for a multi-step task, send a short user-visible update that acknowledges the request and states the first step. Keep it to one or two sentences.</code></p>\n</blockquote>\n<p>I've already noticed their Codex app doing this, and it does make longer running tasks feel less like the model has crashed.</p>\n<p>OpenAI suggest running the following in Codex to upgrade your existing code using advice embedded in their <code>openai-docs</code> skill:</p>\n<blockquote>\n<p><code>$openai-docs migrate this project to gpt-5.5</code></p>\n</blockquote>\n<p>The upgrade guide the coding agent will follow <a href=\"https://github.com/openai/skills/blob/724cd511c96593f642bddf13187217aa155d2554/skills/.curated/openai-docs/references/upgrade-guide.md#model-string--light-prompt-rewrite\">is this one</a>, which even includes light instructions on how to rewrite prompts to better fit the model.</p>\n<p>Also relevant is the <a href=\"https://developers.openai.com/api/docs/guides/latest-model\">Using GPT-5.5 guide</a>, which opens with this warning:</p>\n<blockquote>\n<p>To get the most out of GPT-5.5, treat it as a new model family to tune for, not a drop-in replacement for <code>gpt-5.2</code> or <code>gpt-5.4</code>. Begin migration with a fresh baseline instead of carrying over every instruction from an older prompt stack. Start with the smallest prompt that preserves the product contract, then tune reasoning effort, verbosity, tool descriptions, and output format against representative examples.</p>\n</blockquote>\n<p>Interesting to see OpenAI recommend starting from scratch rather than trusting that existing prompts optimized for previous models will continue to work effectively with GPT-5.5.\n\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/openai\">openai</a>, <a href=\"https://simonwillison.net/tags/prompt-engineering\">prompt-engineering</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/gpt\">gpt</a></p>",
+    "score": 4,
+    "reason": "Simon 解读 GPT-5.5 prompting guide，含 tool call 多步任务技巧，对用 OpenAI 的团队有实操价值"
+  },
+  {
+    "source": "hackernews",
+    "title": "Why SWE-bench Verified no longer measures frontier coding capabilities",
+    "url": "https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/",
+    "published": "Sun, 26 Apr 2026 13:58:13 +0000",
+    "published_iso": "2026-04-26T13:58:13+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47910388\">Comments</a>",
+    "score": 4,
+    "reason": "OpenAI 官方宣布 SWE-bench Verified 不再衡量前沿编码能力，agent 评测基准饱和是重要行业信号"
+  },
+  {
+    "source": "pragmatic-engineer",
+    "title": "The Pulse: AI token spending out of control – what’s next?",
+    "url": "https://newsletter.pragmaticengineer.com/p/the-pulse-ai-token-spending-out-of",
+    "published": "Thu, 23 Apr 2026 16:51:01 GMT",
+    "published_iso": "2026-04-23T16:51:01+00:00",
+    "summary": "Details from 15 tech companies on the rapid growth of token spend, and their responses to it. Also: AI vendors can&#8217;t keep up with demand, plummeting morale at Meta, and more.",
+    "score": 3,
+    "reason": "15 家公司 token 开支数据有参考价值，但核心是成本/运营话题，非 agentic SE 直接信号"
+  },
+  {
+    "source": "latent-space",
+    "title": "AIE Europe Debrief + Agent Labs Thesis: Unsupervised Learning x Latent Space Crossover Special (2026)",
+    "url": "https://www.latent.space/p/unsupervised-learning-2026",
+    "published": "Thu, 23 Apr 2026 19:37:19 GMT",
+    "published_iso": "2026-04-23T19:37:19+00:00",
+    "summary": "Note: This episode was recorded just after AIE Europe, but before the Cursor-xAI deal.",
+    "score": 3,
+    "reason": "AIE 会议复盘+Agent Labs 观点播客，主题相关但属泛讨论，摘要无具体信号"
+  },
+  {
+    "source": "simonwillison",
+    "title": "DeepSeek V4 - almost on the frontier, a fraction of the price",
+    "url": "https://simonwillison.net/2026/Apr/24/deepseek-v4/#atom-everything",
+    "published": "2026-04-24T06:01:04+00:00",
+    "published_iso": "2026-04-24T06:01:04+00:00",
+    "summary": "<p>Chinese AI lab DeepSeek's last model release was V3.2 (and V3.2 Speciale) <a href=\"https://simonwillison.net/2025/Dec/1/deepseek-v32/\">last December</a>. They just dropped the first of their hotly anticipated V4 series in the shape of two preview models, <a href=\"https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro\">DeepSeek-V4-Pro</a> and <a href=\"https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash\">DeepSeek-V4-Flash</a>.</p>\n<p>Both models are 1 million token context Mixture of Experts. Pro is 1.6T total parameters, 49B active. Flash is 284B total, 13B active. They're using the standard MIT license.</p>\n<p>I think this makes DeepSeek-V4-Pro the new largest open weights model. It's larger than Kimi K2.6 (1.1T) and GLM-5.1 (754B) and more than twice the size of DeepSeek V3.2 (685B).</p>\n<p>Pro is 865GB on Hugging Face, Flash is 160GB. I'm hoping that a lightly quantized Flash will run on my 128GB M5 MacBook Pro. It's <em>possible</em> the Pro model may run on it if I can stream just the necessary active experts from disk.</p>\n<p>For the moment I tried the models out via <a href=\"https://openrouter.ai/\">OpenRouter</a>, using <a href=\"https://github.com/simonw/llm-openrouter\">llm-openrouter</a>:</p>\n<pre><code>llm install llm-openrouter\nllm openrouter refresh\nllm -m openrouter/deepseek/deepseek-v4-pro 'Generate an SVG of a pelican riding a bicycle'\n</code></pre>\n<p>Here's the pelican <a href=\"https://gist.github.com/simonw/4a7a9e75b666a58a0cf81495acddf529\">for DeepSeek-V4-Flash</a>:</p>\n<p><img alt=\"Excellent bicycle - good frame shape, nice chain, even has a reflector on the front wheel. Pelican has a mean looking expression but has its wings on the handlebars and feet on the pedals. Pouch is a little sharp.\" src=\"https://static.simonwillison.net/static/2026/deepseek-v4-flash.png\" /></p>\n<p>And <a href=\"https://gist.github.com/simonw/9e8dfed68933ab752c9cf27a03250a7c\">for DeepSeek-V4-Pro</a>:</p>\n<p><img alt=\"Another solid bicycle, albeit the spokes are a little jagged and the frame is compressed a bit. Pelican has gone a bit wrong - it has a VERY large body, only one wing, a weirdly hairy backside and generally loos like it was drown be a different artist from the bicycle.\" src=\"https://static.simonwillison.net/static/2026/deepseek-v4-pro.png\" /></p>\n<p>For comparison, take a look at the pelicans I got from <a href=\"https://simonwillison.net/2025/Dec/1/deepseek-v32/\">DeepSeek V3.2 in December</a>, <a href=\"https://simonwillison.net/2025/Aug/22/deepseek-31/\">V3.1 in August</a>, and <a href=\"https://simonwillison.net/2025/Mar/24/deepseek/\">V3-0324 in March 2025</a>.</p>\n<p>So the pelicans are pretty good, but what's really notable here is the <em>cost</em>. DeepSeek V4 is a very, very inexpensive model.</p>\n<p>This is <a href=\"https://api-docs.deepseek.com/quick_start/pricing\">DeepSeek's pricing page</a>. They're charging $0.14/million tokens input and $0.28/million tokens output for Flash, and $1.74/million input and $3.48/million output for Pro.</p>\n<p>Here's a comparison table with the frontier models from Gemini, OpenAI and Anthropic:</p>\n<center>\n<table>\n<thead>\n<tr>\n<th>Model</th>\n<th>Input ($/M)</th>\n<th>Output ($/M)</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><strong>DeepSeek V4 Flash</strong></td>\n<td>$0.14</td>\n<td>$0.28</td>\n</tr>\n<tr>\n<td>GPT-5.4 Nano</td>\n<td>$0.20</td>\n<td>$1.25</td>\n</tr>\n<tr>\n<td>Gemini 3.1 Flash-Lite</td>\n<td>$0.25</td>\n<td>$1.50</td>\n</tr>\n<tr>\n<td>Gemini 3 Flash Preview</td>\n<td>$0.50</td>\n<td>$3</td>\n</tr>\n<tr>\n<td>GPT-5.4 Mini</td>\n<td>$0.75</td>\n<td>$4.50</td>\n</tr>\n<tr>\n<td>Claude Haiku 4.5</td>\n<td>$1</td>\n<td>$5</td>\n</tr>\n<tr>\n<td><strong>DeepSeek V4 Pro</strong></td>\n<td>$1.74</td>\n<td>$3.48</td>\n</tr>\n<tr>\n<td>Gemini 3.1 Pro</td>\n<td>$2</td>\n<td>$12</td>\n</tr>\n<tr>\n<td>GPT-5.4</td>\n<td>$2.50</td>\n<td>$15</td>\n</tr>\n<tr>\n<td>Claude Sonnet 4.6</td>\n<td>$3</td>\n<td>$15</td>\n</tr>\n<tr>\n<td>Claude Opus 4.7</td>\n<td>$5</td>\n<td>$25</td>\n</tr>\n<tr>\n<td>GPT-5.5</td>\n<td>$5</td>\n<td>$30</td>\n</tr>\n</tbody>\n</table>\n</center>\n<p>DeepSeek-V4-Flash is the cheapest of the small models, beating even OpenAI's GPT-5.4 Nano. DeepSeek-V4-Pro is the cheapest of the larger frontier models.</p>\n<p>This note from <a href=\"https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/blob/main/DeepSeek_V4.pdf\">the DeepSeek paper</a> helps explain why they can price these models so low - they've focused a great deal on efficiency with this release, especially for longer context prompts:</p>\n<blockquote>\n<p>In the scenario of 1M-token context, even DeepSeek-V4-Pro, which has a larger number of activated parameters, attains only 27% of the single-token FLOPs (measured in equivalent FP8 FLOPs) and 10% of the KV cache size relative to DeepSeek-V3.2. Furthermore, DeepSeek-V4-Flash, with its smaller number of activated parameters, pushes efficiency even further: in the 1M-token context setting, it achieves only 10% of the single-token FLOPs and 7% of the KV cache size compared with DeepSeek-V3.2.</p>\n</blockquote>\n<p>DeepSeek's self-reported benchmarks <a href=\"https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/blob/main/DeepSeek_V4.pdf\">in their paper</a> show their Pro model competitive with those other frontier models, albeit with this note:</p>\n<blockquote>\n<p>Through the expansion of reasoning tokens, DeepSeek-V4-Pro-Max demonstrates superior performance relative to GPT-5.2 and Gemini-3.0-Pro on standard reasoning benchmarks. Nevertheless, its performance falls marginally short of GPT-5.4 and Gemini-3.1-Pro, suggesting a developmental trajectory that trails state-of-the-art frontier models by approximately 3 to 6 months.</p>\n</blockquote>\n<p>I'm keeping an eye on <a href=\"https://huggingface.co/unsloth/models\">huggingface.co/unsloth/models</a> as I expect the Unsloth team will have a set of quantized versions out pretty soon. It's going to be very interesting to see how well that Flash model runs on my own machine.</p>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/llm\">llm</a>, <a href=\"https://simonwillison.net/tags/llm-pricing\">llm-pricing</a>, <a href=\"https://simonwillison.net/tags/pelican-riding-a-bicycle\">pelican-riding-a-bicycle</a>, <a href=\"https://simonwillison.net/tags/deepseek\">deepseek</a>, <a href=\"https://simonwillison.net/tags/llm-release\">llm-release</a>, <a href=\"https://simonwillison.net/tags/openrouter\">openrouter</a>, <a href=\"https://simonwillison.net/tags/ai-in-china\">ai-in-china</a></p>",
+    "score": 3,
+    "reason": "DeepSeek V4 发布，参数/性价比亮眼但未提及 agentic 能力提升，属通用模型迭代"
+  },
+  {
+    "source": "simonwillison",
+    "title": "llm 0.31",
+    "url": "https://simonwillison.net/2026/Apr/24/llm/#atom-everything",
+    "published": "2026-04-24T23:35:07+00:00",
+    "published_iso": "2026-04-24T23:35:07+00:00",
+    "summary": "<p><strong>Release:</strong> <a href=\"https://github.com/simonw/llm/releases/tag/0.31\">llm 0.31</a></p>\n    <blockquote>\n<ul>\n<li>New GPT-5.5 OpenAI model: <code>llm -m gpt-5.5</code>. <a href=\"https://github.com/simonw/llm/issues/1418\">#1418</a></li>\n<li>New option to set the <a href=\"https://developers.openai.com/cookbook/examples/gpt-5/gpt-5_new_params_and_tools#1-verbosity-parameter\">text verbosity level</a> for GPT-5+ OpenAI models: <code>-o verbosity low</code>. Values are <code>low</code>, <code>medium</code>, <code>high</code>.</li>\n<li>New option for setting the <a href=\"https://developers.openai.com/api/docs/guides/images-vision#choose-an-image-detail-level\">image detail level</a> used for image attachments to OpenAI models: <code>-o image_detail low</code> - values are <code>low</code>, <code>high</code> and <code>auto</code>, and GPT-5.4 and 5.5 also accept <code>original</code>.</li>\n<li>Models listed in <code>extra-openai-models.yaml</code> are now also registered as asynchronous. <a href=\"https://github.com/simonw/llm/issues/1395\">#1395</a></li>\n</ul>\n</blockquote>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/gpt\">gpt</a>, <a href=\"https://simonwillison.net/tags/openai\">openai</a>, <a href=\"https://simonwillison.net/tags/llm\">llm</a></p>",
+    "score": 3,
+    "reason": "LLM 0.31 工具更新，加 GPT-5.5 支持和 verbosity 参数，渐进改进，没新概念"
+  },
+  {
+    "source": "latent-space",
+    "title": "[AINews] DeepSeek V4 Pro (1.6T-A49B) and Flash (284B-A13B), Base and Instruct — runnable on Huawei Ascend chips",
+    "url": "https://www.latent.space/p/ainews-deepseek-v4-pro-16t-a49b-and",
+    "published": "Sat, 25 Apr 2026 05:00:48 GMT",
+    "published_iso": "2026-04-25T05:00:48+00:00",
+    "summary": "The prodigal Tiger returns... but is no longer the benchmarks leader.",
+    "score": 3,
+    "reason": "DeepSeek V4 大模型发布，但摘要未提及 agentic 能力提升，且不再是 benchmark 领先者，信号偏弱"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Quoting Romain Huet",
+    "url": "https://simonwillison.net/2026/Apr/25/romain-huet/#atom-everything",
+    "published": "2026-04-25T12:06:55+00:00",
+    "published_iso": "2026-04-25T12:06:55+00:00",
+    "summary": "<blockquote cite=\"https://twitter.com/romainhuet/status/2047955381578838357\"><p>Since GPT-5.4, we’ve unified Codex and the main model into a single system, so there’s no separate coding line anymore.</p>\n<p>GPT-5.5 takes this further, with strong gains in agentic coding, computer use, and any task on a computer.</p></blockquote>\n<p class=\"cite\">&mdash; <a href=\"https://twitter.com/romainhuet/status/2047955381578838357\">Romain Huet</a>, confirming OpenAI won't release a GPT-5.5-Codex model</p>\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/gpt\">gpt</a>, <a href=\"https://simonwillison.net/tags/openai\">openai</a>, <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a></p>",
+    "score": 3,
+    "reason": "Simon 转引 OpenAI 确认 Codex 合并进主模型，信号重要但仅为引用帖，信息密度低"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Extract PDF text in your browser with LiteParse for the web",
+    "url": "https://simonwillison.net/2026/Apr/23/liteparse-for-the-web/#atom-everything",
+    "published": "2026-04-23T21:54:24+00:00",
+    "published_iso": "2026-04-23T21:54:24+00:00",
+    "summary": "<p>LlamaIndex have a most excellent open source project called <a href=\"https://github.com/run-llama/liteparse\">LiteParse</a>, which provides a Node.js CLI tool for extracting text from PDFs. I got a version of LiteParse working entirely in the browser, using most of the same libraries that LiteParse uses to run in Node.js.</p>\n<h4 id=\"spatial-text-parsing\">Spatial text parsing</h4>\n<p>Refreshingly, LiteParse doesn't use AI models to do what it does: it's good old-fashioned PDF parsing, falling back to Tesseract OCR (or other pluggable OCR engines) for PDFs that contain images of text rather than the text itself.</p>\n<p>The hard problem that LiteParse solves is extracting text in a sensible order despite the infuriating vagaries of PDF layouts. They describe this as \"spatial text parsing\" - they use some very clever heuristics to detect things like multi-column layouts and group and return the text in a sensible linear flow.</p>\n<p>The LiteParse documentation describes a pattern for implementing <a href=\"https://developers.llamaindex.ai/liteparse/guides/visual-citations/\">Visual Citations with Bounding Boxes</a>. I really like this idea: being able to answer questions from a PDF and accompany those answers with cropped, highlighted images feels like a great way of increasing the credibility of answers from RAG-style Q&amp;A.</p>\n<p>LiteParse is provided as a pure CLI tool, designed to be used by agents. You run it like this:</p>\n<pre><code>npm i -g @llamaindex/liteparse\nlit parse document.pdf\n</code></pre>\n<p>I <a href=\"https://claude.ai/share/44a5ed86-e5b5-4e14-90be-1eba1e0acd13\">explored its capabilities with Claude</a> and quickly determined that there was no real reason it had to stay a CLI app: it's built on top of PDF.js and Tesseract.js, two libraries I've used for something similar in a browser <a href=\"https://simonwillison.net/2024/Mar/30/ocr-pdfs-images/\">in the past</a>.</p>\n<p>The only reason LiteParse didn't have a pure browser-based version is that nobody had built one yet...</p>\n<h4 id=\"introducing-liteparse-for-the-web\">Introducing LiteParse for the web</h4>\n<p>Visit <a href=\"https://simonw.github.io/liteparse/\">https://simonw.github.io/liteparse/</a> to try out LiteParse against any PDF file, running entirely in your browser. Here's what that looks like:</p>\n<p><img alt=\"Screenshot of the LiteParse browser demo web page. Header reads &quot;LiteParse&quot; with subtitle &quot;Browser demo of LiteParse — parse PDFs in your browser. Nothing leaves your machine.&quot; A dashed-border drop zone says &quot;Drop a PDF here or click to choose / Your file stays in your browser.&quot; with a file pill labeled &quot;19720005243.pdf&quot;. Below are a checked &quot;Run OCR&quot; checkbox, an unchecked &quot;Render page screenshots&quot; checkbox, and a blue &quot;Parse&quot; button. Status text: &quot;Parsed 86 pages.&quot; Two side-by-side panels follow. Left panel titled &quot;Text&quot; with a Copy button shows monospace extracted text beginning &quot;Apollo 5 was an unmanned system, both propulsion systems ascent and descent stages&quot;. Right panel titled &quot;JSON&quot;, also with a copy button, contains JSON showing the dimensions and position and detected font of each piece of text.\" src=\"https://static.simonwillison.net/static/2026/liteparse-web.jpg\" /></p>\n<p>The tool can work with or without running OCR, and can optionally display images for every page in the PDF further down the page.</p>\n<h4 id=\"building-it-with-claude-code-and-opus-4-7\">Building it with Claude Code and Opus 4.7</h4>\n<p>The process of building this started in the regular Claude app on my iPhone. I wanted to try out LiteParse myself, so I started by uploading a random PDF I happened to have on my phone along with this prompt:</p>\n<blockquote>\n<p><code>Clone https://github.com/run-llama/liteparse and try it against this file</code></p>\n</blockquote>\n<p>Regular Claude chat can clone directly from GitHub these days, and while by default it can't access most of the internet from its container it can also install packages from PyPI and npm.</p>\n<p>I often use this to try out new pieces of open source software on my phone - it's a quick way to exercise something without having to sit down with my laptop.</p>\n<p>You can follow my full conversation in <a href=\"https://claude.ai/share/44a5ed86-e5b5-4e14-90be-1eba1e0acd13\">this shared Claude transcript</a>. I asked a few follow-up questions about how it worked, and then asked:</p>\n<blockquote>\n<p><code>Does this library run in a browser? Could it?</code></p>\n</blockquote>\n<p>This gave me a thorough enough answer that I was convinced it was worth trying getting that to work for real. I opened up my laptop and switched to Claude Code.</p>\n<p>I forked the original repo on GitHub, cloned a local copy, started a new <code>web</code> branch and pasted that last reply from Claude into a new file called <a href=\"https://github.com/simonw/liteparse/blob/web/notes.md\">notes.md</a>. Then I told Claude Code:</p>\n<blockquote>\n<p><code>Get this working as a web app. index.html, when loaded, should render an app that lets users open a PDF in their browser and select OCR or non-OCR mode and have this run. Read notes.md for initial research on this problem, then write out plan.md with your detailed implementation plan</code></p>\n</blockquote>\n<p>I always like to start with a plan for this kind of project. Sometimes I'll use Claude's \"planning mode\", but in this case I knew I'd want the plan as an artifact in the repository so I told it to write <code>plan.md</code> directly.</p>\n<p>This also means I can iterate on the plan with Claude. I noticed that Claude had decided to punt on generating screenshots of images in the PDF, and suggested we defer a \"canvas-encode swap\" to v2. I fixed that by prompting:</p>\n<blockquote>\n<p><code>Update the plan to say we WILL do the canvas-encode swap so the screenshots thing works</code></p>\n</blockquote>\n<p>After a few short follow-up prompts, here's the <a href=\"https://github.com/simonw/liteparse/blob/web/plan.md\">plan.md</a> I thought was strong enough to implement.</p>\n<p>I prompted:</p>\n<blockquote>\n<p><code>build it.</code></p>\n</blockquote>\n<p>And then mostly left Claude Code to its own devices, tinkered with some other projects, caught up on Duolingo and occasionally checked in to see how it was doing.</p>\n<p>I added a few prompts to the queue as I was working. Those don't yet show up in my exported transcript, but it turns out running <code>rg queue-operation --no-filename | grep enqueue | jq -r '.content'</code> in the relevant <code>~/.claude/projects/</code> folder extracts them.</p>\n<p>Here are the key follow-up prompts with some notes:</p>\n<ul>\n<li>\n<code>When you implement this use playwright and red/green TDD, plan that too</code> - I've written more <a href=\"https://simonwillison.net/guides/agentic-engineering-patterns/red-green-tdd/\">about red/green TDD here</a>.</li>\n<li>\n<code>let's use PDF.js's own renderer</code> (it was messing around with pdfium)</li>\n<li>\n<code>The final UI should include both the text and the pretty-printed JSON output, both of those in textareas and both with copy-to-clipboard buttons - it should also be mobile friendly</code> - I had a new idea for how the UI should work</li>\n<li>\n<code>small commits along the way</code> - see below</li>\n<li>\n<code>Make sure the index.html page includes a link back to https://github.com/run-llama/liteparse near the top of the page</code> - it's important to credit your dependencies in a project like this!</li>\n<li><code>View on GitHub → is bad copy because that's not the repo with this web app in, it's the web app for the underlying LiteParse library</code></li>\n<li><code>Run OCR should be unchecked by default</code></li>\n<li>\n<code>When I try to parse a PDF in my browser I see 'Parse failed: undefined is not a function (near '...value of readableStream...')</code> - it was testing with Playwright in Chrome, turned out there was a bug in Safari</li>\n<li><code>... oh that is in safari but it works in chrome</code></li>\n<li><code>When \"Copy\" is clicked the text should change to \"Copied!\" for 1.5s</code></li>\n<li>\n<code>[Image #1] Style the file input so that long filenames don't break things on Firefox like this - in fact add one of those drag-drop zone UIs which you can also click to select a file</code> - dropping screenshots in of small UI glitches works surprisingly well</li>\n<li><code>Tweak the drop zone such that the text is vertically centered, right now it is a bit closer to the top</code></li>\n<li>\n<code>it breaks in Safari on macOS, works in both Chrome and Firefox. On Safari I see \"Parse failed: undefined is not a function (near '...value of readableStream...')\" after I click the Parse button, when OCR is not checked</code> - it still wasn't working in Safari...</li>\n<li>\n<code>works in safari now</code>  - but it fixed it pretty quickly once I pointed that out and it got Playwright working with that browser</li>\n</ul>\n<p>I've started habitually asking for \"small commits along the way\" because it makes for code that's easier to understand or review later on, and I have an unproven hunch that it helps the agent work more effectively too - it's yet another encouragement towards planning and taking on one problem at a time.</p>\n<p>While it was working I decided it would be nice to be able to interact with an in-progress version.  I asked a separate Claude Code session against the same directory for tips on how to run it, and it told me to use <code>npx vite</code>. Running that started a development server with live-reloading, which meant I could instantly see the effect of each change it made on disk - and prompt with further requests for tweaks and fixes.</p>\n<p>Towards the end I decided it was going to be good enough to publish. I started a fresh Claude Code instance and told it:</p>\n<blockquote>\n<p><code>Look at the web/ folder - set up GitHub actions for this repo such that any push runs the tests, and if the tests pass it then does a GitHub Pages deploy of the built vite app such that the web/index.html page is the index.html page for the thing that is deployed and it works on GitHub Pages</code></p>\n</blockquote>\n<p>After a bit more iteration <a href=\"https://github.com/simonw/liteparse/blob/web/.github/workflows/deploy-web.yml\">here's the GitHub Actions workflow</a> that builds the app using Vite and deploys the result to <a href=\"https://simonw.github.io/liteparse/\">https://simonw.github.io/liteparse/</a>.</p>\n<p>I love GitHub Pages for this kind of thing because it can be quickly configured (by Claude, in this case) to turn any repository into a deployed web-app, at zero cost and with whatever build step is necessary. It even works against private repos, if you don't mind your only security being a secret URL.</p>\n<p>With this kind of project there's always a major risk that the model might \"cheat\" - mark key features as \"TODO\" and fake them, or take shortcuts that ignore the initial requirements.</p>\n<p>The responsible way to prevent this is to review all of the code... but this wasn't intended as that kind of project, so instead I fired up OpenAI Codex with GPT-5.5 (I had preview access) and told it:</p>\n<blockquote>\n<p><code>Describe the difference between how the node.js CLI tool runs and how the web/ version runs</code></p>\n</blockquote>\n<p>The answer I got back was enough to give me confidence that Claude hadn't taken any project-threatening shortcuts.</p>\n<p>... and that was about it. Total time in Claude Code for that \"build it\" step was 59 minutes. I used my <a href=\"https://github.com/simonw/claude-code-transcripts\">claude-code-transcripts</a> tool to export a readable version of the full transcript which you can <a href=\"https://gisthost.github.io/?d64889bfc1b897fea3867adfec62ed89/index.html\">view here</a>, albeit without those additional queued prompts (here's my <a href=\"https://github.com/simonw/claude-code-transcripts/issues/98\">issue to fix that</a>).</p>\n<h4 id=\"is-this-even-vibe-coding-any-more-\">Is this even vibe coding any more?</h4>\n<p>I'm a pedantic stickler when it comes to <a href=\"https://simonwillison.net/2025/Mar/19/vibe-coding/\">the original definition of vibe coding</a> - vibe coding does <em>not</em> mean any time you use AI to help you write code, it's when you use AI without reviewing or caring about the code that's written at all.</p>\n<p>By my own definition, this LiteParse for the web project is about as pure vibe coding as you can get! I have not looked at a <em>single line</em> of the HTML and TypeScript written for this project - in fact while writing this sentence I had to go and check if it had used JavaScript or TypeScript.</p>\n<p>Yet somehow this one doesn't feel as vibe coded to me as many of my other vibe coded projects:</p>\n<ul>\n<li>As a static in-browser web application hosted on GitHub Pages the blast radius for any bugs is almost non-existent: it either works for your PDF or doesn't.</li>\n<li>No private data is transferred anywhere - all processing happens in your browser - so a security audit is unnecessary. I've glanced once at the network panel while it's running and no additional requests are made when a PDF is being parsed.</li>\n<li>There was still a whole lot of engineering experience and knowledge required to use the models in this way. Identifying that porting LiteParse to run directly in a browser was critical to the rest of the project.</li>\n</ul>\n<p>Most importantly, I'm happy to attach my reputation to this project and recommend that other people try it out. Unlike most of my vibe coded tools I'm not convinced that spending significant additional engineering time on this would have resulted in a meaningfully better initial release. It's fine as it is!</p>\n<p>I haven't opened a PR against the <a href=\"https://github.com/run-llama/liteparse\">origin repository</a> because I've not discussed it with the LiteParse team. I've <a href=\"https://github.com/run-llama/liteparse/issues/147\">opened an issue</a>, and if they want my vibe coded implementation as a starting point for something more official they're welcome to take it.</p>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/javascript\">javascript</a>, <a href=\"https://simonwillison.net/tags/ocr\">ocr</a>, <a href=\"https://simonwillison.net/tags/pdf\">pdf</a>, <a href=\"https://simonwillison.net/tags/projects\">projects</a>, <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/vibe-coding\">vibe-coding</a>, <a href=\"https://simonwillison.net/tags/coding-agents\">coding-agents</a>, <a href=\"https://simonwillison.net/tags/claude-code\">claude-code</a>, <a href=\"https://simonwillison.net/tags/agentic-engineering\">agentic-engineering</a></p>",
+    "score": 2,
+    "reason": "浏览器端 PDF 解析工具，非 AI agent 相关，与 agentic SE 主题关联薄弱"
+  },
+  {
+    "source": "simonwillison",
+    "title": "It's a big one",
+    "url": "https://simonwillison.net/2026/Apr/24/weekly/#atom-everything",
+    "published": "2026-04-24T04:09:54+00:00",
+    "published_iso": "2026-04-24T04:09:54+00:00",
+    "summary": "<p><a href=\"https://simonw.substack.com/p/gpt-55-chatgpt-images-20-qwen36-27b\">This week's edition</a> of my email newsletter (aka <a href=\"https://simonwillison.net/2023/Apr/4/substack-observable/\">content from this blog</a> delivered to your inbox) features 4 pelicans riding bicycles, 1 possum on an e-scooter, up to 5 raccoons with ham radios hiding in crowds, 5 blog posts, 8 links, 3 quotes and a new chapter of my Agentic Engineering Patterns guide.</p>\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/newsletter\">newsletter</a></p>",
+    "score": 2,
+    "reason": "Newsletter 汇总元公告，标题模糊；Agentic Engineering Patterns 有关但本条无实质内容"
+  },
+  {
+    "source": "hackernews",
+    "title": "Using coding assistance tools to revive projects you never were going to finish",
+    "url": "https://blog.matthewbrunelle.com/its-ok-to-use-coding-assistance-tools-to-revive-the-projects-you-never-were-going-to-finish/",
+    "published": "Sat, 25 Apr 2026 16:11:50 +0000",
+    "published_iso": "2026-04-25T16:11:50+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47902525\">Comments</a>",
+    "score": 2,
+    "reason": "个人博客谈用 AI 编码工具复活旧项目，无数据无新洞察，属杂谈类"
+  },
+  {
+    "source": "hackernews",
+    "title": "Amateur armed with ChatGPT solves an Erdős problem",
+    "url": "https://www.scientificamerican.com/article/amateur-armed-with-chatgpt-vibe-maths-a-60-year-old-problem/",
+    "published": "Sat, 25 Apr 2026 17:40:38 +0000",
+    "published_iso": "2026-04-25T17:40:38+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47903126\">Comments</a>",
+    "score": 2,
+    "reason": "ChatGPT 辅助解数学难题，展示推理能力但与 agentic 软件工程无直接关联"
+  },
+  {
+    "source": "hackernews",
+    "title": "The West forgot how to make things, now it’s forgetting how to code",
+    "url": "https://techtrenches.dev/p/the-west-forgot-how-to-make-things",
+    "published": "Sun, 26 Apr 2026 06:24:42 +0000",
+    "published_iso": "2026-04-26T06:24:42+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47907879\">Comments</a>",
+    "score": 2,
+    "reason": "泛文化观点文章，可能涉及 AI 替代编码但无 agentic SE 具体信号，缺数据支撑"
+  },
+  {
+    "source": "hackernews",
+    "title": "The route from Prussian military headquarters to Gary Gygax’s basement",
+    "url": "https://asteriskmag.com/issues/14/shall-we-play-a-game",
+    "published": "Thu, 23 Apr 2026 16:34:40 +0000",
+    "published_iso": "2026-04-23T16:34:40+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47877811\">Comments</a>",
+    "score": 1,
+    "reason": "普鲁士军事到D&D桌游历史，与 agentic SE 完全无关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Serving the For You feed",
+    "url": "https://simonwillison.net/2026/Apr/24/serving-the-for-you-feed/#atom-everything",
+    "published": "2026-04-24T01:08:17+00:00",
+    "published_iso": "2026-04-24T01:08:17+00:00",
+    "summary": "<p><strong><a href=\"https://atproto.com/blog/serving-the-for-you-feed\">Serving the For You feed</a></strong></p>\nOne of Bluesky's most interesting features is that anyone can run their own <a href=\"bluesky custom feed\">custom \"feed\" implementation</a> and make it available to other users - effectively enabling custom algorithms that can use any mechanism they like to recommend posts.</p>\n<p>spacecowboy runs the <a href=\"https://bsky.app/profile/did:plc:3guzzweuqraryl3rdkimjamk/feed/for-you\">For You Feed</a>, used by around 72,000 people. This guest post on the AT Protocol blog explains how it works.</p>\n<p>The architecture is <em>fascinating</em>. The feed is served by a single Go process using SQLite on a \"gaming\" PC in spacecowboy's living room - 16 cores, 96GB of RAM and 4TB of attached NVMe storage.</p>\n<p>Recommendations are based on likes: what else are the people who like the same things as you liking on the platform?</p>\n<p>That Go server consumes the Bluesky firehose and stores the relevant details in SQLite, keeping the last 90 days of relevant data, which currently uses around 419GB of SQLite storage.</p>\n<p>Public internet traffic is handled by a $7/month VPS on OVH, which talks to the living room server via Tailscale.</p>\n<p>Total cost is now $30/month: $20 in electricity, $7 in VPS and $3 for the two domain names. spacecowboy estimates that the existing system could handle all ~1 million daily active Bluesky users if they were to switch to the cheapest algorithm they have found to work.\n\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/go\">go</a>, <a href=\"https://simonwillison.net/tags/scaling\">scaling</a>, <a href=\"https://simonwillison.net/tags/sqlite\">sqlite</a>, <a href=\"https://simonwillison.net/tags/software-architecture\">software-architecture</a>, <a href=\"https://simonwillison.net/tags/tailscale\">tailscale</a>, <a href=\"https://simonwillison.net/tags/bluesky\">bluesky</a></p>",
+    "score": 1,
+    "reason": "Bluesky 自定义 feed 架构介绍，与 agentic SE 无关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "russellromney/honker",
+    "url": "https://simonwillison.net/2026/Apr/24/honker/#atom-everything",
+    "published": "2026-04-24T01:50:07+00:00",
+    "published_iso": "2026-04-24T01:50:07+00:00",
+    "summary": "<p><strong><a href=\"https://github.com/russellromney/honker\">russellromney/honker</a></strong></p>\n\"Postgres NOTIFY/LISTEN semantics\" for SQLite, implemented as a Rust SQLite extension and various language bindings to help make use of it.</p>\n<p>The design of this looks very solid. It lets you write Python code for queues that looks like this:</p>\n<pre><span class=\"pl-k\">import</span> <span class=\"pl-s1\">honker</span>\n\n<span class=\"pl-s1\">db</span> <span class=\"pl-c1\">=</span> <span class=\"pl-s1\">honker</span>.<span class=\"pl-c1\">open</span>(<span class=\"pl-s\">\"app.db\"</span>)\n<span class=\"pl-s1\">emails</span> <span class=\"pl-c1\">=</span> <span class=\"pl-s1\">db</span>.<span class=\"pl-c1\">queue</span>(<span class=\"pl-s\">\"emails\"</span>)\n<span class=\"pl-c1\">emails</span>.<span class=\"pl-c1\">enqueue</span>({<span class=\"pl-s\">\"to\"</span>: <span class=\"pl-s\">\"alice@example.com\"</span>})\n\n<span class=\"pl-c\"># Consume (in a worker process)</span>\n<span class=\"pl-k\">async</span> <span class=\"pl-k\">for</span> <span class=\"pl-s1\">job</span> <span class=\"pl-c1\">in</span> <span class=\"pl-s1\">emails</span>.<span class=\"pl-c1\">claim</span>(<span class=\"pl-s\">\"worker-1\"</span>):\n    <span class=\"pl-en\">send</span>(<span class=\"pl-s1\">job</span>.<span class=\"pl-c1\">payload</span>)\n    <span class=\"pl-s1\">job</span>.<span class=\"pl-c1\">ack</span>()</pre>\n<p>And Kafka-style durable streams like this:</p>\n<pre><span class=\"pl-s1\">stream</span> <span class=\"pl-c1\">=</span> <span class=\"pl-s1\">db</span>.<span class=\"pl-c1\">stream</span>(<span class=\"pl-s\">\"user-events\"</span>)\n\n<span class=\"pl-k\">with</span> <span class=\"pl-s1\">db</span>.<span class=\"pl-c1\">transaction</span>() <span class=\"pl-k\">as</span> <span class=\"pl-s1\">tx</span>:\n    <span class=\"pl-s1\">tx</span>.<span class=\"pl-c1\">execute</span>(<span class=\"pl-s\">\"UPDATE users SET name=? WHERE id=?\"</span>, [<span class=\"pl-s1\">name</span>, <span class=\"pl-s1\">uid</span>])\n    <span class=\"pl-s1\">stream</span>.<span class=\"pl-c1\">publish</span>({<span class=\"pl-s\">\"user_id\"</span>: <span class=\"pl-s1\">uid</span>, <span class=\"pl-s\">\"change\"</span>: <span class=\"pl-s\">\"name\"</span>}, <span class=\"pl-s1\">tx</span><span class=\"pl-c1\">=</span><span class=\"pl-s1\">tx</span>)\n\n<span class=\"pl-k\">async</span> <span class=\"pl-k\">for</span> <span class=\"pl-s1\">event</span> <span class=\"pl-c1\">in</span> <span class=\"pl-s1\">stream</span>.<span class=\"pl-c1\">subscribe</span>(<span class=\"pl-s1\">consumer</span><span class=\"pl-c1\">=</span><span class=\"pl-s\">\"dashboard\"</span>):\n    <span class=\"pl-k\">await</span> <span class=\"pl-en\">push_to_browser</span>(<span class=\"pl-s1\">event</span>)</pre>\n<p>It also adds 20+ custom SQL functions including these two:</p>\n<div class=\"highlight highlight-source-sql\"><pre><span class=\"pl-k\">SELECT</span> notify(<span class=\"pl-s\"><span class=\"pl-pds\">'</span>orders<span class=\"pl-pds\">'</span></span>, <span class=\"pl-s\"><span class=\"pl-pds\">'</span>{\"id\":42}<span class=\"pl-pds\">'</span></span>);\n<span class=\"pl-k\">SELECT</span> honker_stream_read_since(<span class=\"pl-s\"><span class=\"pl-pds\">'</span>orders<span class=\"pl-pds\">'</span></span>, <span class=\"pl-c1\">0</span>, <span class=\"pl-c1\">1000</span>);</pre></div>\n<p>The extension requires WAL mode, and workers can poll the <code>.db-wal</code> file with a stat call every 1ms to get as close to real-time as possible without the expense of running a full SQL query.</p>\n<p>honker implements the <strong>transactional outbox pattern</strong>, which ensures items are only queued if a transaction successfully commits. My favorite explanation of that pattern remains <a href=\"https://brandur.org/job-drain\">Transactionally Staged Job Drains in Postgres</a> by Brandur Leach. It's great to see a new implementation of that pattern for SQLite.\n\n    <p><small></small>Via <a href=\"https://news.ycombinator.com/item?id=47874647\">Show HN</a></small></p>\n\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/databases\">databases</a>, <a href=\"https://simonwillison.net/tags/postgresql\">postgresql</a>, <a href=\"https://simonwillison.net/tags/sqlite\">sqlite</a>, <a href=\"https://simonwillison.net/tags/rust\">rust</a></p>",
+    "score": 1,
+    "reason": "SQLite 扩展库，实现 PG NOTIFY/LISTEN 语义，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Mahjong: A Visual Guide",
+    "url": "https://themahjong.guide/",
+    "published": "Fri, 24 Apr 2026 03:41:09 +0000",
+    "published_iso": "2026-04-24T03:41:09+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47885239\">Comments</a>",
+    "score": 1,
+    "reason": "麻将视觉指南，与 agentic SE 完全无关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Millisecond Converter",
+    "url": "https://simonwillison.net/2026/Apr/24/milliseconds/#atom-everything",
+    "published": "2026-04-24T04:23:11+00:00",
+    "published_iso": "2026-04-24T04:23:11+00:00",
+    "summary": "<p><strong>Tool:</strong> <a href=\"https://tools.simonwillison.net/milliseconds\">Millisecond Converter</a></p>\n    <p><a href=\"https://llm.datasette.io/\">LLM</a> reports prompt durations in milliseconds and I got fed up of having to think about how to convert those to seconds and minutes.</p>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/tools\">tools</a></p>",
+    "score": 1,
+    "reason": "毫秒转换小工具，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "My .config Ship of Theseus",
+    "url": "https://shift1w.com/blog/config-of-theseus/",
+    "published": "Fri, 24 Apr 2026 06:00:14 +0000",
+    "published_iso": "2026-04-24T06:00:14+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47886157\">Comments</a>",
+    "score": 1,
+    "reason": "个人 dotfiles 配置管理话题，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Mine, a Coalton and Common Lisp IDE",
+    "url": "https://coalton-lang.github.io/20260424-mine/",
+    "published": "Fri, 24 Apr 2026 18:24:42 +0000",
+    "published_iso": "2026-04-24T18:24:42+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47894014\">Comments</a>",
+    "score": 1,
+    "reason": "Coalton/Common Lisp 的 IDE 工具，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "The Nintendo Switch Switch (2019)",
+    "url": "https://blog.cynthia.re/post/nintendo-switch-ethernet-switch",
+    "published": "Fri, 24 Apr 2026 18:33:35 +0000",
+    "published_iso": "2026-04-24T18:33:35+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47894124\">Comments</a>",
+    "score": 1,
+    "reason": "Nintendo Switch 硬件改造旧文，与 agentic SE 完全无关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "The people do not yearn for automation",
+    "url": "https://simonwillison.net/2026/Apr/24/the-people-do-not-yearn-for-automation/#atom-everything",
+    "published": "2026-04-24T22:38:49+00:00",
+    "published_iso": "2026-04-24T22:38:49+00:00",
+    "summary": "<p><strong><a href=\"https://www.theverge.com/podcast/917029/software-brain-ai-backlash-databases-automation\">The people do not yearn for automation</a></strong></p>\nThis written and video essay by Nilay Patel explores why AI is unpopular with the general public even as usage numbers for ChatGPT continue to skyrocket.</p>\n<p>It’s a superb piece of commentary, and something I expect I’ll be thinking about for a long time to come.</p>\n<p>Nilay’s core idea is that people afflicted with “software brain” - who see the world as something to be automated as much as possible, and attempt to model everything in terms of information flows and data - are becoming detached from everyone else.</p>\n<blockquote>\n<p>[…] software brain has ruled the business world for a long time. AI has just made it easier than ever for more people to make more software than ever before — for every kind of business to automate big chunks of itself with software. It’s everywhere: the absolute cutting edge of advertising and marketing is automation with AI. It’s not being a creative.</p>\n<p>But: not everything is a business. Not everything is a loop! The entire human experience cannot be captured in a database. <em>That’s</em> the limit of software brain. That’s why people hate AI. It <em>flattens</em> them.</p>\n<p>Regular people don’t see the opportunity to write code as an opportunity at <em>all</em>. The people do not yearn for automation. I’m a full-on smart home sicko; the lights and shades and climate controls of my house are automated in dozens of ways. But huge companies like Apple, Google and Amazon have struggled for over a decade now to make regular people care about smart home automation at all. And they just don’t.</p>\n</blockquote>\n\n    <p><small></small>Via <a href=\"https://daringfireball.net/linked/2026/04/23/patel-software-brain\">John Gruber</a></small></p>\n\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/nilay-patel\">nilay-patel</a>, <a href=\"https://simonwillison.net/tags/ai-ethics\">ai-ethics</a></p>",
+    "score": 1,
+    "reason": "AI 自动化公众舆论评论文，与 agentic SE 无关，属泛文化讨论"
+  },
+  {
+    "source": "hackernews",
+    "title": "Databases Were Not Designed for This",
+    "url": "https://arpitbhayani.me/blogs/defensive-databases/",
+    "published": "Fri, 24 Apr 2026 23:41:38 +0000",
+    "published_iso": "2026-04-24T23:41:38+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47897140\">Comments</a>",
+    "score": 1,
+    "reason": "数据库设计文章，与 agentic 软件工程无关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "WHY ARE YOU LIKE THIS",
+    "url": "https://simonwillison.net/2026/Apr/25/why-are-you-like-this/#atom-everything",
+    "published": "2026-04-25T16:44:01+00:00",
+    "published_iso": "2026-04-25T16:44:01+00:00",
+    "summary": "<p>@scottjla <a href=\"https://twitter.com/scottjla/status/2047535371664457863\">on Twitter</a> in reply to my <a href=\"https://simonwillison.net/tags/pelican-riding-a-bicycle/\">pelican riding a bicycle</a> benchmark:</p>\n<blockquote>\n<p>I feel like we need to stack these tests now</p>\n<p><img alt=\"AI generated image. A pelican is riding a bicycle along a dirt track, chased by a police car. The pelican looks panicked, likely because there is an astronaut (with prehensile toes for some reason) riding the pelican clinging on to where its ears should be. The astronaut is being ridden by a horse, with an equally wild expression. A slice of pizza and a can and a cowboy hat are falling next to them. A road sign in the background reads WHY ARE YOU LIKE THIS.\" src=\"https://static.simonwillison.net/static/2026/why-are-you-like-this.jpeg\" /></p>\n</blockquote>\n<p>I checked to confirm that the model (ChatGPT Images 2.0) added the \"WHY ARE YOU LIKE THIS\" sign of its own accord and <a href=\"https://chatgpt.com/share/69ebff27-2220-839f-b065-8c3516ea9b6d\">it did</a> - the prompt Scott used was:</p>\n<blockquote>\n<p><code>Create an image of a horse riding an astronaut, where the astronaut is riding a pelican that is riding a bicycle. It looks very chaotic but they all just manage to balance on top of each other</code></p>\n</blockquote>\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/text-to-image\">text-to-image</a>, <a href=\"https://simonwillison.net/tags/pelican-riding-a-bicycle\">pelican-riding-a-bicycle</a>, <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/slop\">slop</a>, <a href=\"https://simonwillison.net/tags/chatgpt\">chatgpt</a></p>",
+    "score": 1,
+    "reason": "AI 图像生成搞笑测试，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "America's Geothermal Breakthrough",
+    "url": "https://oilprice.com/Alternative-Energy/Geothermal-Energy/Americas-Geothermal-Breakthrough-Could-Unlock-a-150-Gigawatt-Energy-Revolution.html",
+    "published": "Sat, 25 Apr 2026 19:38:55 +0000",
+    "published_iso": "2026-04-25T19:38:55+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47903945\">Comments</a>",
+    "score": 1,
+    "reason": "地热能源新闻，与 agentic software engineering 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "USB Cheat Sheet (2022)",
+    "url": "https://fabiensanglard.net/usbcheat/index.html",
+    "published": "Sat, 25 Apr 2026 21:51:18 +0000",
+    "published_iso": "2026-04-25T21:51:18+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47904876\">Comments</a>",
+    "score": 1,
+    "reason": "USB 协议速查表，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Why has there been so little progress on Alzheimer's disease?",
+    "url": "https://freakonomics.com/podcast/why-has-there-been-so-little-progress-on-alzheimers-disease/",
+    "published": "Sun, 26 Apr 2026 00:12:47 +0000",
+    "published_iso": "2026-04-26T00:12:47+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47905984\">Comments</a>",
+    "score": 1,
+    "reason": "阿尔茨海默病研究进展讨论，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "The Super Nintendo Cartridges (2024)",
+    "url": "https://fabiensanglard.net/snes_carts/",
+    "published": "Sun, 26 Apr 2026 00:38:01 +0000",
+    "published_iso": "2026-04-26T00:38:01+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47906161\">Comments</a>",
+    "score": 1,
+    "reason": "超任卡带硬件考古，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Tell HN: An app is silently installing itself on my iPhone every day",
+    "url": "https://news.ycombinator.com/item?id=47906253",
+    "published": "Sun, 26 Apr 2026 00:50:56 +0000",
+    "published_iso": "2026-04-26T00:50:56+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47906253\">Comments</a>",
+    "score": 1,
+    "reason": "iPhone 应用自动安装问题，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "GnuPG – post-quantum crypto landing in mainline",
+    "url": "https://lists.gnupg.org/pipermail/gnupg-announce/2026q2/000504.html",
+    "published": "Sun, 26 Apr 2026 03:25:02 +0000",
+    "published_iso": "2026-04-26T03:25:02+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47907018\">Comments</a>",
+    "score": 1,
+    "reason": "GnuPG 后量子加密进展，属密码学基础设施，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "EU Age Control: The trojan horse for digital IDs",
+    "url": "https://juraj.bednar.io/en/blog-en/2026/04/17/eu-age-control-the-trojan-horse-for-digital-ids/",
+    "published": "Sun, 26 Apr 2026 03:44:28 +0000",
+    "published_iso": "2026-04-26T03:44:28+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47907130\">Comments</a>",
+    "score": 1,
+    "reason": "EU 数字身份政策讨论，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Terra API (YC W21) Hiring: Applied AI Strategist(Health Intelligence)",
+    "url": "https://www.ycombinator.com/companies/terra-api/jobs/DY7BCZU-applied-ai-strategist-market-intelligence-health",
+    "published": "Sun, 26 Apr 2026 07:00:10 +0000",
+    "published_iso": "2026-04-26T07:00:10+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47908047\">Comments</a>",
+    "score": 1,
+    "reason": "招聘帖，与 agentic software engineering 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Exposing Floating Point – Bartosz Ciechanowski (2019)",
+    "url": "https://ciechanow.ski/exposing-floating-point/",
+    "published": "Sun, 26 Apr 2026 07:19:20 +0000",
+    "published_iso": "2026-04-26T07:19:20+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47908139\">Comments</a>",
+    "score": 1,
+    "reason": "2019 年浮点数科普文章，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Statecharts: hierarchical state machines",
+    "url": "https://statecharts.dev/",
+    "published": "Sun, 26 Apr 2026 09:32:22 +0000",
+    "published_iso": "2026-04-26T09:32:22+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47908833\">Comments</a>",
+    "score": 1,
+    "reason": "状态图通用 CS 概念，与 agentic 软件工程无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Asahi Linux Progress Linux 7.0",
+    "url": "https://asahilinux.org/2026/04/progress-report-7-0/",
+    "published": "Sun, 26 Apr 2026 10:50:32 +0000",
+    "published_iso": "2026-04-26T10:50:32+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47909226\">Comments</a>",
+    "score": 1,
+    "reason": "Asahi Linux 硬件适配进展，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "QNX on the Commodore 900 – Raiders of the lost hard drive [video]",
+    "url": "https://archive.fosdem.org/2025/schedule/event/fosdem-2025-5479-raiders-of-the-lost-hard-drive/",
+    "published": "Sun, 26 Apr 2026 12:55:53 +0000",
+    "published_iso": "2026-04-26T12:55:53+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47909945\">Comments</a>",
+    "score": 1,
+    "reason": "复古操作系统考古视频，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "GitHub unwanted UX change: issue links now open in a popup",
+    "url": "https://github.com/orgs/community/discussions/192666",
+    "published": "Sun, 26 Apr 2026 14:18:38 +0000",
+    "published_iso": "2026-04-26T14:18:38+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47910546\">Comments</a>",
+    "score": 1,
+    "reason": "GitHub UI 交互变更讨论，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Clay PCB Tutorial",
+    "url": "https://feministhackerspaces.cargo.site/Clay-PCB-Tutorial",
+    "published": "Sun, 26 Apr 2026 16:02:14 +0000",
+    "published_iso": "2026-04-26T16:02:14+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=47911350\">Comments</a>",
+    "score": 1,
+    "reason": "黏土 PCB 制作教程，硬件手工艺内容，与 agentic SE 无关"
+  }
+]

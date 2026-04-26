@@ -27,19 +27,24 @@
 
 ## 信息源
 
-第一版 5 源（2026-04-26 锁定，当天即修正 1 项）：
+第一版 5 源（2026-04-26 锁定）+ 当天扩 3 源 = 8 源：
 
 | 源 | URL | 选它的理由 |
 |---|---|---|
 | DeepMind blog | `https://deepmind.google/blog/rss.xml` | 模型/产品官方动态（**替补 Anthropic**）|
 | OpenAI blog | `https://openai.com/blog/rss.xml` | 模型/产品官方动态 |
-| Simon Willison's Weblog | `https://simonwillison.net/atom/everything/` | 高密度 LLM/agent 工程实践，实测单日 3+ 篇是常态 |
+| Simon Willison's Weblog | `https://simonwillison.net/atom/everything/` | 高密度 LLM/agent 工程实践 |
 | GitHub Blog | `https://github.blog/feed/` | Copilot / Agents 类产品动态 |
 | Latent Space (Swyx) | `https://www.latent.space/feed` | agent / AI infra 行业讨论 |
+| Pragmatic Engineer | `https://newsletter.pragmaticengineer.com/feed.xml` | _2026-04-26 加_：Gergely Orosz 工程实践视角，与 Simon 互补 |
+| Hacker News frontpage | `https://news.ycombinator.com/rss` | _2026-04-26 加_：行业讨论广度；噪声多，靠 ranker 过滤（实测 30 条 HN frontpage 中 ~24 条被 score=1 滤掉，1 条 SWE-bench 信号 score=4） |
+| Continue.dev releases | `https://github.com/continuedev/continue/releases.atom` | _2026-04-26 加_：开源 IDE agent 头部工具的 release atom |
 
-未选（备查）：HN front page、Pragmatic Engineer、LangChain、Cursor、Anthropic Twitter、arXiv —— 第一周先收敛 5 源，避免噪声压力过大；后续每天复盘后增减。
+未选（备查）：Cursor blog（无 RSS）、LangChain、Anthropic Twitter、arXiv、Aider releases、Eugene Yan、Lilian Weng、HuggingFace —— 后续按 ranker 信号密度反推增减。
 
-**踩坑**：Anthropic 没公开 RSS（实测 `/news/rss.xml`、`/feed.xml`、`/rss`、`/feed` 等 7 个常见路径全 404）。Anthropic 的官方动态目前靠 Simon Willison 转引覆盖；如需直接源，得做 HTML scrape，本周不做。
+**踩坑**：
+- Anthropic 没公开 RSS（实测 7 个常见路径全 404）。靠 Simon Willison 转引覆盖；要直接源得做 HTML scrape。
+- **fetch 网络不稳定**：实测过相同 .env 配置三次跑 fetch，每次失败的源都不同（SSL handshake timeout / Connection reset by peer 各种）。已加 per-source retry（max 3 attempts，1s/2s/4s 指数 backoff），实测让"间歇性 SSL 失败"基本被 retry 救回。
 
 ## 流水线设计
 
@@ -142,6 +147,24 @@ Anthropic 直访（spec 默认）和 yibuapi 走 OpenAI 兼容协议都验证了
 | **LLM 阶段合计** | **8:20** | **45,515** | **18,256** | **19,810** | cache 命中 **40%** |
 
 按 Anthropic Opus 4.6 标牌价（input $5/1M, output $25/1M）粗估 **<$0.7**。代理实际计费看 yibuapi dashboard。
+
+第二跑 2026-04-27（**扩到 8 源** + summarize 合并 4 字段后第一跑）：
+
+| 阶段 | 耗时 | input | cache_read | output | 备注 |
+|---|---|---|---|---|---|
+| fetch（8 源 + retry）| ~30s | — | — | — | 8 源全 200，4 次自动 retry 救场 |
+| dedup | <1s | — | — | — | 1138→42（HN 加进来后 +15 条进窗口） |
+| **rank** (Opus 4.6, 42 次) | **7:33** | 48,159 | 19,516 | 12,240 | 41/42 成功（1 跳过），cache 命中 40% |
+| **summarize** (Opus 4.6, 11 次) | **12:10** | 13,358 | 5,597 | 7,153 | 10/11 成功（1 跳过），summarize 合并 4 字段未明显增 token |
+| render | <1s | — | — | — | 纯 Python |
+| **LLM 阶段合计** | **~20 分钟** | **61,517** | **25,113** | **19,393** | cache 命中 **41%** |
+
+观察：
+- HN 进来后 dedup 从 27 条变 42 条（+15）。其中 24 条 HN 条目 ranker 几乎全部打 score=1（Mahjong / Alzheimer's / 硬件等无关条目），正确识别。HN 净贡献的 agentic SE 信号是 1 条 SWE-bench score=4。
+- Pragmatic Engineer 1 条入选 score=3（"AI token spending out of control"），稳定贡献。
+- Continue.dev releases 0 条进窗口（最近无 release）。
+- summarize 阶段 12:10 比首跑 2:51 长很多——主要原因是 yibuapi 触发了多次限速（SDK 自动 backoff），不是 prompt 改动本身的成本。
+- summarize 合并 4 字段后单条 output 增长不明显（避免了之前 observe 的多余 LLM 调用，整体反而省）。
 
 观察：
 - 每条 output 偏多（300-700 tokens），主因是 Opus 4.6 默认开 thinking 把推理内容包在 `<thinking>` XML 里 inline 返回；`reasoning_effort=none` 被代理忽略关不掉
