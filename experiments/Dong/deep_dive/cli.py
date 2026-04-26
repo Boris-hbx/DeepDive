@@ -83,6 +83,38 @@ def cmd_render(args: argparse.Namespace) -> None:
     print(out_path)
 
 
+def cmd_run(args: argparse.Namespace) -> None:
+    """一键串 fetch → dedup → rank → summarize → render。"""
+    import logging as _logging
+    log = _logging.getLogger(__name__)
+    sources = load_sources(ROOT / "config" / "sources.yaml")
+    day = args.date or date.today().isoformat()
+    day_dir = ROOT / "data" / day
+
+    log.info("=== [1/5] fetch ===")
+    fetch_all(sources, day_dir)
+
+    log.info("=== [2/5] dedup ===")
+    run_dedup(day_dir / "raw.json", day_dir / "deduped.json", args.window_days, args.fuzzy_threshold)
+
+    log.info("=== [3/5] rank ===")
+    run_rank(day_dir / "deduped.json", day_dir / "ranked.json", args.dry_run, backend=args.backend)
+
+    log.info("=== [4/5] summarize ===")
+    run_summarize(day_dir / "ranked.json", day_dir / "summaries.json", args.dry_run, args.min_score, backend=args.backend)
+
+    log.info("=== [5/5] render ===")
+    out_brief = ROOT / "briefs" / f"{day}.md"
+    run_render(
+        summaries_path=day_dir / "summaries.json",
+        raw_path=day_dir / "raw.json",
+        sources_count=len(sources),
+        out_path=out_brief,
+        date=day,
+    )
+    print(out_brief)
+
+
 def main() -> None:
     _load_env_file()
     logging.basicConfig(
@@ -164,6 +196,42 @@ def main() -> None:
     )
     rd.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
     rd.set_defaults(func=cmd_render)
+
+    ru = sub.add_parser(
+        "run",
+        help="一键串 fetch → dedup → rank → summarize → render（spec 验收：一条命令从零跑出当日 brief）",
+    )
+    ru.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
+    ru.add_argument(
+        "--backend",
+        choices=["anthropic", "openai"],
+        default=None,
+        help="LLM 后端，临时覆盖 LLM_BACKEND env",
+    )
+    ru.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="rank/summarize 走 mock，不调 LLM",
+    )
+    ru.add_argument(
+        "--window-days",
+        type=int,
+        default=3,
+        help="dedup 日期窗口（默认 3）",
+    )
+    ru.add_argument(
+        "--fuzzy-threshold",
+        type=int,
+        default=85,
+        help="dedup 标题 fuzzy 阈值（默认 85）",
+    )
+    ru.add_argument(
+        "--min-score",
+        type=int,
+        default=3,
+        help="summarize 最低入选分数（默认 3）",
+    )
+    ru.set_defaults(func=cmd_run)
 
     args = p.parse_args()
     args.func(args)
