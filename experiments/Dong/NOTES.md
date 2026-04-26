@@ -300,6 +300,10 @@ uv run python -m deep_dive rank          # 加 --dry-run 不调 LLM
 uv run python -m deep_dive summarize     # 加 --dry-run 不调 LLM
 uv run python -m deep_dive render        # 不调 LLM
 
+# 二次提炼：在 brief 之外多产一份「内容简介 / 关键要点 / 对我们的启示」三段式
+# 输出到 observations/<date>.md；不替代 brief，作为深度阅读补充
+uv run python -m deep_dive observe       # 需要 ranked.json 已存在；加 --dry-run 走 mock
+
 # 跑站点（本地预览）
 cd site && npm run dev
 
