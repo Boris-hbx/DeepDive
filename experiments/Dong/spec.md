@@ -162,3 +162,4 @@ experiments/Dong/
 5. **`deep_dive run` 一键命令** — 把 fetch → dedup → rank → summarize → render 串起来，兑现自加验收条件 #1。分步命令保留供调试。
 6. **作弊版输出物 vs 真版的隔离没做** — 自动 render 会冲掉手敲 brief 和真 LLM 产出的 ranked.json，这周靠 git restore 救场。下次该把 dry-run 输出走单独路径。详 NOTES.md 如果再来一次 #5。
 7. **GH Pages 工作流是仓库根级文件** — `.github/workflows/deploy-dong-pages.yml` 不在 `experiments/Dong/` 下，严格 reading 团队 mvp.md 「仅在子目录下」可能需要 PM exception。需在群里同步。
+8. **observation 二次提炼从独立产物 → 合并进 brief** — 起初做了 `observe` 模块产 `observations/<date>.md` 单独文件 + 站点详情路由，后发现内容简介与 brief 的 `long` 段冗余。改为在 brief 「最关注」每条下挂 `<details>` 折叠块（含 key_points + implications），由 summarize 一次 LLM 调用同时产出 4 个字段。spec 输出契约的必有结构未变，details 是扩展。已删除独立 `observe.py` / `observe_system.md` / `observations/` 目录 / 站点 observation 路由。

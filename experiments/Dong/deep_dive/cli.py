@@ -9,7 +9,6 @@ from pathlib import Path
 from .config import load_sources
 from .dedup import run as run_dedup
 from .fetch import fetch_all
-from .observe import run as run_observe
 from .rank import run as run_rank
 from .render import run as run_render
 from .summarize import run as run_summarize
@@ -81,15 +80,6 @@ def cmd_render(args: argparse.Namespace) -> None:
         out_path=out_path,
         date=day,
     )
-    print(out_path)
-
-
-def cmd_observe(args: argparse.Namespace) -> None:
-    day = args.date or date.today().isoformat()
-    day_dir = ROOT / "data" / day
-    in_path = day_dir / "ranked.json"
-    out_path = ROOT / "observations" / f"{day}.md"
-    run_observe(in_path, out_path, args.dry_run, args.min_score, backend=args.backend, date_str=day)
     print(out_path)
 
 
@@ -206,30 +196,6 @@ def main() -> None:
     )
     rd.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
     rd.set_defaults(func=cmd_render)
-
-    o = sub.add_parser(
-        "observe",
-        help="ranked.json → observations/<date>.md（三段式：内容简介 + 关键要点 + 对我们的启示）",
-    )
-    o.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
-    o.add_argument(
-        "--backend",
-        choices=["anthropic", "openai"],
-        default=None,
-        help="LLM 后端，临时覆盖 LLM_BACKEND env",
-    )
-    o.add_argument(
-        "--min-score",
-        type=int,
-        default=3,
-        help="最低入选分数（默认 3）",
-    )
-    o.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="跳过 LLM 调用，用 mock 三段式（不需要 API key）",
-    )
-    o.set_defaults(func=cmd_observe)
 
     ru = sub.add_parser(
         "run",
