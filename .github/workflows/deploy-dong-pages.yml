@@ -1,0 +1,62 @@
+# 部署 Dong 的 DeepDive 站点到 GitHub Pages
+#
+# 输出到 gh-pages 分支的 `Dong/` 子目录，使用 `keep_files: true`
+# 让其他团队成员将来添加自己的 workflow 时不会互相覆盖（每人一个子目录）。
+#
+# 仓库 Settings → Pages → Source 需要选 "Deploy from a branch"，分支 = `gh-pages`，目录 = `/ (root)`。
+# 启用后，访问 URL：https://boris-hbx.github.io/DeepDive/Dong/
+#
+# 触发：仅当 experiments/Dong/site/ 或 experiments/Dong/briefs/ 改动时跑，
+# 不会因为其他成员的 commit 重复触发。
+
+name: Deploy Dong's site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/Dong/site/**'
+      - 'experiments/Dong/briefs/**'
+      - '.github/workflows/deploy-dong-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-dong-pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: experiments/Dong/site/package-lock.json
+
+      - name: Install
+        working-directory: experiments/Dong/site
+        run: npm ci
+
+      - name: Build
+        working-directory: experiments/Dong/site
+        env:
+          PUBLIC_BASE: /DeepDive/Dong/
+          PUBLIC_SITE: https://boris-hbx.github.io
+        run: npm run build
+
+      - name: Deploy to gh-pages /Dong/
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: experiments/Dong/site/dist
+          destination_dir: Dong
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'deploy(Dong): ${{ github.sha }}'

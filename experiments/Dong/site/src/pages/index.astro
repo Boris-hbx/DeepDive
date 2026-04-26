@@ -19,7 +19,7 @@ const briefs = Object.entries(modules)
     <ul class="brief-list">
       {briefs.map((b) => (
         <li>
-          <a href={`/briefs/${b.slug}/`}><strong>{b.slug}</strong></a>
+          <a href={`${import.meta.env.BASE_URL}briefs/${b.slug}/`}><strong>{b.slug}</strong></a>
         </li>
       ))}
     </ul>
