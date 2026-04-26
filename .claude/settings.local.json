@@ -27,7 +27,13 @@
       "Read(//tmp/**)",
       "Read(//tmp/Skill_Seekers/**)",
       "Bash(git status *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git config *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(git commit *)"
     ]
   }
 }
