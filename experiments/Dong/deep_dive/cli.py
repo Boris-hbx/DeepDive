@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 from datetime import date
 from pathlib import Path
 
@@ -13,6 +14,24 @@ from .render import run as run_render
 from .summarize import DEFAULT_MODEL as DEFAULT_SUM_MODEL, run as run_summarize
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def _load_env_file() -> None:
+    """读 experiments/Dong/.env 注入 os.environ；shell 已设的优先，不被覆盖。
+    空值跳过——避免把 `KEY=` 这种模板行覆盖成空字符串（比未设置还糟）。
+    """
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and value and key not in os.environ:
+            os.environ[key] = value
 
 
 def cmd_fetch(args: argparse.Namespace) -> None:
@@ -65,6 +84,7 @@ def cmd_render(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    _load_env_file()
     logging.basicConfig(
         level=logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",

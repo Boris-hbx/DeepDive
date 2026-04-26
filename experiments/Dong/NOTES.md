@@ -92,8 +92,16 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 # 第一次安装
 cd experiments/Dong && uv sync
 
-# 拉今天的所有源（写到 data/<today>/raw.json）
+# 配置 LLM 凭证（首次）—— 见下面「环境变量」一节
+cp .env.example .env
+# 编辑 .env 填 ANTHROPIC_API_KEY（+ 走代理时也填 ANTHROPIC_BASE_URL）
+
+# 端到端跑当日 brief
 uv run python -m deep_dive fetch
+uv run python -m deep_dive dedup
+uv run python -m deep_dive rank          # 加 --dry-run 不调 LLM
+uv run python -m deep_dive summarize     # 加 --dry-run 不调 LLM
+uv run python -m deep_dive render        # 不调 LLM
 
 # 跑站点（本地预览）
 cd site && npm run dev
@@ -104,6 +112,9 @@ cd site && npm run build
 
 环境变量：
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...   # rank / summarize 阶段需要
-```
+| 变量 | 必需 | 说明 |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | rank / summarize 阶段必需（render / fetch / dedup 不需要） | Anthropic 或代理给的 key |
+| `ANTHROPIC_BASE_URL` | 走第三方代理时必需 | 代理域名 + `/v1`，例如 `https://example.com/v1` |
+
+加载顺序：`cli.py` 启动时读 `experiments/Dong/.env` 注入 `os.environ`，**shell 里已 export 的优先**（方便临时调试用别的 key）。`.env` 已被 `.gitignore` 排除。
