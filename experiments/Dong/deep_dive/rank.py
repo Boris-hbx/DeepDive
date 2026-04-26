@@ -15,13 +15,18 @@ log = logging.getLogger(__name__)
 
 SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "rank_system.md"
 
+_THINKING_RE = re.compile(r"<thinking>.*?</thinking>", re.DOTALL | re.IGNORECASE)
 _JSON_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*\n?|\n?```\s*$", re.MULTILINE)
 _JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
 
 
 def _extract_json(text: str) -> dict:
-    text = text.strip()
+    # 1. 剥掉 <thinking>...</thinking> 块（某些 OpenAI 兼容代理把 Anthropic 的
+    #    extended thinking 内容 inline 成 XML 标签返回；不剥会让贪婪 JSON regex 走偏）
+    text = _THINKING_RE.sub("", text).strip()
+    # 2. 剥掉 ```json ... ``` 围栏
     text = _JSON_FENCE_RE.sub("", text).strip()
+    # 3. 如果不是裸 JSON，找最外层 {...}
     if not text.startswith("{"):
         m = _JSON_OBJECT_RE.search(text)
         if m:
@@ -63,7 +68,9 @@ def _score_item_real(client, item: Item, system_prompt: str, retries: int = 1) -
         result = client.complete(
             system=system_prompt,
             user=_format_user_prompt(item),
-            max_tokens=256,
+            # max_tokens 给 1024 而非 ~50（实际 JSON 长度）：留预算给 OpenAI 兼容协议下
+            # 部分模型（如 Gemini 2.5 Flash）的 thinking。Anthropic 不会用满，无副作用。
+            max_tokens=1024,
         )
         usage = {
             "input_tokens": result.input_tokens,

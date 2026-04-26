@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+import logging
 import os
+import re
+import time
 
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 
 from .base import LLMResult
+
+log = logging.getLogger(__name__)
+
+# 从 RateLimitError 错误信息里提取 retry_delay（秒）。Gemini 的 retryDelay 字段格式 '47s'。
+_RETRY_DELAY_RE = re.compile(r"retryDelay['\"]?\s*[:=]\s*['\"]?(\d+)s")
 
 
 class OpenAIBackend:
@@ -28,6 +36,14 @@ class OpenAIBackend:
         api_key = os.environ.get("OPENAI_API_KEY")
         base_url = os.environ.get("OPENAI_BASE_URL")
         model = os.environ.get("OPENAI_MODEL", "").strip()
+        # 主动节流：每次请求间至少间隔 N 秒。
+        # Gemini AI Studio Free Tier 5 RPM → 设 13 秒（留点 margin）。
+        # 付费档 / 其他厂商一般不限速 → 默认 0。
+        self.min_interval = float(os.environ.get("OPENAI_MIN_REQUEST_INTERVAL", "0"))
+        # 推理深度。OpenAI 标准参数，Gemini 2.5 系列也支持。
+        # 我们的 rank/summarize 都是简单分类/摘要任务，none/minimal 即可，避免 thinking 吃光 max_tokens。
+        # 不支持此参数的厂商：留空（默认）即可。
+        self.reasoning_effort = os.environ.get("OPENAI_REASONING_EFFORT", "").strip() or None
 
         if not api_key:
             raise SystemExit("OPENAI_API_KEY 未设置")
@@ -40,6 +56,31 @@ class OpenAIBackend:
         self.model = model
         # base_url=None 时 OpenAI SDK 用官方默认（api.openai.com）
         self._client = OpenAI(api_key=api_key, base_url=base_url or None)
+        self._last_request_at: float = 0.0
+
+    def _throttle(self) -> None:
+        if self.min_interval <= 0:
+            return
+        elapsed = time.monotonic() - self._last_request_at
+        wait = self.min_interval - elapsed
+        if wait > 0:
+            time.sleep(wait)
+        self._last_request_at = time.monotonic()
+
+    def _create_with_long_retry(self, **kwargs):
+        """SDK 默认 backoff 太短（< 1s），手动加一层针对 429 的长 sleep + 重试。"""
+        for attempt in range(3):
+            self._throttle()
+            try:
+                return self._client.chat.completions.create(**kwargs)
+            except RateLimitError as e:
+                msg = str(e)
+                m = _RETRY_DELAY_RE.search(msg)
+                wait = (int(m.group(1)) + 2) if m else 30
+                if attempt == 2:
+                    raise
+                log.warning("429 rate limit，等待 %ds 后重试（%d/3）", wait, attempt + 2)
+                time.sleep(wait)
 
     def complete(
         self,
@@ -49,14 +90,17 @@ class OpenAIBackend:
         max_tokens: int,
         cache_system: bool = True,  # noqa: ARG002 — OpenAI 兼容协议无显式 cache
     ) -> LLMResult:
-        response = self._client.chat.completions.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            messages=[
+        kwargs = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-        )
+        }
+        if self.reasoning_effort:
+            kwargs["reasoning_effort"] = self.reasoning_effort
+        response = self._create_with_long_retry(**kwargs)
 
         choice = response.choices[0]
         text = choice.message.content or ""

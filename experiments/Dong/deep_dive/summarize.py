@@ -13,18 +13,32 @@ log = logging.getLogger(__name__)
 
 SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "summarize_system.md"
 
+_THINKING_RE = re.compile(r"<thinking>.*?</thinking>", re.DOTALL | re.IGNORECASE)
 _JSON_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*\n?|\n?```\s*$", re.MULTILINE)
 _JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
+# Fallback：模型在中文里经常用未转义双引号做强调（"模型卡死"）破坏 JSON。
+# 用这两个 regex 直接抓字段值——这个版本只关注 short / long 两个 key。
+_SHORT_RE = re.compile(r'"short"\s*:\s*"(.*?)"\s*,\s*"long"', re.DOTALL)
+_LONG_RE = re.compile(r'"long"\s*:\s*"(.*)"\s*}', re.DOTALL)
 
 
 def _extract_json(text: str) -> dict:
-    text = text.strip()
+    # 同 rank.py：先剥 <thinking>，再剥 ``` 围栏，再找 JSON
+    text = _THINKING_RE.sub("", text).strip()
     text = _JSON_FENCE_RE.sub("", text).strip()
     if not text.startswith("{"):
         m = _JSON_OBJECT_RE.search(text)
         if m:
             text = m.group(0)
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Fallback：直接 regex 抠 short/long。仅对 summarize 的 schema 有效。
+        s_m = _SHORT_RE.search(text)
+        l_m = _LONG_RE.search(text)
+        if s_m and l_m:
+            return {"short": s_m.group(1), "long": l_m.group(1)}
+        raise
 
 
 @dataclass
@@ -67,7 +81,8 @@ def _summarize_real(client, item: dict, system_prompt: str, retries: int = 1) ->
         result = client.complete(
             system=system_prompt,
             user=_format_user_prompt(item),
-            max_tokens=512,
+            # 同 rank.py：留 thinking 预算
+            max_tokens=2048,
         )
         usage = {
             "input_tokens": result.input_tokens,
