@@ -101,7 +101,36 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 
 ## 如果再来一次
 
-（待复盘）
+> 这一周踩坑 / 顺手 / 反思的总结，按"该改 vs 该坚持"两类。
+
+### 该改的
+
+1. **spec 锁定前先 ping 一遍信息源 / API URL**——这周两次踩坑都是"spec 锁定后才发现前提失效"：
+   (a) Anthropic 锁进 5 源后 fetch 才发现没公开 RSS；
+   (b) yibuapi 配进 .env 才发现是 Code 共享池不是 API 中转。
+   每次成本：半天到一天的回退 + 决策记录。
+   投入：spec 锁定前 30 秒 `curl -I <url>` + 看代理官网"按 token 还是按月"。
+   **30 秒 vs 半天**——下次必做。
+
+2. **抽象层早做，在引入第二个候选前**——rank.py 第一版直接 `from anthropic import Anthropic`，撞上 yibuapi 才补 `deep_dive/llm/`。补抽象的成本不大（150 行），但**重写两个调用点 + 文档对齐 + 改 .env 模板** 比一开始就分层贵。规则：**当你预计 6 个月内可能换某个组件，第一版就分层**。
+
+3. **真 LLM 跑通要早，别等所有阶段写完**——我把 rank → summarize → render 全写完才第一次跑真 LLM。结果一次性暴露了 yibuapi 工具注入、`<thinking>` 包裹、JSON 引号失误三个问题，调一晚上。如果作弊版完工后**第二天就跑真 LLM 单测 rank**，问题会分散在不同时间出现。
+
+4. **prompt 输出格式默认走"无 schema 强制"假设**——`output_config.format` 在 Anthropic 直访可靠，走兼容代理立刻失效。下次直接默认"prompt 引导 JSON + parser 容错（剥围栏 / 剥 thinking / regex fallback）"，不要先吃强制 schema 的甜头再痛苦回退。
+
+5. **作弊版输出物要和真版隔离**——首次自动 render 直接冲掉了我手敲的 brief（git 还在但 working tree 没了），差点丢 truth source。下次：作弊版输出走不同文件名（如 `cheat-YYYY-MM-DD.md`），或者 render 写前检查"目标是否被手动改过"。
+
+6. **NOTES.md 当工作日志写，不要事后补**——「出乎意料的事」我都是事后回忆补的，肯定漏了细节。下次每跑通一个阶段当场写两行。
+
+### 该坚持的
+
+7. **dry-run 是必备而非可选**——rank/summarize 都带 `--dry-run` 用 mock 跑通管道，让我在没 API key 时验证下游逻辑、在 yibuapi 排错时不烧 quota 验证 brief 渲染。这是这周最关键的工程决策之一。
+
+8. **作弊版优先**——spec 第 6 条开放问题选了"先 1 篇手敲打通端到端"。半小时见到端到端结果带来的心理安全感，比按部就班铺架构强 10 倍。下个项目继续这么干。
+
+9. **输出契约硬约束 + 其他全自由**——MVP spec 只锁 brief 文件位置和章节结构，技术栈/信息源/流水线全交给个人。这让我能"边做边换思路"（dedup 改窗口、加 fallback parser、换 backend）而不破坏对外承诺。下周 8 人横向对比也能对得上。
+
+10. **spec-first 流程值回票价**——8 次决策点（信息源、技术栈、是否抽象、yibuapi 解决方案、Gemini vs DeepSeek、…）每次都是先列选项再问 Dong 拍板，避免了 AI 自说自话走偏。代价是来回多几次，但每次都是正确决策。下次照搬。
 
 ## 跑步指南（自用）
 
