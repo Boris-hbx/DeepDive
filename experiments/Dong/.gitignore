@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.uv/
+.python-version
+
+# Node / Astro
+node_modules/
+site/dist/
+site/.astro/
+
+# Data — 只保留每日 ranked.json 作为决策痕迹（手动 git add）
+data/*/raw.json
+data/*/deduped.json
+data/*/summaries.json
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store

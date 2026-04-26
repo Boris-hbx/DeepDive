@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+
+const modules = import.meta.glob('../../../briefs/*.md', { eager: true });
+const briefs = Object.entries(modules)
+  .map(([path, mod]) => {
+    const slug = path.split('/').pop().replace('.md', '');
+    return { slug, frontmatter: (mod as any).frontmatter ?? {} };
+  })
+  .sort((a, b) => b.slug.localeCompare(a.slug));
+---
+<Base title="Daily Briefs">
+  <h1>DeepDive — Daily Briefs</h1>
+  <p class="meta">每天 5 分钟，看完 Agentic Software Engineering 当日值得关注的事。</p>
+
+  {briefs.length === 0 ? (
+    <p>还没有 brief。运行流水线后再来。</p>
+  ) : (
+    <ul class="brief-list">
+      {briefs.map((b) => (
+        <li>
+          <a href={`/briefs/${b.slug}/`}><strong>{b.slug}</strong></a>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>

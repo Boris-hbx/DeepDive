@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const modules = import.meta.glob('../../../../briefs/*.md', { eager: true });
+  return Object.entries(modules).map(([path, mod]: [string, any]) => {
+    const slug = path.split('/').pop()!.replace('.md', '');
+    return {
+      params: { slug },
+      props: { Content: mod.Content ?? mod.default, frontmatter: mod.frontmatter ?? {} },
+    };
+  });
+}
+
+const { Content } = Astro.props;
+const { slug } = Astro.params;
+---
+<Base title={slug}>
+  <Content />
+</Base>
