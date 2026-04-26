@@ -66,12 +66,24 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 
 ## 成本 / 时延
 
-（待跑过完整流水线后填）
+首跑 2026-04-26（5 源 → 1078 raw → 27 deduped → 11 summaries → 1 brief）：
 
-记录维度：
-- 每跑一次的总 token（input/output 分开）
-- 每跑一次的耗时（fetch / LLM / render 各占多少）
-- 用 prompt caching 后的命中率
+| 阶段 | 耗时 | input | cache_read | output | 备注 |
+|---|---|---|---|---|---|
+| fetch | <30s | — | — | — | 5 源全 200 |
+| dedup | <1s | — | — | — | 1078→27（window=3 天）|
+| **rank** (Opus 4.6, 27 次) | **5:29** | 32,598 | 13,134 | 12,075 | 1 次 SDK 自动重试，27/27 成功 |
+| **summarize** (Opus 4.6, 11 次) | **2:51** | 12,917 | 5,122 | 7,735 | 1 次 SDK 自动重试，11/11 成功 |
+| render | <1s | — | — | — | 纯 Python |
+| **LLM 阶段合计** | **8:20** | **45,515** | **18,256** | **19,810** | cache 命中 **40%** |
+
+按 Anthropic Opus 4.6 标牌价（input $5/1M, output $25/1M）粗估 **<$0.7**。代理实际计费看 yibuapi dashboard。
+
+观察：
+- 每条 output 偏多（300-700 tokens），主因是 Opus 4.6 默认开 thinking 把推理内容包在 `<thinking>` XML 里 inline 返回；`reasoning_effort=none` 被代理忽略关不掉
+- cache 命中率 40% 说明代理透传了 OpenAI 兼容协议下的 prompt caching；首条写、后续读
+- 主要瓶颈在 LLM 调用（rank+summarize 各占一半），fetch/dedup/render 加起来不到 1 秒——**真要并发 LLM 调用，时间能再压一半**
+- 第一次完整跑通后做横向对比：和 dry-run 跑出来的 mock brief 比，真 LLM 把 8 条 Codex 文档**正确合并降权到 score=2**（mock 全打 4 分），单这一点就证明真 LLM 的 rank 远比规则强
 
 ## 出乎意料的事
 
@@ -83,6 +95,9 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 6. **同一时间戳批量发布**会让 dedup 错把"一次文档站发布"当 N 条独立信号：04-23 10:00 OpenAI 一次性推了 8 条 Codex 文档到 RSS。标题 fuzzy 匹配抓不住（标题都不一样），但靠"同源 + 同时戳" 可以。这条留给 rank 阶段用 LLM 处理（让模型理解"这 8 条是同一事件"），先不在 dedup 里硬编码规则。
 7. **"Claude API 中转代理"分两类，长得一样但本质不同**：(a) **API 转发型**——按 token 计费，纯透明转发，能用；(b) **Claude Code 共享池型**（如 yibuapi.com）——背后是转售 Claude Pro 终端额度，给每个请求强行注入 Claude Code 工具集、替换 system prompt、忽略 `tool_choice=none`，从客户端**完全无法绕开**。我们撞上了 (b)，用 9 种请求形状全失败。教训：选代理时关键词要找"Anthropic API 中转 按量计费"，**不要**找"Claude Code 包月共享"。这次踩坑的直接产物是引入了 LLM 后端抽象层（`deep_dive/llm/`），从此换 backend 只改 env 不改代码。
 8. **过度抽象的诱惑 vs 踩坑后的正确投资**：在写第一版 rank.py 时我没做后端抽象，因为"现在只用 Anthropic"。yibuapi 坑出现后才补抽象层——~150 行代码，但回报是"以后任何代理 / 模型问题都只动 env"。教训：**当你预计可能要换/对比某个组件时**，抽象不算过度设计；**当你 pretty sure 不会换**时，YAGNI 优先。这次的判断点是"团队还在评估模型"——抽象就值得。
+9. **同一个代理走不同协议端点结果完全不同**：yibuapi.com 走 Anthropic 原生协议（`/v1/messages`）被它注入 Bash 工具集导致永远返回 `tool_use`；切到 OpenAI 兼容协议（`/v1/chat/completions`）后正常工作——OpenAI 协议无 `tool_use` 概念，代理无从注入。这意味着 LLM 抽象层不只是"换厂商"用，**同一个厂商的不同 API 协议端点也能用来绕坑**。代价：失去 Anthropic 独占特性（messages.create 的细节、cache_control 显式控制），但 OpenAI 兼容协议下 prompt caching 仍透传（实测命中率 40%）。
+10. **OpenAI 兼容代理把 Anthropic thinking 内容 inline 在 `<thinking>` XML 里返回**：Claude Opus 4.6 默认开 adaptive thinking，走 OpenAI 兼容协议时代理把推理内容用 `<thinking>...</thinking>` 标签 inline 进文本响应。我们 `_extract_json` 必须先剥这个块再找 JSON。`reasoning_effort=none` 参数代理直接忽略，关不掉 thinking。
+11. **中文 long 摘要里模型容易用未转义双引号做强调**（"模型卡死"），破坏 JSON 边界让 `json.loads` 挂掉。两层防御：(a) summarize prompt 加引号禁令告诉模型"用中文「」/《》代替"；(b) 解析失败时 fallback 用 regex 直接抠 short/long 字段。两条单独都不够稳，叠加才行。
 
 ## 如果再来一次
 
