@@ -214,6 +214,72 @@ Anthropic 直访（spec 默认）和 yibuapi 走 OpenAI 兼容协议都验证了
 
 10. **spec-first 流程值回票价**——8 次决策点（信息源、技术栈、是否抽象、yibuapi 解决方案、Gemini vs DeepSeek、…）每次都是先列选项再问 Dong 拍板，避免了 AI 自说自话走偏。代价是来回多几次，但每次都是正确决策。下次照搬。
 
+## 对 mvp.md 6 个开放问题的回答
+
+> mvp.md 末尾"开放问题"6 条 —— 每人各自回答，分享会对比用。
+
+### 1. 抓取阶段怎么处理失败 / 限流？
+
+- **RSS 源**：每源独立 try/except，单源失败记 warn 跳过，其他源继续；httpx `follow_redirects=True` 处理 OpenAI 的 307 重定向到 `/news/rss.xml`
+- **LLM 限流（429）**：OpenAI backend 主动节流（`OPENAI_MIN_REQUEST_INTERVAL` 秒间隔）+ 解析错误体里的 `retryDelay` 字段做长 sleep + 重试 3 次；单条最终失败 → graceful skip
+- **未踩坑**：5 个 RSS 源都没限流；Gemini Free Tier 撞过 RPM/RPD 双重限制
+
+### 2. 去重用什么策略？
+
+四层叠加，从粗到细：
+1. **日期窗口过滤**（默认 3 天）：先把 OpenAI 这种"918 条历史全量"砍到几十条
+2. **URL 规范化**（小写 host、去 fragment、去 utm_*/ref/fbclid 等 tracking 参数、去末尾斜杠）+ 精确去重
+3. **标题 fuzzy**（rapidfuzz `token_set_ratio` ≥ 85）—— 同事件不同源的转引（极少）
+4. **同事件批量发布**：交给 LLM rank 阶段处理（system prompt 里写"同源同时戳的批量发布按聚合视角降级"），实测 8 条 OpenAI Codex 文档被识别合并降权到 score=2
+
+未做：embedding 聚类——spec 明确推迟。
+
+### 3. "重要性"如何判定？
+
+**LLM 评分 + 阈值**，不混合规则：
+
+- 每条独立调 LLM 输出 `{score: 1-5, reason: 一句话}`
+- system prompt 详写：5 档定义、边界 case（边缘相关 / 不在范围）、6 条评分原则（新颖性优先权威性、批量发布合并、过期信号降级、不确定时倾向低分等）
+- 阈值：≥4 「最关注」/ =3 「值得一看」/ <3 丢弃；空数据时走兜底文案
+
+为什么不混规则：spec 明确"什么算重要交给每人定义" → 全交给 LLM 让定义体现在 prompt 里，规则会让边界 case 变难调
+
+### 4. 如何确保每条要点原文链接准确（不串源、不幻觉 URL）？
+
+**URL 全程从 fetch 阶段透传，LLM 看到 URL 但不写 URL**：
+
+- fetch → raw.json：URL 是 `feedparser` 拿的源 RSS `link` 字段，原值
+- rank/summarize 的输入 user prompt 里有 URL，但**output schema 不含 URL 字段**（rank 输出 score+reason，summarize 输出 short+long）
+- prompt 里明确："不要在 short 或 long 里放 URL"
+- render 阶段从 summaries.json 的 `url` 字段直接拼 markdown 链接，零 LLM 介入
+
+这是本周最重要的工程判断之一（详见 NOTES.md Prompt 思路 → LLM 自由度）。
+
+### 5. Prompt 一次性出 brief vs. 多步分解，哪个更好？
+
+**多步分解，明显胜出**。
+
+拆成 rank → summarize → render，理由：
+- 单次任务越简单模型越听话；一次性吐 brief 容易出 JSON 截断、漏链接、漏分类
+- 中间产物落盘 → 任意步独立可重跑（实测 yibuapi 排错时只重跑 rank 不需要重 fetch）
+- system prompt 在每步内是固定的 → caching 命中率 40%
+
+代价：N 次调用比 1 次贵 token、慢，但本任务（27 条）成本仍 <$0.7。
+
+### 6. 静态站点用什么工具？
+
+**Astro 5**。
+
+- `import.meta.glob('../../../briefs/*.md', { eager: true })` 直接吃跨目录 markdown，零 content collection 配置
+- 默认 SSG（无运行时），适合 GitHub Pages
+- `base` + `trailingSlash: 'always'` 让子路径部署（`/DeepDive/Dong/`）干净
+
+部署：本地 `npm run dev`（开发）+ GH Actions push 到 `gh-pages/Dong/`（公开预览，等 Boris 启 Pages）。
+
+未选 11ty / 手写 HTML / 纯 Markdown viewer：Astro 的"接近零配置就有像样默认样式"对一周 MVP 最划算。
+
+---
+
 ## 跑步指南（自用）
 
 ```bash
