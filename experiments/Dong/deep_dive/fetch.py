@@ -44,17 +44,30 @@ def _parse_date(s: str | None) -> str | None:
     return dt.astimezone(timezone.utc).isoformat()
 
 
-def _fetch_one(source: Source, client: httpx.Client) -> list[Item]:
-    try:
-        resp = client.get(
-            source.url,
-            headers={"User-Agent": USER_AGENT},
-            timeout=TIMEOUT,
-            follow_redirects=True,
-        )
-        resp.raise_for_status()
-    except httpx.HTTPError as e:
-        log.warning("fetch failed for %s (%s): %s", source.name, source.url, e)
+def _fetch_one(source: Source, client: httpx.Client, max_attempts: int = 3) -> list[Item]:
+    """单源拉取，含 per-source retry（应对 SSL handshake / 短暂连接重置等不稳定）。"""
+    import time
+    last_err: Exception | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            resp = client.get(
+                source.url,
+                headers={"User-Agent": USER_AGENT},
+                timeout=TIMEOUT,
+                follow_redirects=True,
+            )
+            resp.raise_for_status()
+            break
+        except httpx.HTTPError as e:
+            last_err = e
+            if attempt < max_attempts:
+                wait = 2 ** (attempt - 1)  # 1, 2, 4 秒
+                log.warning("fetch %s 第 %d/%d 次失败 (%s)，%ds 后重试", source.name, attempt, max_attempts, e, wait)
+                time.sleep(wait)
+            else:
+                log.warning("fetch failed for %s (%s) after %d attempts: %s", source.name, source.url, max_attempts, e)
+                return []
+    else:  # pragma: no cover — for-else 触发当 break 没发生
         return []
 
     feed = feedparser.parse(resp.content)

@@ -20,3 +20,13 @@ sources:
 
   - name: latent-space
     url: https://www.latent.space/feed
+
+  # 2026-04-26 扩源：补充工程实践 / 行业讨论 / 工具厂商三个新维度
+  - name: pragmatic-engineer
+    url: https://newsletter.pragmaticengineer.com/feed.xml
+
+  - name: hackernews
+    url: https://news.ycombinator.com/rss
+
+  - name: continue-dev
+    url: https://github.com/continuedev/continue/releases.atom

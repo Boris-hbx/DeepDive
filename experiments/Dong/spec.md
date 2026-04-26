@@ -64,7 +64,9 @@ mvp.md 已有的（沿用）：
 
 候选清单（按"信噪比"粗排）：
 
-**已选定 5 个核心源**（2026-04-26 锁定，2026-04-26 修正 1 项）：
+**已选定 8 个源**（2026-04-26 锁定，当天修正 1 项 + 当天扩 3 个）：
+
+核心 5（最初锁定）：
 
 - [x] **DeepMind blog** — `https://deepmind.google/blog/rss.xml` _（2026-04-26 替换 Anthropic：实测 Anthropic 无公开 RSS）_
 - [x] **OpenAI blog** — `https://openai.com/blog/rss.xml`（实测会重定向到 `/news/rss.xml`，httpx follow_redirects 已处理）
@@ -72,7 +74,13 @@ mvp.md 已有的（沿用）：
 - [x] **GitHub Blog** — `https://github.blog/feed/`
 - [x] **Latent Space (Swyx)** — `https://www.latent.space/feed`
 
-**未选**（备查）：HN front page、Pragmatic Engineer、Cursor、LangChain、Anthropic Twitter、arXiv —— 第二周复盘后视情况扩。
+扩 3（2026-04-26 加，按"工程实践 / 行业讨论 / 工具厂商"三个新维度）：
+
+- [x] **Pragmatic Engineer**（Gergely Orosz 工程实践博客）— `https://newsletter.pragmaticengineer.com/feed.xml`
+- [x] **Hacker News frontpage**（行业广度信号；噪声多由 ranker 过滤）— `https://news.ycombinator.com/rss`
+- [x] **Continue.dev releases**（开源 IDE agent 头部工具的 release atom）— `https://github.com/continuedev/continue/releases.atom`
+
+**未选**（备查）：Cursor blog（无 RSS）、LangChain、Anthropic Twitter、arXiv、Aider releases、Eugene Yan、Lilian Weng、HuggingFace —— 后续按 ranker 信号密度反推增减。
 **待解决**：Anthropic 模型/产品动态目前依赖 Simon Willison 转引覆盖，如需直接源得做 HTML scrape。
 
 ## 流水线设计（**建议方案，待 Dong 改**）
