@@ -3,31 +3,30 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .fetch import Item
+from .llm import get_client
 
 log = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "claude-sonnet-4-6"
 SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "rank_system.md"
 
-OUTPUT_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "score": {
-            "type": "integer",
-            "description": "重要性评分，整数 1-5（5=必看，1=几乎无关）",
-        },
-        "reason": {
-            "type": "string",
-            "description": "中文一句话理由，<= 50 字，具体说明为什么是这个分",
-        },
-    },
-    "required": ["score", "reason"],
-    "additionalProperties": False,
-}
+_JSON_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*\n?|\n?```\s*$", re.MULTILINE)
+_JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
+
+
+def _extract_json(text: str) -> dict:
+    text = text.strip()
+    text = _JSON_FENCE_RE.sub("", text).strip()
+    if not text.startswith("{"):
+        m = _JSON_OBJECT_RE.search(text)
+        if m:
+            text = m.group(0)
+    return json.loads(text)
 
 
 @dataclass
@@ -43,69 +42,57 @@ class RankedItem:
 
 
 def _format_user_prompt(item: Item) -> str:
+    today = datetime.now(timezone.utc).date().isoformat()
     return (
+        f"今日日期（UTC）：{today}\n\n"
         f"待评分条目（仅一条）：\n\n"
         f"- 来源：{item.source}\n"
         f"- 发布时间：{item.published_iso or item.published or '未知'}\n"
         f"- 标题：{item.title}\n"
         f"- URL：{item.url}\n"
         f"- 摘要（来自源 RSS）：{item.summary[:600] if item.summary else '（无）'}\n\n"
-        f"请按系统提示中的标准给出 1-5 整数评分和一句中文理由，输出符合 schema 的 JSON。"
+        f"按系统提示中的标准评分。直接返回 JSON，不要任何前后文字、不要代码块标记、不要调用任何工具，schema：\n"
+        f'{{"score": <1-5 整数>, "reason": "<中文一句话，≤50 字>"}}'
     )
 
 
-def _score_item_real(client, item: Item, system_prompt: str, model: str) -> tuple[int, str, dict]:
-    response = client.messages.create(
-        model=model,
-        max_tokens=256,
-        system=[
-            {
-                "type": "text",
-                "text": system_prompt,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[{"role": "user", "content": _format_user_prompt(item)}],
-        output_config={"format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}},
-    )
-    text = next(b.text for b in response.content if b.type == "text")
-    data = json.loads(text)
-    usage = {
-        "input_tokens": response.usage.input_tokens,
-        "cache_read_input_tokens": getattr(response.usage, "cache_read_input_tokens", 0) or 0,
-        "cache_creation_input_tokens": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
-        "output_tokens": response.usage.output_tokens,
-    }
-    return int(data["score"]), str(data["reason"]), usage
+def _score_item_real(client, item: Item, system_prompt: str, retries: int = 1) -> tuple[int, str, dict]:
+    last_err: Exception | None = None
+    last_text: str = ""
+    for attempt in range(retries + 1):
+        result = client.complete(
+            system=system_prompt,
+            user=_format_user_prompt(item),
+            max_tokens=256,
+        )
+        usage = {
+            "input_tokens": result.input_tokens,
+            "cache_read_input_tokens": result.cache_read_tokens,
+            "cache_creation_input_tokens": result.cache_creation_tokens,
+            "output_tokens": result.output_tokens,
+        }
+        last_text = result.text
+        try:
+            data = _extract_json(result.text)
+            return int(data["score"]), str(data["reason"]), usage
+        except (json.JSONDecodeError, KeyError, ValueError, TypeError) as e:
+            last_err = e
+            log.warning("[尝试 %d/%d] JSON 解析失败 (%s)，原文: %s", attempt + 1, retries + 1, e, result.text[:200])
+    raise RuntimeError(f"rank 解析失败（{retries + 1} 次尝试）。最后原文: {last_text!r}") from last_err
 
 
 _MOCK_HIGH_KEYWORDS = (
-    "gpt-5",
-    "gpt-6",
-    "claude",
-    "anthropic",
-    "codex",
-    "deepseek",
-    "agent",
-    "coding",
-    "mcp",
-    "tool use",
+    "gpt-5", "gpt-6", "claude", "anthropic", "codex", "deepseek", "agent", "coding", "mcp", "tool use",
 )
 
 
 def _score_item_mock(item: Item) -> tuple[int, str]:
-    """Deterministic placeholder scoring for --dry-run."""
     title_lower = item.title.lower()
     if any(kw in title_lower for kw in _MOCK_HIGH_KEYWORDS):
-        score = 4
-        reason = "[mock] 标题命中 agentic 关键词，--dry-run 占位"
-    elif item.source in ("openai", "deepmind"):
-        score = 3
-        reason = "[mock] 官方源但标题无强信号，--dry-run 占位"
-    else:
-        score = 2
-        reason = "[mock] 默认低分，--dry-run 占位"
-    return score, reason
+        return 4, "[mock] 标题命中 agentic 关键词，--dry-run 占位"
+    if item.source in ("openai", "deepmind"):
+        return 3, "[mock] 官方源但标题无强信号，--dry-run 占位"
+    return 2, "[mock] 默认低分，--dry-run 占位"
 
 
 def _load_deduped(path: Path) -> list[Item]:
@@ -120,7 +107,7 @@ def _write_ranked(items: list[RankedItem], path: Path) -> None:
     )
 
 
-def run(in_path: Path, out_path: Path, model: str, dry_run: bool) -> None:
+def run(in_path: Path, out_path: Path, dry_run: bool, backend: str | None = None) -> None:
     items = _load_deduped(in_path)
     log.info("loaded %d deduped items", len(items))
 
@@ -132,19 +119,13 @@ def run(in_path: Path, out_path: Path, model: str, dry_run: bool) -> None:
             score, reason = _score_item_mock(it)
             ranked.append(RankedItem(**asdict(it), score=score, reason=reason))
     else:
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            raise SystemExit(
-                "ANTHROPIC_API_KEY 未设置。请 export ANTHROPIC_API_KEY=... 后重试，"
-                "或加 --dry-run 跑占位评分。"
-            )
-        from anthropic import Anthropic
+        client = get_client(backend=backend)
+        log.info("LLM backend: %s, model: %s", client.name, getattr(client, "model", "?"))
 
         system_prompt = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
-        client = Anthropic()
-
         totals = {"input": 0, "cache_read": 0, "cache_create": 0, "output": 0}
         for i, it in enumerate(items, 1):
-            score, reason, usage = _score_item_real(client, it, system_prompt, model)
+            score, reason, usage = _score_item_real(client, it, system_prompt)
             ranked.append(RankedItem(**asdict(it), score=score, reason=reason))
             totals["input"] += usage["input_tokens"]
             totals["cache_read"] += usage["cache_read_input_tokens"]
@@ -152,20 +133,13 @@ def run(in_path: Path, out_path: Path, model: str, dry_run: bool) -> None:
             totals["output"] += usage["output_tokens"]
             log.info(
                 "[%d/%d] score=%d  cache_read=%d  input=%d  output=%d  | %s",
-                i,
-                len(items),
-                score,
-                usage["cache_read_input_tokens"],
-                usage["input_tokens"],
-                usage["output_tokens"],
+                i, len(items), score,
+                usage["cache_read_input_tokens"], usage["input_tokens"], usage["output_tokens"],
                 it.title[:60],
             )
         log.info(
             "totals: input=%d  cache_read=%d  cache_create=%d  output=%d",
-            totals["input"],
-            totals["cache_read"],
-            totals["cache_create"],
-            totals["output"],
+            totals["input"], totals["cache_read"], totals["cache_create"], totals["output"],
         )
 
     ranked.sort(key=lambda r: (-r.score, r.published_iso or ""))

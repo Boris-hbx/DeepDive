@@ -9,9 +9,9 @@ from pathlib import Path
 from .config import load_sources
 from .dedup import run as run_dedup
 from .fetch import fetch_all
-from .rank import DEFAULT_MODEL as DEFAULT_RANK_MODEL, run as run_rank
+from .rank import run as run_rank
 from .render import run as run_render
-from .summarize import DEFAULT_MODEL as DEFAULT_SUM_MODEL, run as run_summarize
+from .summarize import run as run_summarize
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -55,7 +55,7 @@ def cmd_rank(args: argparse.Namespace) -> None:
     day_dir = ROOT / "data" / day
     in_path = day_dir / "deduped.json"
     out_path = day_dir / "ranked.json"
-    run_rank(in_path, out_path, args.model, args.dry_run)
+    run_rank(in_path, out_path, args.dry_run, backend=args.backend)
     print(out_path)
 
 
@@ -64,7 +64,7 @@ def cmd_summarize(args: argparse.Namespace) -> None:
     day_dir = ROOT / "data" / day
     in_path = day_dir / "ranked.json"
     out_path = day_dir / "summaries.json"
-    run_summarize(in_path, out_path, args.model, args.dry_run, args.min_score)
+    run_summarize(in_path, out_path, args.dry_run, args.min_score, backend=args.backend)
     print(out_path)
 
 
@@ -121,11 +121,16 @@ def main() -> None:
         help="deduped.json → ranked.json（每条 LLM 1-5 评分 + 一句理由；按分数降序排序）",
     )
     r.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
-    r.add_argument("--model", default=DEFAULT_RANK_MODEL, help=f"模型（默认 {DEFAULT_RANK_MODEL}）")
+    r.add_argument(
+        "--backend",
+        choices=["anthropic", "openai"],
+        default=None,
+        help="LLM 后端，临时覆盖 LLM_BACKEND env（默认读 env，再默认 anthropic）",
+    )
     r.add_argument(
         "--dry-run",
         action="store_true",
-        help="跳过 LLM 调用，使用关键词 mock 评分（不需要 ANTHROPIC_API_KEY）",
+        help="跳过 LLM 调用，使用关键词 mock 评分（不需要 API key）",
     )
     r.set_defaults(func=cmd_rank)
 
@@ -134,7 +139,12 @@ def main() -> None:
         help="ranked.json → summaries.json（对 score>=N 的条目生成中文 short+long 摘要）",
     )
     s.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
-    s.add_argument("--model", default=DEFAULT_SUM_MODEL, help=f"模型（默认 {DEFAULT_SUM_MODEL}）")
+    s.add_argument(
+        "--backend",
+        choices=["anthropic", "openai"],
+        default=None,
+        help="LLM 后端，临时覆盖 LLM_BACKEND env",
+    )
     s.add_argument(
         "--min-score",
         type=int,
@@ -144,7 +154,7 @@ def main() -> None:
     s.add_argument(
         "--dry-run",
         action="store_true",
-        help="跳过 LLM 调用，使用截断式 mock 摘要（不需要 ANTHROPIC_API_KEY）",
+        help="跳过 LLM 调用，使用截断式 mock 摘要（不需要 API key）",
     )
     s.set_defaults(func=cmd_summarize)
 
