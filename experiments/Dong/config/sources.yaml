@@ -1,0 +1,22 @@
+# 信息源清单 — 2026-04-26 第一版
+#
+# name 用于落盘文件名 / 日志，必须 URL 安全（小写、连字符）
+# url 是 RSS / Atom feed 地址
+
+sources:
+  # Anthropic 暂无公开 RSS（2026-04-26 实测 7 个常见路径全 404），
+  # 改用 DeepMind 占模型/产品官方动态这一维度。等 Anthropic 提供 RSS 或换 HTML scrape 方案再换回。
+  - name: deepmind
+    url: https://deepmind.google/blog/rss.xml
+
+  - name: openai
+    url: https://openai.com/blog/rss.xml
+
+  - name: simonwillison
+    url: https://simonwillison.net/atom/everything/
+
+  - name: github
+    url: https://github.blog/feed/
+
+  - name: latent-space
+    url: https://www.latent.space/feed
