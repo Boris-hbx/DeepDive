@@ -9,6 +9,8 @@ from .config import load_sources
 from .dedup import run as run_dedup
 from .fetch import fetch_all
 from .rank import DEFAULT_MODEL as DEFAULT_RANK_MODEL, run as run_rank
+from .render import run as run_render
+from .summarize import DEFAULT_MODEL as DEFAULT_SUM_MODEL, run as run_summarize
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -35,6 +37,30 @@ def cmd_rank(args: argparse.Namespace) -> None:
     in_path = day_dir / "deduped.json"
     out_path = day_dir / "ranked.json"
     run_rank(in_path, out_path, args.model, args.dry_run)
+    print(out_path)
+
+
+def cmd_summarize(args: argparse.Namespace) -> None:
+    day = args.date or date.today().isoformat()
+    day_dir = ROOT / "data" / day
+    in_path = day_dir / "ranked.json"
+    out_path = day_dir / "summaries.json"
+    run_summarize(in_path, out_path, args.model, args.dry_run, args.min_score)
+    print(out_path)
+
+
+def cmd_render(args: argparse.Namespace) -> None:
+    day = args.date or date.today().isoformat()
+    day_dir = ROOT / "data" / day
+    sources = load_sources(ROOT / "config" / "sources.yaml")
+    out_path = ROOT / "briefs" / f"{day}.md"
+    run_render(
+        summaries_path=day_dir / "summaries.json",
+        raw_path=day_dir / "raw.json",
+        sources_count=len(sources),
+        out_path=out_path,
+        date=day,
+    )
     print(out_path)
 
 
@@ -82,6 +108,32 @@ def main() -> None:
         help="跳过 LLM 调用，使用关键词 mock 评分（不需要 ANTHROPIC_API_KEY）",
     )
     r.set_defaults(func=cmd_rank)
+
+    s = sub.add_parser(
+        "summarize",
+        help="ranked.json → summaries.json（对 score>=N 的条目生成中文 short+long 摘要）",
+    )
+    s.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
+    s.add_argument("--model", default=DEFAULT_SUM_MODEL, help=f"模型（默认 {DEFAULT_SUM_MODEL}）")
+    s.add_argument(
+        "--min-score",
+        type=int,
+        default=3,
+        help="最低入选分数（默认 3，只对 score>=3 的生成摘要）",
+    )
+    s.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="跳过 LLM 调用，使用截断式 mock 摘要（不需要 ANTHROPIC_API_KEY）",
+    )
+    s.set_defaults(func=cmd_summarize)
+
+    rd = sub.add_parser(
+        "render",
+        help="summaries.json → briefs/<date>.md（套输出契约模板，不调 LLM）",
+    )
+    rd.add_argument("--date", help="日期（YYYY-MM-DD），默认今天")
+    rd.set_defaults(func=cmd_render)
 
     args = p.parse_args()
     args.func(args)
