@@ -153,4 +153,12 @@ experiments/Dong/
 
 ## 实现备忘
 
-（实现过程中追加）
+> 实现期的元决策快速汇总，**详细原因和经验都在 NOTES.md**。
+
+1. **代理选型踩坑 → 引入 LLM 后端抽象层** — 实测 yibuapi.com 等"Claude Code 共享池"代理与本流水线（纯 LLM 推理）不兼容（注入工具集、忽略 tool_choice）。临时方案是绕走 OpenAI 兼容协议；长期方案是新建 `deep_dive/llm/` 让"换 backend 只改 env"。详 NOTES.md 出乎意料的事 #7、#9；决策见 `docs/decisions.md` 2026-04-26。
+2. **JSON 输出从"强制 schema"退到"prompt 引导 + 容错解析"** — `output_config.format` 走兼容代理失效；现状是三层防御（剥 `<thinking>` / 剥 ``` 围栏 / regex 抠字段）+ 单次重试 + graceful skip。详 NOTES.md Prompt 思路。
+3. **system prompt 写"够丰满"满足 caching 阈值** — Sonnet 4.6 的 cacheable 前缀最小 2048 token；一开始担心要"凑"，结果按"角色+主题+5 档评分+边界 case+反例"自然写够。实测命中率 40%。
+4. **graceful skip 而非 fail-fast** — 单条 LLM 解析失败 warn 后跳过，整批不挂。这是自加验收条件 #2 的兑现，也匹配 spec 设计要点「失败优雅降级」。
+5. **`deep_dive run` 一键命令** — 把 fetch → dedup → rank → summarize → render 串起来，兑现自加验收条件 #1。分步命令保留供调试。
+6. **作弊版输出物 vs 真版的隔离没做** — 自动 render 会冲掉手敲 brief 和真 LLM 产出的 ranked.json，这周靠 git restore 救场。下次该把 dry-run 输出走单独路径。详 NOTES.md 如果再来一次 #5。
+7. **GH Pages 工作流是仓库根级文件** — `.github/workflows/deploy-dong-pages.yml` 不在 `experiments/Dong/` 下，严格 reading 团队 mvp.md 「仅在子目录下」可能需要 PM exception。需在群里同步。
