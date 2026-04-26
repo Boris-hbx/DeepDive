@@ -1,0 +1,46 @@
+{
+  "domains": {
+    "software-engineering": {
+      "label": "软件工程",
+      "sources": [
+        { "type": "rss", "name": "Anthropic Blog", "url": "https://www.anthropic.com/rss.xml" },
+        { "type": "rss", "name": "OpenAI Blog", "url": "https://openai.com/blog/rss.xml" },
+        { "type": "rss", "name": "Google AI Blog", "url": "https://blog.google/technology/ai/rss/" },
+        { "type": "rss", "name": "Simon Willison", "url": "https://simonwillison.net/atom/everything/" },
+        { "type": "hn", "name": "Hacker News", "keywords": ["AI agent", "LLM", "Claude", "Copilot", "Cursor", "agentic", "software engineering"] },
+        { "type": "rss", "name": "GitHub Blog", "url": "https://github.blog/feed/" },
+        { "type": "rss", "name": "GitHub Engineering", "url": "https://github.blog/engineering/feed/" },
+        { "type": "rss", "name": "Latent Space", "url": "https://www.latent.space/feed" },
+        { "type": "rss", "name": "Cursor Blog", "url": "https://cursor.com/atom.xml" },
+        { "type": "rss", "name": "Databricks Engineering", "url": "https://www.databricks.com/blog/category/engineering/feed" },
+        { "type": "rss", "name": "Stripe Engineering", "url": "https://stripe.com/blog/engineering/feed" },
+        { "type": "hn", "name": "Hacker News (SE Conferences)", "keywords": ["ICSE", "FSE", "ASE", "software engineering conference", "accepted papers"] }
+      ]
+    },
+    "cybersecurity": {
+      "label": "网络安全",
+      "sources": [
+        { "type": "rss", "name": "Krebs on Security", "url": "https://krebsonsecurity.com/feed/" },
+        { "type": "rss", "name": "The Hacker News", "url": "https://feeds.feedburner.com/TheHackersNews" },
+        { "type": "rss", "name": "Schneier on Security", "url": "https://www.schneier.com/feed/" },
+        { "type": "rss", "name": "CISA Alerts", "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml" },
+        { "type": "hn", "name": "Hacker News (Cybersecurity)", "keywords": ["CVE", "zero-day", "ransomware", "supply chain attack", "vulnerability", "cybersecurity"] },
+        { "type": "rss", "name": "NIST CSRC", "url": "https://csrc.nist.gov/csrc/media/feed" },
+        { "type": "rss", "name": "Microsoft Security", "url": "https://www.microsoft.com/en-us/security/blog/feed/" },
+        { "type": "rss", "name": "Google/Mandiant Threat Intel", "url": "https://cloud.google.com/blog/topics/threat-intelligence/rss" },
+        { "type": "rss", "name": "Trail of Bits", "url": "https://blog.trailofbits.com/feed/" },
+        { "type": "rss", "name": "Unit 42 (Palo Alto)", "url": "https://unit42.paloaltonetworks.com/rss" },
+        { "type": "rss", "name": "Simon Willison (Security)", "url": "https://simonwillison.net/atom/everything/" },
+        { "type": "rss", "name": "CMU SEI/CERT", "url": "https://insights.sei.cmu.edu/feed/" },
+        { "type": "rss", "name": "Wiz Research", "url": "https://www.wiz.io/blog/rss.xml" },
+        { "type": "rss", "name": "Protect AI", "url": "https://protectai.com/blog/rss.xml" },
+        { "type": "rss", "name": "Lakera (AI Security)", "url": "https://www.lakera.ai/blog/rss.xml" },
+        { "type": "rss", "name": "HiddenLayer", "url": "https://www.hiddenlayer.com/insight/feed/" },
+        { "type": "rss", "name": "OWASP News", "url": "https://owasp.org/feed.xml" },
+        { "type": "hn", "name": "HN (MITRE ATLAS/GenAI Sec)", "keywords": ["MITRE ATLAS", "OWASP GenAI", "AI security", "prompt injection", "LLM security"] },
+        { "type": "hn", "name": "HN (Security Conferences)", "keywords": ["USENIX Security", "IEEE S&P", "ACM CCS", "NDSS", "security accepted papers"] }
+      ]
+    }
+  },
+  "maxItemsPerSource": 20
+}

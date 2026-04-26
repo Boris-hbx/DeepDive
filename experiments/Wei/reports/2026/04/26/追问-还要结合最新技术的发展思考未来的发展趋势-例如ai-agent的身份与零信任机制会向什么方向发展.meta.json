@@ -1,0 +1,33 @@
+{
+  "id": "4730a42a-0004-46a1-aa79-5dff01e67951",
+  "title": "追问：还要结合最新技术的发展思考未来的发展趋势，例如AI agent的身份与零信任机制会向什么方向发展",
+  "createdAt": "2026-04-26T10:24:02.277Z",
+  "type": "follow-up",
+  "domain": "software-engineering",
+  "parentReportId": "1bdad2c5-6b8a-4c4c-80b3-84c6c1147e8e",
+  "tags": {
+    "user": [],
+    "auto": [
+      "零信任",
+      "身份验证",
+      "微分段",
+      "网络安全",
+      "访问控制",
+      "服务网格",
+      "软件定义边界",
+      "遗留改造"
+    ]
+  },
+  "metadata": {
+    "inputTokens": 757,
+    "outputTokens": 4961,
+    "cost": 0.076686,
+    "llmProvider": "claude"
+  },
+  "conversationHistory": [
+    {
+      "question": "还要结合最新技术的发展思考未来的发展趋势，例如AI agent的身份与零信任机制会向什么方向发展",
+      "answerSummary": "# AI Agent 时代的零信任演进：非人类身份、自适应信任与架构未来\n\n## TL;DR\n\n零信任架构正面临其诞生以来最深刻的范式挑战：安全主体正从\"人类用户 + 已知服务\"扩展到\"自主决策的 AI Agent + 动态工具链\"。传统零信任模型假设身份是相对静态、行为可预测的，但 AI Agent 具有自主性（Autonomy）、委托性（Delegation）和行为不确定性（Non-determinism）三大特征，这从根本上冲击了现有的身份建模、权限管理和持续验证机制。2025 年的核心趋势是：零信任正从\"以人为中心的身份验证\"演进为\"以意图为中心的信任评估\"，AI 既是零信任需要保护的"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(node -c lib/llm-provider.mjs)",
+      "Bash(node -c lib/feedback.mjs)",
+      "Bash(node -c lib/storage.mjs)",
+      "Bash(node -c lib/dedup.mjs)",
+      "Bash(node -c lib/prompts.mjs)",
+      "Bash(node -e \"import\\('./lib/dedup.mjs'\\).then\\(m => { const r = m.dedup\\([{title:'test',url:'http://a.com',source:'t',publishedAt:'',snippet:''},{title:'test',url:'http://a.com',source:'t2',publishedAt:'',snippet:''}]\\); console.log\\('dedup:', r.length, 'items'\\); }\\)\")",
+      "Bash(node -e \"import\\('./lib/storage.mjs'\\).then\\(\\(\\) => console.log\\('storage OK'\\)\\); import\\('./lib/feedback.mjs'\\).then\\(\\(\\) => console.log\\('feedback OK'\\)\\); import\\('./lib/prompts.mjs'\\).then\\(\\(\\) => console.log\\('prompts OK'\\)\\);\")",
+      "Bash(node -e ' *)",
+      "Bash(node insight-cli.mjs --topic \"零信任架构落地实践\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill *)",
+      "Bash(node -c server.mjs)",
+      "Bash(node -c lib/report-generator.mjs)",
+      "Bash(node -c lib/pptx-generator.mjs)",
+      "Bash(node -c lib/image-provider.mjs)",
+      "Bash(node -c insight-cli.mjs)",
+      "WebFetch(domain:www.qbitai.com)",
+      "WebFetch(domain:gitcode.com)",
+      "WebFetch(domain:www.openjiuwen.com)",
+      "Bash(claude skill *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Read(//tmp/**)",
+      "Read(//tmp/Skill_Seekers/**)",
+      "Bash(git status *)",
+      "Bash(git add *)"
+    ]
+  }
+}

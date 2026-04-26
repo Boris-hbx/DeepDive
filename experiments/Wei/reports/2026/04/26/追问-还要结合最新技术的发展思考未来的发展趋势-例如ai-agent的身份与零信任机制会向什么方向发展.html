@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追问：还要结合最新技术的发展思考未来的发展趋势，例如AI agent的身份与零信任机制会向什么方向发展 — DeepDive</title>
+<style>
+:root {
+  --ink: #18181b; --muted: #71717a; --muted-2: #a1a1aa;
+  --border: #e4e4e7; --bg: #ffffff; --bg-2: #fafafa; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fafafa; --muted: #a1a1aa; --muted-2: #71717a;
+    --border: #27272a; --bg: #09090b; --bg-2: #18181b; --accent: #60a5fa;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--ink); background: var(--bg); padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2.5rem; margin: 2rem 0 1rem; font-weight: 700; }
+h2 { font-size: 1.75rem; margin: 2rem 0 1rem; font-weight: 600; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+h3 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; font-weight: 600; }
+p { margin: 1rem 0; }
+ul, ol { margin: 1rem 0; padding-left: 2rem; }
+li { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+th { background: var(--bg-2); font-weight: 600; }
+code { background: var(--bg-2); padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: var(--bg-2); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin: 1rem 0; }
+.domain-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 500; }
+.domain-tag.se { background: #dbeafe; color: #1d4ed8; }
+.domain-tag.cs { background: #fce7f3; color: #be185d; }
+.fb-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+.fb-panel h3 { margin-top: 0; font-size: 1.1rem; }
+.fb-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+.fb-form label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.fb-form textarea, .fb-form input, .fb-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font-family: inherit; font-size: 0.9rem; }
+.fb-form textarea { min-height: 80px; resize: vertical; }
+.fb-form button { padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; align-self: flex-start; }
+.fb-form button:hover { opacity: 0.9; }
+.fb-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.fb-form .btn-regen { background: var(--bg); color: var(--accent); border: 1px solid var(--accent); }
+.fb-form .btn-regen:hover { background: var(--accent); color: white; }
+.fb-form .btn-followup { background: var(--bg); color: #059669; border: 1px solid #059669; }
+.fb-form .btn-followup:hover { background: #059669; color: white; }
+.fb-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-top: 0.75rem; }
+.fb-item-head { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.fb-type { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--accent); color: white; }
+.fb-date { font-size: 0.8rem; color: var(--muted); }
+.fb-status { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+.fb-status.ok { color: #10b981; border: 1px solid #10b981; }
+.fb-status.err { color: #ef4444; border: 1px solid #ef4444; }
+</style>
+</head>
+<body>
+<div class="meta">
+  <span class="domain-tag se">软件工程</span> · 
+  生成时间：2026-04-26T10:24:02.277Z ·
+  模型：claude ·
+  成本：$0.0767 ·
+  标签：零信任, 身份验证, 微分段, 网络安全, 访问控制, 服务网格, 软件定义边界, 遗留改造
+</div>
+<h1>AI Agent 时代的零信任演进：非人类身份、自适应信任与架构未来</h1>
+<h2>TL;DR</h2>
+<p>零信任架构正面临其诞生以来最深刻的范式挑战：安全主体正从&quot;人类用户 + 已知服务&quot;扩展到&quot;自主决策的 AI Agent + 动态工具链&quot;。传统零信任模型假设身份是相对静态、行为可预测的，但 AI Agent 具有自主性（Autonomy）、委托性（Delegation）和行为不确定性（Non-determinism）三大特征，这从根本上冲击了现有的身份建模、权限管理和持续验证机制。2025 年的核心趋势是：零信任正从&quot;以人为中心的身份验证&quot;演进为&quot;以意图为中心的信任评估&quot;，AI 既是零信任需要保护的新型主体，也是增强零信任决策能力的关键技术手段。这一双向融合将在未来 2-3 年重塑企业安全架构的基本形态。</p>
+<hr>
+<h2>关键发现</h2>
+<h3>发现 1：AI Agent 引入了&quot;第三类身份&quot;——现有非人类身份（NHI）框架不足以覆盖</h3>
+<p>当前零信任体系中的身份分为两类：人类身份（Human Identity，通过 IdP 管理）和传统非人类身份（Non-Human Identity，如 Service Account、API Key、Bot Token）。AI Agent 的出现打破了这一二分法，它既不是被动执行指令的服务账户，也不是完全自主的人类用户，而是一种具有&quot;受限自主性&quot;的新型实体。</p>
+<p>具体而言，AI Agent 身份的独特挑战体现在三个层面：</p>
+<p><strong>委托链（Delegation Chain）的信任传递问题。</strong> 当用户指示一个 AI Agent 完成任务时，Agent 可能调用多个外部工具、API 甚至其他 Agent（Multi-Agent Orchestration）。每一跳都涉及权限的委托传递。传统 OAuth 2.0 的 <code>on_behalf_of</code> 流程假设委托链是短且确定的，但 AI Agent 的工具调用链可能是动态生成的、运行时才确定的。例如，一个数据分析 Agent 可能在运行时决定调用 SQL 查询工具、文件系统访问工具和第三方 API，这些调用路径在设计时无法完全预见。</p>
+<p><strong>行为不确定性导致的策略建模困难。</strong> 传统服务的行为模式是确定性的——一个微服务的 API 调用模式可以被精确建模并写入 AuthorizationPolicy。但 AI Agent 的行为受 Prompt、上下文窗口和模型推理的影响，同一个 Agent 在不同输入下可能产生完全不同的资源访问模式。这使得基于静态规则的 Policy Engine 难以有效覆盖。</p>
+<p><strong>身份生命周期的模糊性。</strong> 一个 AI Agent 可能是短暂的（一次对话中临时创建）、长期运行的（后台自动化任务），或者介于两者之间（周期性触发的工作流）。其身份的创建、轮转、吊销机制需要比传统 Service Account 更灵活的生命周期管理。</p>
+<p>业界的早期应对方案正在成形。Anthropic 在 2025 年提出的 Model Context Protocol（MCP）为 Agent 与外部工具的交互定义了标准化接口，其中隐含了身份与权限的传递语义。OpenAI 的 Function Calling 机制虽然解决了工具调用的格式问题，但尚未内建权限边界。SPIFFE（Secure Production Identity Framework For Everyone）社区正在讨论将 SPIFFE ID 扩展到 AI Agent 场景，为每个 Agent 实例签发短生命周期的 SVID（SPIFFE Verifiable Identity Document），使其可以被纳入现有的 Service Mesh 零信任体系。</p>
+<blockquote>
+<p><strong>关键判断：</strong> 未来 12-18 个月内，主流云厂商和身份平台（Azure Entra ID、Okta、Auth0）将推出专门的 &quot;AI Agent Identity&quot; 身份类型，支持细粒度的委托权限声明和运行时行为约束。这将成为零信任架构的第三根身份支柱。</p>
+</blockquote>
+<hr>
+<h3>发现 2：从&quot;静态最小权限&quot;到&quot;动态意图感知权限&quot;——AI 驱动的自适应访问控制</h3>
+<p>零信任的核心原则之一是最小权限（Least Privilege），但在 AI Agent 场景下，&quot;最小&quot;的定义变得动态化。一个 Agent 在执行&quot;帮我分析上季度销售数据&quot;时需要只读访问数据库，但执行&quot;帮我修复生产环境的配置错误&quot;时需要写权限。权限需求由意图（Intent）驱动，而意图在运行时才明确。</p>
+<p>这催生了&quot;意图感知的自适应访问控制&quot;（Intent-Aware Adaptive Access Control）这一新范式，其技术路径包括：</p>
+<p><strong>Just-In-Time（JIT）权限提升与自动回收。</strong> Agent 在执行特定任务时动态申请所需权限，任务完成后权限自动回收。HashiCorp Vault 的 Dynamic Secrets 机制已经为此提供了基础设施层支持——为每次 Agent 调用生成临时凭证，TTL 与任务预期时长绑定。2025 年的新趋势是将 JIT 与 AI 的 ReAct（Reasoning + Acting）循环集成：Agent 在每个 Action 步骤前向 Policy Engine 申请该步骤所需的最小权限集。</p>
+<p><strong>基于 LLM 的策略推理引擎。</strong> 传统 Policy Engine（如 OPA/Rego）依赖人工编写的声明式策略。新一代方案开始引入 LLM 作为策略推理的辅助层——不是让 LLM 直接做访问决策（这存在幻觉风险），而是让 LLM 将自然语言描述的安全意图翻译为形式化策略，并在策略冲突时提供解释性建议。Google 的 Chronicle Security Operations 和 Microsoft Security Copilot 已经在这个方向上做出了早期实践。</p>
+<p><strong>持续行为验证的升级：从异常检测到意图偏离检测。</strong> 传统 UEBA（User and Entity Behavior Analytics）检测的是&quot;行为是否偏离历史基线&quot;。对 AI Agent 而言，更有意义的检测维度是&quot;行为是否偏离声明的意图&quot;。例如，一个被授权&quot;分析销售数据&quot;的 Agent 如果开始访问 HR 数据库，即使其行为模式在统计上不算异常（因为 Agent 行为本身就多变），也应该被标记为意图偏离。这需要将 Agent 的初始 Prompt/Task Description 作为信任评估的上下文输入。</p>
+<hr>
+<h3>发现 3：AI 增强零信任决策——从规则驱动到风险量化驱动</h3>
+<p>AI 不仅是零信任需要管理的新型主体，也是增强零信任自身能力的关键技术。当前零信任落地的一个核心痛点是：策略爆炸（Policy Explosion）。随着微分段粒度的细化和身份类型的增加，手动维护策略规则变得不可持续。AI/ML 在以下三个方向上正在改变这一局面：</p>
+<p><strong>自动化策略生成与优化。</strong> 通过分析历史访问日志和网络流量，ML 模型可以自动推荐微分段策略和访问控制规则。Illumio 和 Zscaler 已经在其产品中集成了基于流量分析的策略推荐功能。更前沿的方向是使用 Graph Neural Network（GNN）对服务间调用关系建模，自动识别异常通信路径并生成阻断策略。</p>
+<p><strong>实时风险评分（Risk Scoring）的精细化。</strong> 零信任的持续验证依赖对每次访问请求的风险评估。传统方法使用规则引擎（如&quot;来自新设备 + 异常地理位置 = 高风险&quot;），但这种方法的覆盖面和精度有限。2024-2025 年的趋势是引入 Transformer-based 的序列模型，将用户/Agent 的访问行为建模为时间序列，实时计算每次请求的风险概率。CrowdStrike 的 Charlotte AI 和 Palo Alto Networks 的 Cortex XSIAM 是这一方向的代表性产品。</p>
+<p><strong>安全运营的 Copilot 化。</strong> 零信任架构的运营复杂度极高——策略调试、误报处理、事件响应都需要大量专业人力。AI Copilot 正在降低这一门槛：安全分析师可以用自然语言查询&quot;过去 24 小时内哪些 Agent 的权限使用超出了其声明的任务范围&quot;，由 AI 将其翻译为 SIEM 查询并汇总结果。Microsoft Security Copilot、Google Gemini in Security Operations 是当前的领先实践。</p>
+<hr>
+<h3>发现 4：Multi-Agent 系统的零信任治理——新的架构挑战</h3>
+<p>2025 年最值得关注的趋势之一是 Multi-Agent 系统（多个 AI Agent 协作完成复杂任务）的兴起。这对零信任架构提出了全新的治理挑战：</p>
+<p><strong>Agent-to-Agent 通信的信任建立。</strong> 当 Agent A 调用 Agent B 完成子任务时，B 如何验证 A 的身份和权限？如何确保 A 传递给 B 的上下文没有被篡改（Prompt Injection 防护）？这本质上是服务间 mTLS + 请求签名在 Agent 层的映射，但增加了&quot;语义完整性&quot;的新维度——不仅要验证请求的来源，还要验证请求的语义意图是否合法。</p>
+<p><strong>权限的传递性约束（Transitive Permission Constraints）。</strong> 如果用户授予 Agent A &quot;读取财务报表&quot;的权限，Agent A 委托 Agent B 执行具体查询，Agent B 是否自动继承该权限？如果 Agent B 又调用了 Agent C 呢？无约束的权限传递会导致&quot;权限膨胀&quot;（Privilege Escalation），这与零信任的最小权限原则直接冲突。解决方案的方向是引入&quot;权限衰减&quot;（Permission Attenuation）机制——每一跳委托都必须缩小（而非扩大）权限范围，类似于 Macaroons token 的 caveat 机制。</p>
+<p><strong>可观测性与审计。</strong> Multi-Agent 系统的调用链可能极其复杂，传统的分布式追踪（如 OpenTelemetry）需要扩展以支持 Agent 级别的 Trace，记录每个 Agent 的决策推理过程、工具调用和权限使用情况。这对事后审计和合规（如 SOC 2、GDPR 中的自动化决策解释权）至关重要。</p>
+<hr>
+<h2>技术对比：AI Agent 身份管理方案的演进路径</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统 Service Account</th>
+<th>OAuth 2.0 + Token Exchange</th>
+<th>SPIFFE/SPIRE 扩展方案</th>
+<th>MCP + Agent Identity（新兴）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>身份粒度</td>
+<td>服务级别（粗粒度）</td>
+<td>用户委托级别</td>
+<td>工作负载实例级别</td>
+<td>Agent 实例 + 任务级别（细粒度）</td>
+</tr>
+<tr>
+<td>权限模型</td>
+<td>静态 RBAC</td>
+<td>Scope-based，半动态</td>
+<td>ABAC，基于身份属性</td>
+<td>意图感知，动态 JIT</td>
+</tr>
+<tr>
+<td>委托链支持</td>
+<td>不支持</td>
+<td><code>on_behalf_of</code>，有限深度</td>
+<td>联邦信任域，可扩展</td>
+<td>原生多跳委托，权限衰减</td>
+</tr>
+<tr>
+<td>行为验证</td>
+<td>无</td>
+<td>Token 过期检查</td>
+<td>证书轮转 + 身份验证</td>
+<td>持续意图偏离检测</td>
+</tr>
+<tr>
+<td>生命周期管理</td>
+<td>手动创建/吊销</td>
+<td>Token TTL</td>
+<td>自动轮转 SVID</td>
+<td>任务绑定生命周期，自动回收</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>传统微服务</td>
+<td>Web/Mobile 应用</td>
+<td>云原生服务间通信</td>
+<td>AI Agent + Multi-Agent 系统</td>
+</tr>
+<tr>
+<td>成熟度</td>
+<td>成熟</td>
+<td>成熟</td>
+<td>生产可用</td>
+<td>早期探索（2025-2026）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>未来 2-3 年演进路线判断</h2>
+<pre><code>2025 H1-H2                    2026                         2027+
+─────────────────────────────────────────────────────────────────────
+[AI Agent 身份标准化]         [Multi-Agent 信任框架]        [自治安全架构]
+                              
+• SPIFFE Agent ID 扩展        • Agent-to-Agent mTLS        • 自愈式策略引擎
+• MCP 安全规范 v1             • 权限衰减协议标准化          • 意图驱动的自动化治理
+• 主流 IdP 支持 Agent 类型    • Agent 行为审计标准          • 人类仅做例外审批
+                              
+[AI 增强 ZT 决策]             [策略自动化]                  [认知安全]
+                              
+• LLM 辅助策略生成            • 自动化策略优化闭环          • 预测性信任评估
+• 实时风险评分 ML 模型        • GNN 驱动的微分段            • 上下文感知的自适应架构
+• Security Copilot 普及       • 策略即代码 + AI Review      • 安全意图编程
+</code></pre>
+<hr>
+<h2>可行动建议</h2>
+<h3>短期（0-6 个月）：建立 AI Agent 身份治理基础</h3>
+<ol>
+<li><p><strong>盘点现有非人类身份（NHI）资产。</strong> 在现有零信任架构中，梳理所有 Service Account、API Key、Bot Token 的使用情况，建立 NHI 资产清单。这是未来扩展到 AI Agent 身份管理的基础。推荐工具：Astrix Security、Oasis Security（专注 NHI 治理的新兴厂商）。</p>
+</li>
+<li><p><strong>为 AI Agent 引入短生命周期凭证。</strong> 立即停止为 AI Agent 使用长期有效的 API Key。改用 HashiCorp Vault Dynamic Secrets 或云厂商的临时凭证服务（AWS STS、GCP Workload Identity Federation），将凭证 TTL 与任务时长绑定。</p>
+</li>
+<li><p><strong>在 AI Agent 调用链中实施基本的权限边界。</strong> 对于已经在使用 AI Agent（如 Copilot、自定义 LLM 应用）的场景，确保 Agent 的工具调用受到显式的权限白名单约束，而非依赖 Agent 自身的&quot;判断&quot;。</p>
+</li>
+</ol>
+<h3>中期（6-18 个月）：构建意图感知的访问控制层</h3>
+<ol start="4">
+<li><p><strong>试点 JIT 权限模型。</strong> 选择一个非关键业务的 AI Agent 场景，实施 Just-In-Time 权限申请与自动回收机制。评估 HashiCorp Boundary 或 CyberArk Conjur 作为 JIT 基础设施。</p>
+</li>
+<li><p><strong>将 Agent 行为纳入 UEBA 监控。</strong> 扩展现有 SIEM/UEBA 平台的监控范围，将 AI Agent 的 API 调用模式、数据访问模式纳入行为基线建模。重点关注意图偏离检测——Agent 的实际行为是否超出其声明的任务范围。</p>
+</li>
+<li><p><strong>评估 SPIFFE/SPIRE 在 Agent 场景的适用性。</strong> 如果已经在使用 Service Mesh（Istio/Linkerd），评估将 SPIFFE ID 扩展到 AI Agent 工作负载的可行性，为 Agent 间通信建立 mTLS 信任基础。</p>
+</li>
+</ol>
+<h3>长期（18-36 个月）：迈向自适应零信任架构</h3>
+<ol start="7">
+<li><p><strong>建设 AI 驱动的策略自动化平台。</strong> 投资建设或采购能够自动分析访问模式、推荐策略优化、检测策略冲突的平台。目标是将策略维护从&quot;人工编写&quot;转向&quot;AI 推荐 + 人工审批&quot;。</p>
+</li>
+<li><p><strong>参与 Agent 身份标准化进程。</strong> 关注并参与 IETF、OpenID Foundation、CNCF 等组织在 AI Agent 身份标准化方面的工作，确保企业的技术选型与行业标准方向一致。</p>
+</li>
+</ol>
+<hr>
+<h2>来源引用</h2>
+<ol>
+<li>NIST SP 800-207, &quot;Zero Trust Architecture&quot;, 2020 — 零信任架构的权威参考框架，其中对非人类实体（Non-Person Entity）的身份管理已有初步讨论。</li>
+<li>SPIFFE/SPIRE 项目文档 (spiffe.io) — 云原生工作负载身份标准，社区正在讨论 AI Agent 场景的扩展。</li>
+<li>Anthropic, &quot;Model Context Protocol (MCP) Specification&quot;, 2025 — 定义了 AI Agent 与外部工具交互的标准化协议，隐含身份与权限传递语义。</li>
+<li>Google, &quot;BeyondCorp Enterprise: Zero Trust for the AI Era&quot;, 2024 — Google 对零信任架构在 AI 工作负载场景下的扩展思考。</li>
+<li>Gartner, &quot;Predicts 2025: AI Will Reshape Identity and Access Management&quot;, 2024 — 预测到 2026 年，50% 的企业将需要专门的 AI Agent 身份治理策略。</li>
+<li>CrowdStrike, &quot;Charlotte AI: AI-Native Threat Detection&quot;, 2024 — AI 增强安全运营的代表性实践。</li>
+<li>OWASP, &quot;Top 10 for LLM Applications&quot;, 2025 — 涵盖 Prompt Injection、权限提升等 AI 应用安全风险，与 Agent 零信任直接相关。</li>
+<li>Microsoft, &quot;Security Copilot: AI-Powered Security Operations&quot;, 2024-2025 — AI Copilot 在安全运营中的落地实践。</li>
+<li>Astrix Security / Oasis Security — 专注非人类身份（NHI）治理的新兴安全厂商，2024-2025 年获得显著市场关注。</li>
+<li>Neil MacDonald &amp; Charlie Winckless, Gartner, &quot;Innovation Insight for Zero Trust in AI Agent Architectures&quot;, 2025 — 分析 AI Agent 对零信任架构的影响与应对策略。</li>
+</ol>
+
+<hr>
+<div class="fb-panel">
+  <h3>反馈与改进</h3>
+  <p style="color:var(--muted);font-size:0.9rem">提出洞察思路或方法建议，系统会记录并在后续生成中应用。</p>
+  <form class="fb-form" onsubmit="submitFB(event)">
+    <div>
+      <label>反馈类型</label>
+      <select id="fb-type">
+        <option value="insight">洞察思路</option>
+        <option value="method">分析方法</option>
+        <option value="missing">缺失内容</option>
+        <option value="error">错误纠正</option>
+      </select>
+    </div>
+    <div>
+      <label>具体建议 *</label>
+      <textarea id="fb-content" placeholder="例如：应该增加对性能优化的分析..." required></textarea>
+    </div>
+    <div>
+      <label>关键词（逗号分隔）</label>
+      <input type="text" id="fb-keywords" placeholder="例如：性能优化, 内存管理">
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+      <button type="submit" id="fb-btn">提交反馈</button>
+      <button type="button" class="btn-regen" onclick="regenFB()">基于反馈重新生成</button>
+      <button type="button" class="btn-followup" onclick="followUp()">追问深挖</button>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+        <input type="checkbox" id="fb-skill" checked>
+        <span style="font-size:0.85rem">保存为 Skill</span>
+      </label>
+    </div>
+  </form>
+  <div id="fb-status"></div>
+  <div id="fb-list"></div>
+</div>
+<div class="meta">本报告由 DeepDive 洞察 Agent 生成</div>
+<script>
+const RID='4730a42a-0004-46a1-aa79-5dff01e67951',RTITLE='追问：还要结合最新技术的发展思考未来的发展趋势，例如AI agent的身份与零信任机制会向什么方向发展',RDOMAIN='software-engineering';
+const TL={insight:'洞察思路',method:'分析方法',missing:'缺失内容',error:'错误纠正'};
+async function loadFB(){
+  try{const r=await fetch('/api/feedback?reportId='+RID);const d=await r.json();renderFB(d.feedback||[]);}catch(e){}
+}
+function renderFB(list){
+  const c=document.getElementById('fb-list');
+  if(!list.length){c.innerHTML='';return;}
+  c.innerHTML='<h4 style="margin-top:1.5rem;font-size:1rem">历史反馈</h4>'+list.map(f=>
+    '<div class="fb-item"><div class="fb-item-head"><span class="fb-type">'+(TL[f.type]||f.type)+'</span><span class="fb-date">'+new Date(f.createdAt).toLocaleString('zh-CN')+'</span></div><div>'+f.content+'</div>'+(f.keywords&&f.keywords.length?'<div style="margin-top:0.5rem;font-size:0.8rem;color:var(--muted)">关键词：'+f.keywords.join(', ')+'</div>':'')+'</div>'
+  ).join('');
+}
+async function submitFB(e){
+  e.preventDefault();
+  const btn=document.getElementById('fb-btn'),st=document.getElementById('fb-status');
+  btn.disabled=true;
+  const body=getFBBody();
+  try{
+    const r=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('提交失败');
+    st.className='fb-status ok';st.textContent='反馈已保存'+(body.saveAsSkill?'，已生成 Skill':'');
+    document.getElementById('fb-content').value='';document.getElementById('fb-keywords').value='';
+    loadFB();setTimeout(()=>{st.textContent='';},3000);
+  }catch(err){st.className='fb-status err';st.textContent=err.message;}
+  finally{btn.disabled=false;}
+}
+async function regenFB(){
+  const content=document.getElementById('fb-content').value.trim();
+  if(!content){alert('请先填写反馈');return;}
+  const btn=document.querySelector('.btn-regen');btn.disabled=true;btn.textContent='生成中...';
+  try{
+    const body=getFBBody();
+    await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const r=await fetch('/api/regenerate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:RTITLE,feedback:content,domain:RDOMAIN})});
+    if(!r.ok)throw new Error('生成失败');
+    const result=await r.json();window.open(result.url,'_blank');
+    document.getElementById('fb-content').value='';loadFB();
+  }catch(err){alert(err.message);}
+  finally{btn.disabled=false;btn.textContent='基于反馈重新生成';}
+}
+async function followUp(){
+  const q=prompt('请输入追问问题：');
+  if(!q)return;
+  const btn=document.querySelector('.btn-followup');btn.disabled=true;btn.textContent='生成中...';
+  try{
+    const r=await fetch('/api/follow-up',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({parentReportId:RID,question:q})});
+    if(!r.ok)throw new Error('生成失败');
+    const result=await r.json();window.open(result.url,'_blank');
+  }catch(err){alert(err.message);}
+  finally{btn.disabled=false;btn.textContent='追问深挖';}
+}
+function getFBBody(){
+  return{reportId:RID,reportTitle:RTITLE,type:document.getElementById('fb-type').value,content:document.getElementById('fb-content').value.trim(),keywords:(document.getElementById('fb-keywords').value.trim()||'').split(',').map(k=>k.trim()).filter(Boolean),saveAsSkill:document.getElementById('fb-skill').checked};
+}
+loadFB();
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+[
+  {
+    "id": "1bdad2c5-6b8a-4c4c-80b3-84c6c1147e8e",
+    "title": "零信任架构落地实践",
+    "createdAt": "2026-04-26T07:10:24.873Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": [
+        "零信任",
+        "身份验证",
+        "微分段",
+        "网络安全",
+        "访问控制",
+        "服务网格",
+        "软件定义边界",
+        "遗留改造"
+      ]
+    },
+    "path": "2026/04/26/零信任架构落地实践"
+  },
+  {
+    "id": "4730a42a-0004-46a1-aa79-5dff01e67951",
+    "title": "追问：还要结合最新技术的发展思考未来的发展趋势，例如AI agent的身份与零信任机制会向什么方向发展",
+    "createdAt": "2026-04-26T10:24:02.277Z",
+    "type": "follow-up",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": [
+        "零信任",
+        "身份验证",
+        "微分段",
+        "网络安全",
+        "访问控制",
+        "服务网格",
+        "软件定义边界",
+        "遗留改造"
+      ]
+    },
+    "path": "2026/04/26/追问-还要结合最新技术的发展思考未来的发展趋势-例如ai-agent的身份与零信任机制会向什么方向发展"
+  },
+  {
+    "id": "62743605-aafb-43fd-84c4-b1aafdf11015",
+    "title": "AI 时代软件工程中的skill工程能力建设方向分析",
+    "createdAt": "2026-04-26T10:26:34.913Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": [
+        "规约工程",
+        "Agent编排",
+        "AI编程",
+        "能力模型",
+        "代码生成",
+        "提示工程",
+        "软件架构",
+        "开发工具"
+      ]
+    },
+    "path": "2026/04/26/ai-时代软件工程中的skill工程能力建设方向分析"
+  },
+  {
+    "id": "7a93e222-a920-4784-8081-1e1f398aecbe",
+    "title": "AI 时代软件工程中的skill工程能力建设方向分析",
+    "createdAt": "2026-04-26T10:38:01.607Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": [
+        "技能工程",
+        "AI智能体",
+        "能力编排",
+        "大模型",
+        "提示工程",
+        "微服务",
+        "语义检索"
+      ]
+    },
+    "path": "2026/04/26/ai-时代软件工程中的skill工程能力建设方向分析"
+  },
+  {
+    "id": "eefd3784-39e0-4780-a8a2-fd4b9284da75",
+    "title": "追问：有哪些关键技术，有哪些TOP热点论文，请进一步分析",
+    "createdAt": "2026-04-26T11:07:38.660Z",
+    "type": "follow-up",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": [
+        "技能工程",
+        "AI智能体",
+        "能力编排",
+        "大模型",
+        "提示工程",
+        "微服务",
+        "语义检索"
+      ]
+    },
+    "path": "2026/04/26/追问-有哪些关键技术-有哪些top热点论文-请进一步分析"
+  },
+  {
+    "id": "brief-2026-04-26-software-engineering",
+    "title": "软件工程每日 Brief — 2026-04-26",
+    "createdAt": "2026-04-26T14:31:55.297Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/26/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-04-26-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-04-26",
+    "createdAt": "2026-04-26T14:32:37.042Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/26/brief-cybersecurity"
+  }
+]

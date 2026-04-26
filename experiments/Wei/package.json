@@ -1,0 +1,16 @@
+{
+  "name": "deepdive-insight-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "generate": "node insight-cli.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.91.1",
+    "marked": "^18.0.2",
+    "pptxgenjs": "^4.0.1",
+    "rss-parser": "^3.13.0"
+  }
+}

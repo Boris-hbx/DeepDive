@@ -1,0 +1,42 @@
+{
+  "name": "Dark Pro",
+  "imageLayout": "left",
+  "imageOpacity": 0.2,
+  "coverImageLayout": "overlay",
+  "colors": {
+    "primary": "#60a5fa",
+    "secondary": "#3b82f6",
+    "accent": "#f472b6",
+    "text": "#e2e8f0",
+    "textLight": "#94a3b8",
+    "textOnDark": "#ffffff",
+    "background": "#0f172a",
+    "backgroundAlt": "#1e293b",
+    "tableHeaderBg": "#334155",
+    "tableAltRow": "#1e293b"
+  },
+  "gradients": {
+    "cover": { "from": "#0f172a", "to": "#1e293b" },
+    "section": { "from": "#0f172a", "to": "#1e293b" },
+    "closing": { "from": "#0f172a", "to": "#1e293b" }
+  },
+  "fonts": {
+    "title": "Microsoft YaHei",
+    "body": "Microsoft YaHei",
+    "code": "Consolas"
+  },
+  "layout": { "width": 13.33, "height": 7.5, "margin": 0.7 },
+  "decorations": {
+    "titleUnderline": true,
+    "bulletIcon": "arrow",
+    "sectionNumber": true,
+    "cornerAccent": true
+  },
+  "slides": {
+    "cover": { "titleSize": 36, "subtitleSize": 16 },
+    "content": { "titleSize": 24, "bodySize": 13 },
+    "table": { "headerSize": 11, "bodySize": 10 },
+    "timeline": { "yearSize": 16, "descSize": 11 },
+    "closing": { "titleSize": 28, "subtitleSize": 14 }
+  }
+}

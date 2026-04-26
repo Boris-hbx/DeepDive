@@ -1,0 +1,42 @@
+{
+  "name": "Tech Blue",
+  "imageLayout": "left",
+  "imageOpacity": 0.15,
+  "coverImageLayout": "overlay",
+  "colors": {
+    "primary": "#2563eb",
+    "secondary": "#1e40af",
+    "accent": "#f59e0b",
+    "text": "#1e293b",
+    "textLight": "#64748b",
+    "textOnDark": "#ffffff",
+    "background": "#ffffff",
+    "backgroundAlt": "#f0f4ff",
+    "tableHeaderBg": "#2563eb",
+    "tableAltRow": "#f0f4ff"
+  },
+  "gradients": {
+    "cover": { "from": "#1e3a5f", "to": "#2563eb" },
+    "section": { "from": "#f0f4ff", "to": "#ffffff" },
+    "closing": { "from": "#1e3a5f", "to": "#2563eb" }
+  },
+  "fonts": {
+    "title": "Microsoft YaHei",
+    "body": "Microsoft YaHei",
+    "code": "Consolas"
+  },
+  "layout": { "width": 13.33, "height": 7.5, "margin": 0.7 },
+  "decorations": {
+    "titleUnderline": true,
+    "bulletIcon": "circle-filled",
+    "sectionNumber": true,
+    "cornerAccent": true
+  },
+  "slides": {
+    "cover": { "titleSize": 36, "subtitleSize": 16 },
+    "content": { "titleSize": 24, "bodySize": 13 },
+    "table": { "headerSize": 11, "bodySize": 10 },
+    "timeline": { "yearSize": 16, "descSize": 11 },
+    "closing": { "titleSize": 28, "subtitleSize": 14 }
+  }
+}

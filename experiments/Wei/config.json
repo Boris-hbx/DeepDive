@@ -1,0 +1,36 @@
+{
+  "schedule": {
+    "enabled": true,
+    "hour": 8,
+    "domains": [
+      "software-engineering"
+    ]
+  },
+  "defaultTemplate": "huawei",
+  "history": [
+    {
+      "time": "2026-04-26 10:24:54",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-26 11:05:28",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-26 12:39:30",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    }
+  ]
+}

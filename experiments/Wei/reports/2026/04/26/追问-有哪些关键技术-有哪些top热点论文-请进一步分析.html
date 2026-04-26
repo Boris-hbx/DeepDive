@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追问：有哪些关键技术，有哪些TOP热点论文，请进一步分析 — DeepDive</title>
+<style>
+:root {
+  --ink: #18181b; --muted: #71717a; --muted-2: #a1a1aa;
+  --border: #e4e4e7; --bg: #ffffff; --bg-2: #fafafa; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fafafa; --muted: #a1a1aa; --muted-2: #71717a;
+    --border: #27272a; --bg: #09090b; --bg-2: #18181b; --accent: #60a5fa;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--ink); background: var(--bg); padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2.5rem; margin: 2rem 0 1rem; font-weight: 700; }
+h2 { font-size: 1.75rem; margin: 2rem 0 1rem; font-weight: 600; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+h3 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; font-weight: 600; }
+p { margin: 1rem 0; }
+ul, ol { margin: 1rem 0; padding-left: 2rem; }
+li { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+th { background: var(--bg-2); font-weight: 600; }
+code { background: var(--bg-2); padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: var(--bg-2); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin: 1rem 0; }
+.domain-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 500; }
+.domain-tag.se { background: #dbeafe; color: #1d4ed8; }
+.domain-tag.cs { background: #fce7f3; color: #be185d; }
+.fb-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+.fb-panel h3 { margin-top: 0; font-size: 1.1rem; }
+.fb-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+.fb-form label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.fb-form textarea, .fb-form input, .fb-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font-family: inherit; font-size: 0.9rem; }
+.fb-form textarea { min-height: 80px; resize: vertical; }
+.fb-form button { padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; align-self: flex-start; }
+.fb-form button:hover { opacity: 0.9; }
+.fb-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.fb-form .btn-regen { background: var(--bg); color: var(--accent); border: 1px solid var(--accent); }
+.fb-form .btn-regen:hover { background: var(--accent); color: white; }
+.fb-form .btn-followup { background: var(--bg); color: #059669; border: 1px solid #059669; }
+.fb-form .btn-followup:hover { background: #059669; color: white; }
+.fb-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-top: 0.75rem; }
+.fb-item-head { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.fb-type { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--accent); color: white; }
+.fb-date { font-size: 0.8rem; color: var(--muted); }
+.fb-status { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+.fb-status.ok { color: #10b981; border: 1px solid #10b981; }
+.fb-status.err { color: #ef4444; border: 1px solid #ef4444; }
+</style>
+</head>
+<body>
+<div class="meta">
+  <span class="domain-tag se">软件工程</span> · 
+  生成时间：2026-04-26T11:07:38.660Z ·
+  模型：claude ·
+  成本：$0.0707 ·
+  标签：技能工程, AI智能体, 能力编排, 大模型, 提示工程, 微服务, 语义检索
+</div>
+<h1>Skill 工程关键技术栈与前沿论文深度分析</h1>
+<h2>TL;DR</h2>
+<p>Skill 工程的技术纵深远超&quot;Prompt + Function Calling&quot;的表层认知。其核心技术栈沿三条主线展开：<strong>能力封装与描述</strong>（Tool-use 规范、语义Schema）、<strong>动态编排与规划</strong>（Task Decomposition、Plan-and-Execute）、<strong>评估与可靠性保障</strong>（LLM-as-Judge、形式化验证）。2023-2025 年间，以 Toolformer、HuggingGPT、Gorilla、ToolBench 为代表的论文集群定义了这一领域的学术坐标系，而 ReAct、LATS、AutoGen 等工作则直接塑造了工程实践范式。本报告梳理 6 大关键技术方向与 15+ 篇核心论文，为团队构建 Skill 工程技术雷达提供参考基线。</p>
+<hr>
+<h2>关键技术方向分析</h2>
+<h3>技术方向 1：Tool-use 与 Function Calling — Skill 的接口层基石</h3>
+<p>Tool-use 是 Skill 工程最底层的技术原语。它解决的核心问题是：<strong>如何让 LLM 理解、选择并正确调用外部工具</strong>。</p>
+<p>当前三大技术路线并存：</p>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>代表方案</th>
+<th>核心机制</th>
+<th>优劣势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prompt-based</td>
+<td>ReAct, Toolformer</td>
+<td>通过 In-context Learning 教会模型使用工具</td>
+<td>灵活但不稳定，依赖 Prompt 质量</td>
+</tr>
+<tr>
+<td>Fine-tuning-based</td>
+<td>Gorilla, ToolLLaMA</td>
+<td>在工具调用数据上微调模型</td>
+<td>调用准确率高，但泛化到新工具成本大</td>
+</tr>
+<tr>
+<td>Native Function Calling</td>
+<td>OpenAI FC, Claude Tool Use</td>
+<td>模型原生支持结构化工具调用</td>
+<td>工程友好，但受限于厂商实现</td>
+</tr>
+</tbody></table>
+<p>关键论文：</p>
+<ul>
+<li><strong>Toolformer (Schick et al., 2023, Meta)</strong> — 开山之作。证明 LLM 可以自主学习何时、如何调用外部工具（计算器、搜索引擎、翻译API等）。核心思想是通过自监督方式让模型在训练文本中自动插入 API 调用标记，再根据调用是否降低困惑度来筛选训练样本。这篇论文奠定了&quot;模型即调度器&quot;的 Skill 工程哲学基础。</li>
+<li><strong>Gorilla: Large Language Model Connected with Massive APIs (Patil et al., 2023, UC Berkeley)</strong> — 针对 Toolformer 在大规模 API 场景下幻觉严重的问题，提出基于 API 文档检索增强的微调方案。在 1,600+ API 上测试，Gorilla 的调用准确率显著超过 GPT-4 原生 Function Calling。其核心贡献是 <strong>APIBench</strong> 基准测试集，成为后续 Skill 可靠性研究的标准评测。</li>
+<li><strong>ToolBench (Qin et al., 2023, 清华 &amp; RapidAPI)</strong> — 构建了包含 16,000+ 真实 REST API 的大规模工具使用基准，并训练了 ToolLLaMA。其关键创新是 <strong>DFSDT（Depth-First Search-based Decision Tree）</strong> 推理策略，允许模型在工具调用失败时回溯并尝试替代路径——这直接对应 Skill 编排中的容错与回退机制。</li>
+</ul>
+<h3>技术方向 2：Planning &amp; Task Decomposition — Skill 的编排层引擎</h3>
+<p>当 Agent 面对复杂任务时，需要将其分解为多个 Skill 的有序调用链。这是 Skill 工程中最具挑战性的技术层。</p>
+<p>关键论文：</p>
+<ul>
+<li><strong>ReAct: Synergizing Reasoning and Acting (Yao et al., 2023, Princeton &amp; Google)</strong> — 提出 Reasoning + Acting 交替执行的范式：模型先生成推理轨迹（Thought），再决定行动（Action），观察结果（Observation）后继续推理。ReAct 是当前绝大多数 Agent 框架（LangChain、LlamaIndex）的默认编排模式，本质上定义了 Skill 调用的&quot;思考-执行-观察&quot;循环协议。</li>
+<li><strong>HuggingGPT (Shen et al., 2023, 浙大 &amp; Microsoft)</strong> — 提出以 LLM 为控制器、以 Hugging Face 模型库为 Skill 池的架构。LLM 负责任务规划、模型选择、执行编排和结果聚合。这篇论文的核心洞察是：<strong>Skill 不仅是 API，AI 模型本身也是 Skill</strong>。这极大拓展了 Skill 工程的能力边界。</li>
+<li><strong>Plan-and-Solve Prompting (Wang et al., 2023)</strong> — 针对 Chain-of-Thought 在多步推理中容易遗漏子任务的问题，提出先生成完整计划再逐步执行的策略。这与 Skill 工程中&quot;静态编排 vs 动态编排&quot;的架构选择直接相关——Plan-and-Solve 代表了&quot;先规划后执行&quot;的静态编排思路。</li>
+<li><strong>LATS: Language Agent Tree Search (Zhou et al., 2024)</strong> — 将蒙特卡洛树搜索（MCTS）引入 Agent 规划，允许模型在 Skill 调用树上进行前瞻搜索和回溯。这是目前已知的最强 Agent 规划算法之一，在 HotPotQA 和 WebShop 等基准上大幅超越 ReAct 和 Reflexion。其工程启示是：<strong>高可靠 Skill 编排需要搜索而非贪心</strong>。</li>
+</ul>
+<h3>技术方向 3：Multi-Agent Skill 协作 — 从单体到分布式</h3>
+<p>当系统复杂度超过单个 Agent 的能力边界时，多 Agent 协作成为必然选择。每个 Agent 携带不同的 Skill 集合，通过协议进行协商和任务分配。</p>
+<p>关键论文与框架：</p>
+<ul>
+<li><strong>AutoGen (Wu et al., 2023, Microsoft)</strong> — 提出可定制的多 Agent 对话框架，Agent 之间通过消息传递协作完成任务。其核心设计是 <strong>ConversableAgent</strong> 抽象，每个 Agent 可配置不同的 Skill（代码执行、工具调用、人类反馈）。AutoGen 的工程意义在于证明了 Skill 的组合不仅发生在单 Agent 内部，也发生在 Agent 之间。</li>
+<li><strong>MetaGPT (Hong et al., 2023)</strong> — 将软件工程中的 SOP（标准作业流程）编码为多 Agent 协作协议。产品经理 Agent、架构师 Agent、工程师 Agent 各自持有领域 Skill，通过结构化文档（PRD、设计文档、代码）进行异步协作。这是 Skill 工程在软件开发领域的直接应用。</li>
+<li><strong>CrewAI</strong> — 开源框架，强调基于角色（Role）的 Skill 分配和基于任务（Task）的协作编排。其 <code>@tool</code> 装饰器和 Agent 的 <code>tools</code> 参数直接体现了 Skill 注册与绑定的工程模式。</li>
+</ul>
+<h3>技术方向 4：Skill 评估与可靠性 — 非确定性系统的质量保障</h3>
+<p>Skill 输出的非确定性是工程化的最大障碍。这一方向的技术目标是：<strong>在不牺牲灵活性的前提下，建立可量化的 Skill 质量基线</strong>。</p>
+<p>关键论文与工具：</p>
+<ul>
+<li><strong>Judging LLM-as-a-Judge (Zheng et al., 2023, LMSYS)</strong> — 系统研究了使用 GPT-4 作为评估器的可靠性，发现其与人类评估的一致性超过 80%。这为 Skill 输出的自动化评估提供了理论基础。但论文也指出了位置偏差、冗长偏差等系统性问题，提醒 Skill 评估管线需要校准机制。</li>
+<li><strong>AgentBench (Liu et al., 2023, 清华)</strong> — 构建了覆盖 8 个环境（操作系统、数据库、知识图谱、Web 等）的 Agent 能力基准。其评估维度直接对应 Skill 的核心质量指标：任务完成率、步骤效率、错误恢复能力。</li>
+<li><strong>ToolEval (Qin et al., 2023)</strong> — ToolBench 配套的评估框架，提出 Pass Rate 和 Win Rate 两个核心指标。Pass Rate 衡量 Skill 调用链是否成功完成任务，Win Rate 通过 ChatGPT 对比评估衡量解决方案质量。这套评估体系已被多个后续工作采用。</li>
+<li><strong>DSPy (Khattab et al., 2023, Stanford)</strong> — 提出将 Prompt 工程转化为可编程、可优化的模块。DSPy 的 <code>dspy.Module</code> 本质上就是形式化的 Skill 定义，其 Compiler 通过自动化 Prompt 优化和 Few-shot 选择来提升 Skill 可靠性。这是 Skill 工程从&quot;手工调参&quot;走向&quot;自动化优化&quot;的关键技术。</li>
+</ul>
+<h3>技术方向 5：Skill 的语义发现与检索 — 规模化的前提</h3>
+<p>当 Skill 资产库膨胀到数百甚至数千个时，Planner 如何高效、准确地找到合适的 Skill？</p>
+<p>关键技术与论文：</p>
+<ul>
+<li><strong>API-Bank (Li et al., 2023)</strong> — 构建了包含 53 个 API 工具的基准，系统评估了 LLM 在 API 检索、调用和组合三个层面的能力。发现模型在 API 检索阶段的错误是下游调用失败的首要原因——这直接验证了原始报告中&quot;Skill 描述质量是系统可靠性第一瓶颈&quot;的判断。</li>
+<li><strong>ToolkenGPT (Hao et al., 2024)</strong> — 将每个工具表示为一个特殊 Token（toolken），嵌入模型的词表中。模型在生成过程中可以像生成普通词一样&quot;生成&quot;工具调用。这种方案将 Skill 发现从检索问题转化为生成问题，在大规模工具场景下效率显著优于基于 Embedding 的检索方案。</li>
+<li><strong>AnyTool (Du et al., 2024)</strong> — 提出层级化 API 检索策略，先定位 API 类别，再在类别内精确匹配。在 ToolBench 的 16,000+ API 上实现了显著的检索精度提升。其分层检索思想对 Skill 资产库的分类治理有直接指导意义。</li>
+</ul>
+<h3>技术方向 6：Skill 安全与对齐 — 被低估的关键维度</h3>
+<p>Skill 的安全性问题正在从学术讨论走向工程实践。当 Agent 被授权调用外部工具时，恶意 Skill 注入、权限越界、数据泄露等风险急剧放大。</p>
+<p>关键论文：</p>
+<ul>
+<li><strong>ToolSword (Ye et al., 2024)</strong> — 系统性地评估了 LLM Agent 在工具使用场景下的安全风险，定义了 6 类攻击场景（恶意工具注入、参数篡改、权限提升等）。测试发现即使是 GPT-4 也在多个场景下存在显著漏洞。这为 Skill 平台的安全审核门禁提供了威胁模型基线。</li>
+<li><strong>Adversarial Attacks on LLM Tool-use (Zhan et al., 2024)</strong> — 研究了通过对抗性工具描述诱导模型选择恶意工具的攻击方式。发现仅修改工具描述中的几个词就能显著改变模型的工具选择行为。这对 Skill 注册审核流程提出了严格要求。</li>
+</ul>
+<hr>
+<h2>论文热度与影响力对比矩阵</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>年份</th>
+<th>引用量级</th>
+<th>技术方向</th>
+<th>工程落地度</th>
+<th>推荐优先级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ReAct</td>
+<td>2023</td>
+<td>★★★★★</td>
+<td>编排</td>
+<td>已成为行业默认范式</td>
+<td>P0 必读</td>
+</tr>
+<tr>
+<td>Toolformer</td>
+<td>2023</td>
+<td>★★★★★</td>
+<td>Tool-use</td>
+<td>概念奠基，直接落地有限</td>
+<td>P0 必读</td>
+</tr>
+<tr>
+<td>Gorilla</td>
+<td>2023</td>
+<td>★★★★</td>
+<td>Tool-use</td>
+<td>APIBench 已成标准评测</td>
+<td>P0 必读</td>
+</tr>
+<tr>
+<td>AutoGen</td>
+<td>2023</td>
+<td>★★★★</td>
+<td>多Agent</td>
+<td>微软主推，生态成熟</td>
+<td>P0 必读</td>
+</tr>
+<tr>
+<td>DSPy</td>
+<td>2023</td>
+<td>★★★★</td>
+<td>评估优化</td>
+<td>Skill 自动化优化的范式突破</td>
+<td>P0 必读</td>
+</tr>
+<tr>
+<td>ToolBench</td>
+<td>2023</td>
+<td>★★★★</td>
+<td>Tool-use + 评估</td>
+<td>最大规模工具基准</td>
+<td>P1 重点</td>
+</tr>
+<tr>
+<td>HuggingGPT</td>
+<td>2023</td>
+<td>★★★★</td>
+<td>编排</td>
+<td>概念验证，工程化不足</td>
+<td>P1 重点</td>
+</tr>
+<tr>
+<td>LATS</td>
+<td>2024</td>
+<td>★★★</td>
+<td>编排</td>
+<td>最强规划算法，计算成本高</td>
+<td>P1 重点</td>
+</tr>
+<tr>
+<td>MetaGPT</td>
+<td>2023</td>
+<td>★★★★</td>
+<td>多Agent</td>
+<td>软件工程场景直接可用</td>
+<td>P1 重点</td>
+</tr>
+<tr>
+<td>AgentBench</td>
+<td>2023</td>
+<td>★★★</td>
+<td>评估</td>
+<td>最全面的 Agent 评测基准</td>
+<td>P1 重点</td>
+</tr>
+<tr>
+<td>LLM-as-Judge</td>
+<td>2023</td>
+<td>★★★★</td>
+<td>评估</td>
+<td>自动化评估的理论基础</td>
+<td>P1 重点</td>
+</tr>
+<tr>
+<td>ToolkenGPT</td>
+<td>2024</td>
+<td>★★★</td>
+<td>语义发现</td>
+<td>大规模场景下的突破性方案</td>
+<td>P2 关注</td>
+</tr>
+<tr>
+<td>AnyTool</td>
+<td>2024</td>
+<td>★★</td>
+<td>语义发现</td>
+<td>分层检索思想有实践价值</td>
+<td>P2 关注</td>
+</tr>
+<tr>
+<td>ToolSword</td>
+<td>2024</td>
+<td>★★</td>
+<td>安全</td>
+<td>威胁模型定义有参考价值</td>
+<td>P2 关注</td>
+</tr>
+<tr>
+<td>API-Bank</td>
+<td>2023</td>
+<td>★★★</td>
+<td>语义发现</td>
+<td>验证了检索是第一瓶颈</td>
+<td>P2 关注</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>技术演进路线图</h2>
+<pre><code>2023 Q1          2023 Q2-Q3           2024              2025+
+─────────────────────────────────────────────────────────────────
+Toolformer        ReAct/HuggingGPT     LATS/ToolkenGPT    Skill OS
+(模型学会用工具)   (Agent学会规划)       (搜索式规划+       (标准化Skill
+                                        规模化发现)         运行时)
+                  Gorilla/ToolBench    AnyTool/ToolSword
+                  (大规模工具基准)      (治理与安全)        Skill Mesh
+                                                          (分布式Skill
+                  AutoGen/MetaGPT      DSPy 2.0            服务网格)
+                  (多Agent协作)        (自动化优化)
+</code></pre>
+<hr>
+<h2>可行动建议</h2>
+<h3>短期（0-3 个月）：建立技术认知基线</h3>
+<ol>
+<li>组织团队精读 P0 级论文（ReAct、Toolformer、Gorilla、AutoGen、DSPy），建立 Skill 工程的共同语言</li>
+<li>基于 ToolBench/APIBench 搭建内部 Skill 评测管线，量化现有 Skill 的调用准确率和任务完成率</li>
+<li>引入 DSPy 框架试点，将 2-3 个高频 Skill 从手工 Prompt 迁移到可编程模块</li>
+</ol>
+<h3>中期（3-6 个月）：构建 Skill 工程基础设施</h3>
+<ol start="4">
+<li>建立 Skill 注册中心，参考 AnyTool 的分层分类思想设计 Skill 元数据 Schema</li>
+<li>实现基于 LLM-as-Judge 的 Skill 质量门禁，集成到 CI/CD 管线</li>
+<li>参考 ToolSword 的威胁模型，制定 Skill 安全审核清单</li>
+</ol>
+<h3>长期（6-12 个月）：迈向 Skill 平台化</h3>
+<ol start="7">
+<li>探索 LATS 等高级规划算法在关键业务场景的应用，提升复杂任务的 Skill 编排可靠性</li>
+<li>建设跨团队 Skill 资产市场，实现 Skill 的发现、复用和交易</li>
+<li>关注 ToolkenGPT 等新范式的成熟度，评估将 Skill 内化到模型词表的可行性</li>
+</ol>
+<hr>
+<h2>来源引用</h2>
+<ol>
+<li>Schick, T. et al. &quot;Toolformer: Language Models Can Teach Themselves to Use Tools.&quot; NeurIPS 2023.</li>
+<li>Patil, S. et al. &quot;Gorilla: Large Language Model Connected with Massive APIs.&quot; arXiv:2305.15334, 2023.</li>
+<li>Qin, Y. et al. &quot;ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs.&quot; ICLR 2024.</li>
+<li>Yao, S. et al. &quot;ReAct: Synergizing Reasoning and Acting in Language Models.&quot; ICLR 2023.</li>
+<li>Shen, Y. et al. &quot;HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging Face.&quot; NeurIPS 2023.</li>
+<li>Wang, L. et al. &quot;Plan-and-Solve Prompting: Improving Zero-Shot Chain-of-Thought Reasoning.&quot; ACL 2023.</li>
+<li>Zhou, A. et al. &quot;Language Agent Tree Search Unifies Reasoning, Acting, and Planning in Language Models.&quot; ICML 2024.</li>
+<li>Wu, Q. et al. &quot;AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation.&quot; arXiv:2308.08155, 2023.</li>
+<li>Hong, S. et al. &quot;MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework.&quot; ICLR 2024.</li>
+<li>Zheng, L. et al. &quot;Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena.&quot; NeurIPS 2023.</li>
+<li>Liu, X. et al. &quot;AgentBench: Evaluating LLMs as Agents.&quot; ICLR 2024.</li>
+<li>Khattab, O. et al. &quot;DSPy: Compiling Declarative Language Model Calls into Self-Improving Pipelines.&quot; ICLR 2024.</li>
+<li>Li, M. et al. &quot;API-Bank: A Comprehensive Benchmark for Tool-Augmented LLMs.&quot; EMNLP 2023.</li>
+<li>Hao, S. et al. &quot;ToolkenGPT: Augmenting Frozen Language Models with Massive Tools via Tool Embeddings.&quot; NeurIPS 2023.</li>
+<li>Du, Y. et al. &quot;AnyTool: Self-Reflective, Hierarchical Agents for Large-Scale API Tools.&quot; arXiv:2402.04253, 2024.</li>
+<li>Ye, J. et al. &quot;ToolSword: Unveiling Safety Issues of Large Language Models in Tool Learning.&quot; arXiv:2402.10753, 2024.</li>
+</ol>
+
+<hr>
+<div class="fb-panel">
+  <h3>反馈与改进</h3>
+  <p style="color:var(--muted);font-size:0.9rem">提出洞察思路或方法建议，系统会记录并在后续生成中应用。</p>
+  <form class="fb-form" onsubmit="submitFB(event)">
+    <div>
+      <label>反馈类型</label>
+      <select id="fb-type">
+        <option value="insight">洞察思路</option>
+        <option value="method">分析方法</option>
+        <option value="missing">缺失内容</option>
+        <option value="error">错误纠正</option>
+      </select>
+    </div>
+    <div>
+      <label>具体建议 *</label>
+      <textarea id="fb-content" placeholder="例如：应该增加对性能优化的分析..." required></textarea>
+    </div>
+    <div>
+      <label>关键词（逗号分隔）</label>
+      <input type="text" id="fb-keywords" placeholder="例如：性能优化, 内存管理">
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+      <button type="submit" id="fb-btn">提交反馈</button>
+      <button type="button" class="btn-regen" onclick="regenFB()">基于反馈重新生成</button>
+      <button type="button" class="btn-followup" onclick="followUp()">追问深挖</button>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+        <input type="checkbox" id="fb-skill" checked>
+        <span style="font-size:0.85rem">保存为 Skill</span>
+      </label>
+    </div>
+  </form>
+  <div id="fb-status"></div>
+  <div id="fb-list"></div>
+</div>
+<div class="meta">本报告由 DeepDive 洞察 Agent 生成</div>
+<script>
+const RID='eefd3784-39e0-4780-a8a2-fd4b9284da75',RTITLE='追问：有哪些关键技术，有哪些TOP热点论文，请进一步分析',RDOMAIN='software-engineering';
+const TL={insight:'洞察思路',method:'分析方法',missing:'缺失内容',error:'错误纠正'};
+async function loadFB(){
+  try{const r=await fetch('/api/feedback?reportId='+RID);const d=await r.json();renderFB(d.feedback||[]);}catch(e){}
+}
+function renderFB(list){
+  const c=document.getElementById('fb-list');
+  if(!list.length){c.innerHTML='';return;}
+  c.innerHTML='<h4 style="margin-top:1.5rem;font-size:1rem">历史反馈</h4>'+list.map(f=>
+    '<div class="fb-item"><div class="fb-item-head"><span class="fb-type">'+(TL[f.type]||f.type)+'</span><span class="fb-date">'+new Date(f.createdAt).toLocaleString('zh-CN')+'</span></div><div>'+f.content+'</div>'+(f.keywords&&f.keywords.length?'<div style="margin-top:0.5rem;font-size:0.8rem;color:var(--muted)">关键词：'+f.keywords.join(', ')+'</div>':'')+'</div>'
+  ).join('');
+}
+async function submitFB(e){
+  e.preventDefault();
+  const btn=document.getElementById('fb-btn'),st=document.getElementById('fb-status');
+  btn.disabled=true;
+  const body=getFBBody();
+  try{
+    const r=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('提交失败');
+    st.className='fb-status ok';st.textContent='反馈已保存'+(body.saveAsSkill?'，已生成 Skill':'');
+    document.getElementById('fb-content').value='';document.getElementById('fb-keywords').value='';
+    loadFB();setTimeout(()=>{st.textContent='';},3000);
+  }catch(err){st.className='fb-status err';st.textContent=err.message;}
+  finally{btn.disabled=false;}
+}
+async function regenFB(){
+  const content=document.getElementById('fb-content').value.trim();
+  if(!content){alert('请先填写反馈');return;}
+  const btn=document.querySelector('.btn-regen');btn.disabled=true;btn.textContent='生成中...';
+  try{
+    const body=getFBBody();
+    await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const r=await fetch('/api/regenerate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:RTITLE,feedback:content,domain:RDOMAIN})});
+    if(!r.ok)throw new Error('生成失败');
+    const result=await r.json();window.open(result.url,'_blank');
+    document.getElementById('fb-content').value='';loadFB();
+  }catch(err){alert(err.message);}
+  finally{btn.disabled=false;btn.textContent='基于反馈重新生成';}
+}
+async function followUp(){
+  const q=prompt('请输入追问问题：');
+  if(!q)return;
+  const btn=document.querySelector('.btn-followup');btn.disabled=true;btn.textContent='生成中...';
+  try{
+    const r=await fetch('/api/follow-up',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({parentReportId:RID,question:q})});
+    if(!r.ok)throw new Error('生成失败');
+    const result=await r.json();window.open(result.url,'_blank');
+  }catch(err){alert(err.message);}
+  finally{btn.disabled=false;btn.textContent='追问深挖';}
+}
+function getFBBody(){
+  return{reportId:RID,reportTitle:RTITLE,type:document.getElementById('fb-type').value,content:document.getElementById('fb-content').value.trim(),keywords:(document.getElementById('fb-keywords').value.trim()||'').split(',').map(k=>k.trim()).filter(Boolean),saveAsSkill:document.getElementById('fb-skill').checked};
+}
+loadFB();
+</script>
+</body>
+</html>

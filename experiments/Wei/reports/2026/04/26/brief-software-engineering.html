@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件工程 Brief 2026-04-26 — DeepDive</title>
+<style>
+:root {
+  --ink: #18181b; --muted: #71717a; --muted-2: #a1a1aa;
+  --border: #e4e4e7; --bg: #ffffff; --bg-2: #fafafa; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fafafa; --muted: #a1a1aa; --muted-2: #71717a;
+    --border: #27272a; --bg: #09090b; --bg-2: #18181b; --accent: #60a5fa;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--ink); background: var(--bg); padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2.5rem; margin: 2rem 0 1rem; font-weight: 700; }
+h2 { font-size: 1.75rem; margin: 2rem 0 1rem; font-weight: 600; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+h3 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; font-weight: 600; }
+p { margin: 1rem 0; }
+ul, ol { margin: 1rem 0; padding-left: 2rem; }
+li { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+th { background: var(--bg-2); font-weight: 600; }
+code { background: var(--bg-2); padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: var(--bg-2); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin: 1rem 0; }
+.domain-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 500; }
+.domain-tag.se { background: #dbeafe; color: #1d4ed8; }
+.domain-tag.cs { background: #fce7f3; color: #be185d; }
+.fb-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+.fb-panel h3 { margin-top: 0; font-size: 1.1rem; }
+.fb-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+.fb-form label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.fb-form textarea, .fb-form input, .fb-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font-family: inherit; font-size: 0.9rem; }
+.fb-form textarea { min-height: 80px; resize: vertical; }
+.fb-form button { padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; align-self: flex-start; }
+.fb-form button:hover { opacity: 0.9; }
+.fb-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.fb-form .btn-regen { background: var(--bg); color: var(--accent); border: 1px solid var(--accent); }
+.fb-form .btn-regen:hover { background: var(--accent); color: white; }
+.fb-form .btn-followup { background: var(--bg); color: #059669; border: 1px solid #059669; }
+.fb-form .btn-followup:hover { background: #059669; color: white; }
+.fb-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-top: 0.75rem; }
+.fb-item-head { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.fb-type { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--accent); color: white; }
+.fb-date { font-size: 0.8rem; color: var(--muted); }
+.fb-status { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+.fb-status.ok { color: #10b981; border: 1px solid #10b981; }
+.fb-status.err { color: #ef4444; border: 1px solid #ef4444; }
+</style>
+</head>
+<body>
+<div class="meta">
+  <span class="domain-tag se">软件工程</span> · 每日 Brief · 2026-04-26
+</div>
+<h1>软件工程每日 Brief — 2026-04-25</h1>
+<h2>最关注的事</h2>
+<h3>1. OpenAI 发布 GPT-5.5，编码与复杂任务能力再升级</h3>
+<p>OpenAI 正式推出 GPT-5.5，定位为其迄今最强模型，在编码、研究和数据分析等复杂任务上有显著提升。同步发布了 System Card 和 Bio Bug Bounty（最高 $25,000 奖金），显示其在能力提升的同时也在加大安全投入。对开发者而言，这意味着 AI 辅助编程的基座能力又上了一个台阶。 <a href="https://openai.com/index/introducing-gpt-5-5">原文</a></p>
+<h3>2. Codex 大规模扩展：桌面端加入 computer use，企业端联合 Accenture/PwC 等推进落地</h3>
+<p>Codex 桌面应用更新加入了 computer use、应用内浏览、图像生成、记忆和插件系统，开发者工作流进一步自动化。同时 OpenAI 宣布 Codex 周活跃用户达 400 万，并成立 Codex Labs 与 Accenture、PwC、Infosys 等合作推动企业级部署，标志着 AI 编码工具从个人效率工具向企业基础设施演进。 <a href="https://openai.com/index/codex-for-almost-everything">原文</a></p>
+<h3>3. OpenAI 用 WebSocket 优化 Agent 工作流，深入解析 Codex agent loop</h3>
+<p>OpenAI 发布技术博客，详细介绍了如何通过 WebSocket 和连接级缓存替代传统 HTTP 请求来降低 API 开销、改善模型延迟。这篇文章对正在构建 agentic 系统的工程团队有直接参考价值，展示了在生产环境中优化 agent 循环的实战思路。 <a href="https://openai.com/index/speeding-up-agentic-workflows-with-websockets">原文</a></p>
+<h2>值得一看的事</h2>
+<ul>
+<li>OpenAI 开源 Privacy Filter 模型，用于高精度检测和脱敏文本中的 PII 信息，可直接集成到数据处理管线中。 <a href="https://openai.com/index/introducing-openai-privacy-filter">原文</a></li>
+<li>DeepSeek V4 发布，Simon Willison 评价&quot;接近前沿水平，价格只是零头&quot;，价格战持续。 <a href="https://simonwillison.net/2026/Apr/24/deepseek-v4/#atom-everything">原文</a></li>
+<li>OpenAI 在 ChatGPT 中推出 Workspace Agents，基于 Codex 驱动，可在云端自动执行跨工具的复杂工作流。 <a href="https://openai.com/index/introducing-workspace-agents-in-chatgpt">原文</a></li>
+<li>Simon Willison 发布 GPT-5.5 prompting guide，值得第一时间参考以了解新模型的使用技巧。 <a href="https://simonwillison.net/2026/Apr/25/gpt-5-5-prompting-guide/#atom-everything">原文</a></li>
+<li>Simon Willison 关注近期 Claude Code 质量问题的讨论，对依赖 AI 编码工具的团队值得留意。 <a href="https://simonwillison.net/2026/Apr/24/recent-claude-code-quality-reports/#atom-everything">原文</a></li>
+</ul>
+
+<hr>
+<div class="meta">本 Brief 由 DeepDive 洞察 Agent 自动生成</div>
+</body>
+</html>

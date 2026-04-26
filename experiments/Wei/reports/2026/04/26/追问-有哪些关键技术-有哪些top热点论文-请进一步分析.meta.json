@@ -1,0 +1,32 @@
+{
+  "id": "eefd3784-39e0-4780-a8a2-fd4b9284da75",
+  "title": "追问：有哪些关键技术，有哪些TOP热点论文，请进一步分析",
+  "createdAt": "2026-04-26T11:07:38.660Z",
+  "type": "follow-up",
+  "domain": "software-engineering",
+  "parentReportId": "7a93e222-a920-4784-8081-1e1f398aecbe",
+  "tags": {
+    "user": [],
+    "auto": [
+      "技能工程",
+      "AI智能体",
+      "能力编排",
+      "大模型",
+      "提示工程",
+      "微服务",
+      "语义检索"
+    ]
+  },
+  "metadata": {
+    "inputTokens": 1051,
+    "outputTokens": 4505,
+    "cost": 0.07072800000000001,
+    "llmProvider": "claude"
+  },
+  "conversationHistory": [
+    {
+      "question": "有哪些关键技术，有哪些TOP热点论文，请进一步分析",
+      "answerSummary": "# Skill 工程关键技术栈与前沿论文深度分析\n\n## TL;DR\n\nSkill 工程的技术纵深远超\"Prompt + Function Calling\"的表层认知。其核心技术栈沿三条主线展开：**能力封装与描述**（Tool-use 规范、语义Schema）、**动态编排与规划**（Task Decomposition、Plan-and-Execute）、**评估与可靠性保障**（LLM-as-Judge、形式化验证）。2023-2025 年间，以 Toolformer、HuggingGPT、Gorilla、ToolBench 为代表的论文集群定义了这一领域的学术坐标系，而 ReAct、L"
+    }
+  ]
+}

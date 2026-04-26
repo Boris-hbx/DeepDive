@@ -1,0 +1,31 @@
+{
+  "name": "DeepDive Default",
+  "colors": {
+    "primary": "#2563eb",
+    "secondary": "#1e40af",
+    "accent": "#f59e0b",
+    "text": "#18181b",
+    "textLight": "#71717a",
+    "background": "#ffffff",
+    "seBadge": "#2563eb",
+    "csBadge": "#be185d"
+  },
+  "fonts": {
+    "title": "Microsoft YaHei",
+    "body": "Microsoft YaHei",
+    "code": "Consolas"
+  },
+  "layout": {
+    "width": 13.33,
+    "height": 7.5,
+    "margin": 0.8
+  },
+  "slides": {
+    "cover": { "titleSize": 32, "subtitleSize": 16 },
+    "section": { "titleSize": 28 },
+    "content": { "titleSize": 24, "bodySize": 14 },
+    "table": { "headerSize": 12, "bodySize": 11 },
+    "timeline": { "itemSize": 13 },
+    "closing": { "textSize": 18 }
+  }
+}

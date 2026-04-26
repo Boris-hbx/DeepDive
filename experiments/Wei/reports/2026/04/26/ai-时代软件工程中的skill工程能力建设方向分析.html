@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 时代软件工程中的skill工程能力建设方向分析 — DeepDive</title>
+<style>
+:root {
+  --ink: #18181b; --muted: #71717a; --muted-2: #a1a1aa;
+  --border: #e4e4e7; --bg: #ffffff; --bg-2: #fafafa; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fafafa; --muted: #a1a1aa; --muted-2: #71717a;
+    --border: #27272a; --bg: #09090b; --bg-2: #18181b; --accent: #60a5fa;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--ink); background: var(--bg); padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2.5rem; margin: 2rem 0 1rem; font-weight: 700; }
+h2 { font-size: 1.75rem; margin: 2rem 0 1rem; font-weight: 600; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+h3 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; font-weight: 600; }
+p { margin: 1rem 0; }
+ul, ol { margin: 1rem 0; padding-left: 2rem; }
+li { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+th { background: var(--bg-2); font-weight: 600; }
+code { background: var(--bg-2); padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: var(--bg-2); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin: 1rem 0; }
+.domain-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 500; }
+.domain-tag.se { background: #dbeafe; color: #1d4ed8; }
+.domain-tag.cs { background: #fce7f3; color: #be185d; }
+.fb-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+.fb-panel h3 { margin-top: 0; font-size: 1.1rem; }
+.fb-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+.fb-form label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.fb-form textarea, .fb-form input, .fb-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font-family: inherit; font-size: 0.9rem; }
+.fb-form textarea { min-height: 80px; resize: vertical; }
+.fb-form button { padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; align-self: flex-start; }
+.fb-form button:hover { opacity: 0.9; }
+.fb-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.fb-form .btn-regen { background: var(--bg); color: var(--accent); border: 1px solid var(--accent); }
+.fb-form .btn-regen:hover { background: var(--accent); color: white; }
+.fb-form .btn-followup { background: var(--bg); color: #059669; border: 1px solid #059669; }
+.fb-form .btn-followup:hover { background: #059669; color: white; }
+.fb-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-top: 0.75rem; }
+.fb-item-head { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.fb-type { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--accent); color: white; }
+.fb-date { font-size: 0.8rem; color: var(--muted); }
+.fb-status { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+.fb-status.ok { color: #10b981; border: 1px solid #10b981; }
+.fb-status.err { color: #ef4444; border: 1px solid #ef4444; }
+</style>
+</head>
+<body>
+<div class="meta">
+  <span class="domain-tag se">软件工程</span> · 
+  生成时间：2026-04-26T10:38:01.607Z ·
+  模型：claude ·
+  成本：$0.0690 ·
+  标签：技能工程, AI智能体, 能力编排, 大模型, 提示工程, 微服务, 语义检索
+</div>
+<h1>AI 时代软件工程中的 Skill 工程能力建设方向分析</h1>
+<h2>TL;DR</h2>
+<p>Skill 工程正在从&quot;提示词拼接&quot;走向&quot;模块化能力编排&quot;，成为 AI Agent 时代软件工程的核心基础设施层。掌握 Skill 的定义、组合、评估与治理能力，将决定团队能否从&quot;调用大模型&quot;跃迁到&quot;构建可靠 AI 原生系统&quot;。当前行业处于 Skill 工程的标准化前夜，率先建立内部 Skill 资产体系的团队将获得显著的工程效率复利。</p>
+<h2>关键发现</h2>
+<h3>发现 1：Skill 工程是 AI Agent 架构的&quot;微服务化&quot;拐点</h3>
+<p>在传统软件工程中，微服务将单体应用拆解为可独立部署的服务单元；在 AI 原生架构中，Skill 扮演着完全类似的角色——它是 Agent 可调用的最小能力原子。一个 Skill 通常包含四个要素：<strong>意图声明（Intent Schema）</strong>、<strong>输入输出契约（I/O Contract）</strong>、<strong>执行逻辑（Runtime Logic）</strong> 和 <strong>上下文依赖描述（Context Dependency）</strong>。</p>
+<p>以 Microsoft Semantic Kernel 为例，一个 Skill 由多个 Function 组成，每个 Function 通过 <code>@kernel_function</code> 装饰器声明其语义描述、参数类型和返回值。Agent 的 Planner 根据用户意图，从 Skill 注册表中检索并编排合适的 Function 链。这与 Kubernetes 中 Service Mesh 的服务发现机制高度同构。</p>
+<p>关键技术挑战在于 <strong>Skill 的语义可发现性</strong>：当 Skill 数量从几十个增长到数百个时，如何让 Planner 准确匹配意图？当前主流方案包括基于 Embedding 的语义检索、基于 Few-shot 的动态示例注入、以及基于 Tool-use Fine-tuning 的模型内化。实践表明，Skill 描述的质量（而非数量）是系统可靠性的第一瓶颈。</p>
+<h3>发现 2：Skill 的生命周期管理正在成为新的工程学科</h3>
+<p>Skill 不是写完就丢的 Prompt 片段，它需要完整的生命周期管理：<strong>设计 → 实现 → 测试 → 注册 → 版本控制 → 监控 → 退役</strong>。这与传统 API 生命周期管理几乎一一对应，但增加了 AI 特有的复杂性。</p>
+<p><strong>测试层面</strong>：Skill 的输出具有非确定性，传统的断言式测试（<code>assertEqual</code>）不再适用。业界正在探索三类测试范式——基于 LLM-as-Judge 的语义评估（如 DeepEval、Ragas）、基于统计分布的漂移检测、以及基于人类偏好的 RLHF 式评估。OpenAI 的 Evals 框架和 Anthropic 的 Model Eval 工具链代表了这一方向。</p>
+<p><strong>版本控制层面</strong>：Skill 的变更不仅包括代码逻辑变更，还包括 Prompt 模板变更、依赖模型版本变更、上下文窗口策略变更。PromptFlow、LangSmith 等平台开始提供 Skill 级别的版本追踪和 A/B 测试能力，但尚未形成行业统一标准。</p>
+<p><strong>治理层面</strong>：当多个团队共建 Skill 资产库时，命名冲突、能力重叠、权限控制等问题浮现。部分先行企业已开始设立&quot;Skill 平台团队&quot;，类似于传统的 API 平台团队，负责 Skill 的审核、分类和质量门禁。</p>
+<h3>发现 3：从 Prompt Engineering 到 Skill Engineering 的范式跃迁已经发生</h3>
+<p>Prompt Engineering 关注的是&quot;如何让单次 LLM 调用产出更好的结果&quot;，而 Skill Engineering 关注的是&quot;如何将 AI 能力封装为可组合、可复用、可治理的工程资产&quot;。这是一个从手工作坊到工业化生产的质变。</p>
+<p>具体体现在三个维度的升级：</p>
+<ul>
+<li><strong>从单点调用到编排链路</strong>：Skill Engineering 要求开发者思考 Skill 之间的依赖关系、数据流转、错误传播和回退策略。LangGraph 的状态机模型、CrewAI 的角色协作模型都是编排层的实践。</li>
+<li><strong>从自然语言到形式化契约</strong>：OpenAI 的 Function Calling JSON Schema、Anthropic 的 Tool Use 规范、Google 的 Vertex AI Extensions 规范，都在推动 Skill 接口的形式化。这使得 Skill 可以被静态分析、自动化测试和类型检查。</li>
+<li><strong>从个人经验到组织资产</strong>：优秀的 Prompt 往往存在于个人笔记中，而 Skill 通过标准化封装进入组织的能力资产库，可被发现、复用和持续优化。</li>
+</ul>
+<h2>技术对比</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Microsoft Semantic Kernel</th>
+<th>LangChain / LangGraph</th>
+<th>OpenAI Function Calling + Assistants API</th>
+<th>Anthropic Tool Use (MCP)</th>
+<th>Google Vertex AI Extensions</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>核心特点</strong></td>
+<td>企业级 Skill 编排框架，强类型 Skill 定义，内置 Planner</td>
+<td>社区驱动的 Agent 工具链，Chain/Graph 双模型，生态最丰富</td>
+<td>原生 Function Calling 能力，Assistants API 提供有状态 Agent</td>
+<td>Model Context Protocol 开放标准，强调工具互操作性</td>
+<td>云原生 Extensions 体系，与 Google Cloud 深度集成</td>
+</tr>
+<tr>
+<td><strong>Skill 定义方式</strong></td>
+<td><code>@kernel_function</code> 装饰器 + 语义描述</td>
+<td><code>@tool</code> 装饰器 / Tool 类 / StructuredTool</td>
+<td>JSON Schema 定义函数签名</td>
+<td>JSON Schema + MCP Server 协议</td>
+<td>OpenAPI Spec 扩展</td>
+</tr>
+<tr>
+<td><strong>编排能力</strong></td>
+<td>内置 Handlebars/Stepwise Planner</td>
+<td>LangGraph 状态机，支持循环、条件、人机交互</td>
+<td>Assistants API 内置 Run Loop</td>
+<td>依赖外部编排层</td>
+<td>Vertex AI Agent Builder 可视化编排</td>
+</tr>
+<tr>
+<td><strong>优势</strong></td>
+<td>C#/.NET 生态一等支持；企业级安全与合规；与 Azure 深度集成</td>
+<td>生态最大，工具集最丰富；Python 优先；社区活跃迭代快</td>
+<td>模型原生支持，延迟最低；无需额外框架依赖</td>
+<td>开放协议，厂商中立；支持本地/远程 Skill 统一接入</td>
+<td>与 BigQuery/Cloud Storage 等 GCP 服务无缝集成</td>
+</tr>
+<tr>
+<td><strong>劣势</strong></td>
+<td>Python 支持相对滞后；社区规模较小；学习曲线陡</td>
+<td>抽象层过多导致调试困难；版本间 Breaking Change 频繁</td>
+<td>绑定 OpenAI 生态；编排能力有限；有状态管理较弱</td>
+<td>生态尚在早期；工具链不够成熟</td>
+<td>绑定 GCP；开源社区参与度低</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>.NET 企业级 Agent 系统；Azure 技术栈团队</td>
+<td>快速原型验证；多模型切换需求；Python 技术栈</td>
+<td>轻量级 Tool Use 场景；OpenAI 模型为主的应用</td>
+<td>需要跨平台 Skill 互操作；构建开放 Skill 生态</td>
+<td>GCP 原生企业；需要与 Google 数据服务联动</td>
+</tr>
+</tbody></table>
+<h2>发展时间线</h2>
+<ul>
+<li><strong>2022-11</strong> OpenAI 发布 ChatGPT，Prompt Engineering 概念爆发，开发者开始系统性地研究如何构造有效提示词，为 Skill 工程奠定认知基础。</li>
+<li><strong>2023-03</strong> LangChain 发布 Agents 模块和 Tools 抽象，首次在开源社区中将&quot;工具调用&quot;标准化为 Agent 的核心能力单元，Skill 的工程化封装开始萌芽。</li>
+<li><strong>2023-06</strong> OpenAI 发布 Function Calling 能力，模型原生支持结构化工具调用，JSON Schema 成为 Skill 接口定义的事实标准，标志着 Skill 从&quot;Prompt Hack&quot;走向&quot;形式化契约&quot;。</li>
+<li><strong>2023-07</strong> Microsoft 开源 Semantic Kernel 1.0，明确提出 Skill/Plugin 概念体系，将 Skill 的注册、发现、编排作为框架一等公民，企业级 Skill 工程实践开始落地。</li>
+<li><strong>2023-11</strong> OpenAI 发布 Assistants API 和 GPTs 平台，用户可通过配置方式创建具备特定 Skill 集合的 Agent，Skill 的&quot;低代码化&quot;组装成为可能。</li>
+<li><strong>2024-01</strong> LangChain 发布 LangGraph，引入状态机模型处理复杂 Skill 编排，支持循环、条件分支和人机协作节点，Skill 编排从线性 Chain 进化到有向图。</li>
+<li><strong>约 2024-04</strong> CrewAI、AutoGen 等多 Agent 框架兴起，Skill 的粒度从&quot;单个工具函数&quot;扩展到&quot;角色级能力集合&quot;，多 Agent 协作中的 Skill 分配与协调成为新课题。</li>
+<li><strong>2024-11</strong> Anthropic 发布 Model Context Protocol（MCP），提出厂商中立的 Skill/Tool 互操作协议，试图解决 Skill 在不同 Agent 框架间的可移植性问题，被视为 Skill 工程标准化的重要里程碑。</li>
+<li><strong>2025-01</strong> 各大云厂商（AWS Bedrock Agent、Azure AI Agent Service、GCP Vertex AI Agent Builder）相继推出托管式 Agent 平台，Skill 的注册、托管、监控开始平台化，Skill 工程进入基础设施化阶段。</li>
+<li><strong>约 2025-05</strong> 行业开始出现&quot;Skill Marketplace&quot;概念，类似于 API Marketplace，第三方开发者可发布和变现 Skill 资产，Skill 的商业化生态初步形成。</li>
+</ul>
+<h2>趋势与展望</h2>
+<p><strong>1. MCP 协议将推动 Skill 互操作标准的统一</strong>
+当前各框架的 Skill 定义格式互不兼容，MCP 的出现类似于 REST 之于 Web API 的意义。预计未来 12-18 个月内，主流 Agent 框架将普遍支持 MCP 作为 Skill 的互操作层，Skill 的&quot;Write Once, Run Anywhere&quot;将逐步实现。</p>
+<p><strong>2. Skill 评估体系将从&quot;人工抽检&quot;走向&quot;自动化持续评估&quot;</strong>
+随着 LLM-as-Judge 技术的成熟和评估基准（如 BFCL、ToolBench）的完善，Skill 的质量评估将嵌入 CI/CD 流水线。每次 Skill 变更都将自动触发语义正确性、安全性和性能回归测试，形成类似于代码覆盖率的&quot;Skill 可靠性评分&quot;。</p>
+<p><strong>3. Skill 的粒度将出现&quot;两极分化&quot;</strong>
+一方面，原子级 Skill（如&quot;查询天气&quot;&quot;发送邮件&quot;）将高度标准化并沉淀为基础设施；另一方面，领域级 Skill（如&quot;执行财务审计流程&quot;&quot;生成合规报告&quot;）将承载越来越多的业务逻辑，成为企业核心竞争力。中间层的通用 Skill 将面临被模型内化（通过 Fine-tuning）或被平台吸收的压力。</p>
+<p><strong>4. &quot;Skill as Code&quot; 将成为新的工程范式</strong>
+Skill 的定义、测试、部署将完全代码化，纳入 Git 版本控制和 IaC（Infrastructure as Code）体系。Skill 的 Schema 将像 Protobuf/GraphQL Schema 一样成为团队间的契约，支持自动生成客户端 SDK、Mock 服务和文档。</p>
+<p><strong>5. AI 辅助的 Skill 自动生成与优化将加速 Skill 供给</strong>
+基于自然语言描述自动生成 Skill 实现（包括 Prompt 模板、工具调用逻辑、错误处理）的能力正在快速发展。GitHub Copilot Workspace、Cursor Agent 等工具已展现出从需求描述直接生成可用 Skill 的潜力，这将大幅降低 Skill 的创建门槛。</p>
+<h2>可行动建议</h2>
+<p><strong>1. 建立内部 Skill 资产目录，从&quot;散落的 Prompt&quot;到&quot;可管理的 Skill 库&quot;</strong>
+立即盘点团队中已有的 AI 调用模式（Prompt 模板、Tool 定义、API 封装），按统一的 Schema（建议参考 MCP 或 OpenAI Function Calling 格式）重新封装为标准化 Skill。使用内部 Registry（可基于 Git Repo + 元数据索引）进行集中管理。第一步不求完美，先做到&quot;可发现、可复用&quot;。</p>
+<p><strong>2. 在 CI/CD 中引入 Skill 质量门禁</strong>
+为每个 Skill 编写评估用例集（Eval Dataset），包含典型输入、期望输出和边界条件。集成 DeepEval 或 promptfoo 等评估框架，在 Skill 变更时自动运行评估并设置通过阈值。重点关注三个指标：意图匹配准确率、输出格式合规率、异常处理覆盖率。</p>
+<p><strong>3. 培养&quot;Skill Engineer&quot;角色，投资团队能力转型</strong>
+Skill 工程横跨 Prompt 设计、API 设计、测试工程和平台工程，需要复合型人才。建议从现有的后端工程师或平台工程师中选拔，通过内部培训（重点学习 Semantic Kernel / LangGraph 框架、MCP 协议、Eval 方法论）培养专职 Skill Engineer。短期内至少配置 1-2 名专职人员负责 Skill 平台建设。</p>
+<p><strong>4. 采用 MCP 协议作为 Skill 互操作的默认标准</strong>
+即使当前主要使用单一 Agent 框架，也建议以 MCP 作为 Skill 的对外接口标准。这样做的好处是：a) 避免框架锁定；b) 便于与外部 Skill 生态对接；c) MCP 的 Server/Client 模型天然支持 Skill 的独立部署和扩展。可以从将现有 Tool 封装为 MCP Server 开始，逐步迁移。</p>
+<p><strong>5. 构建 Skill 编排的可观测性体系</strong>
+在 Skill 调用链路中埋入 Trace（推荐使用 OpenTelemetry + LangSmith/Phoenix），记录每个 Skill 的调用频次、延迟、成功率、Token 消耗和成本。这些数据不仅用于排障，更是 Skill 优化和淘汰决策的核心依据。目标是让每个 Skill 的 ROI 可量化。</p>
+<h2>来源与参考</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/semantic-kernel/overview/">Semantic Kernel Documentation</a> — Microsoft 官方 Skill/Plugin 架构设计文档，Skill 工程的企业级参考实现</li>
+<li><a href="https://python.langchain.com/docs/modules/tools/">LangChain Tools Documentation</a> — LangChain 工具定义与使用指南，社区最广泛采用的 Skill 封装方式</li>
+<li><a href="https://platform.openai.com/docs/guides/function-calling">OpenAI Function Calling Guide</a> — OpenAI 官方 Function Calling 文档，Skill 接口形式化的事实标准</li>
+<li><a href="https://modelcontextprotocol.io/">Model Context Protocol Specification</a> — Anthropic 主导的 MCP 开放协议规范，Skill 互操作性的关键标准</li>
+<li><a href="https://langchain-ai.github.io/langgraph/">LangGraph Documentation</a> — LangGraph 状态机编排框架文档，复杂 Skill 编排的技术参考</li>
+<li><a href="https://gorilla.cs.berkeley.edu/leaderboard.html">Berkeley Function Calling Leaderboard (BFCL)</a> — UC Berkeley 的函数调用能力评测排行榜，评估模型 Skill 调用准确性的权威基准</li>
+<li><a href="https://docs.confident-ai.com/">DeepEval Documentation</a> — LLM 评估框架文档，Skill 质量自动化测试的实践工具</li>
+<li><a href="https://www.promptfoo.dev/">promptfoo</a> — 开源 Prompt/Tool 评估工具，支持 Skill 级别的回归测试和对比评估</li>
+<li><a href="https://docs.crewai.com/">CrewAI Documentation</a> — 多 Agent 协作框架，展示了角色级 Skill 分配与协调的设计模式</li>
+<li><a href="https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/">Andrew Ng - Agentic Design Patterns</a> — Andrew Ng 关于 Agent 设计模式的系列文章，从学术视角阐述 Skill 编排的核心范式</li>
+</ul>
+
+<hr>
+<div class="fb-panel">
+  <h3>反馈与改进</h3>
+  <p style="color:var(--muted);font-size:0.9rem">提出洞察思路或方法建议，系统会记录并在后续生成中应用。</p>
+  <form class="fb-form" onsubmit="submitFB(event)">
+    <div>
+      <label>反馈类型</label>
+      <select id="fb-type">
+        <option value="insight">洞察思路</option>
+        <option value="method">分析方法</option>
+        <option value="missing">缺失内容</option>
+        <option value="error">错误纠正</option>
+      </select>
+    </div>
+    <div>
+      <label>具体建议 *</label>
+      <textarea id="fb-content" placeholder="例如：应该增加对性能优化的分析..." required></textarea>
+    </div>
+    <div>
+      <label>关键词（逗号分隔）</label>
+      <input type="text" id="fb-keywords" placeholder="例如：性能优化, 内存管理">
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+      <button type="submit" id="fb-btn">提交反馈</button>
+      <button type="button" class="btn-regen" onclick="regenFB()">基于反馈重新生成</button>
+      <button type="button" class="btn-followup" onclick="followUp()">追问深挖</button>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+        <input type="checkbox" id="fb-skill" checked>
+        <span style="font-size:0.85rem">保存为 Skill</span>
+      </label>
+    </div>
+  </form>
+  <div id="fb-status"></div>
+  <div id="fb-list"></div>
+</div>
+<div class="meta">本报告由 DeepDive 洞察 Agent 生成</div>
+<script>
+const RID='7a93e222-a920-4784-8081-1e1f398aecbe',RTITLE='AI 时代软件工程中的skill工程能力建设方向分析',RDOMAIN='software-engineering';
+const TL={insight:'洞察思路',method:'分析方法',missing:'缺失内容',error:'错误纠正'};
+async function loadFB(){
+  try{const r=await fetch('/api/feedback?reportId='+RID);const d=await r.json();renderFB(d.feedback||[]);}catch(e){}
+}
+function renderFB(list){
+  const c=document.getElementById('fb-list');
+  if(!list.length){c.innerHTML='';return;}
+  c.innerHTML='<h4 style="margin-top:1.5rem;font-size:1rem">历史反馈</h4>'+list.map(f=>
+    '<div class="fb-item"><div class="fb-item-head"><span class="fb-type">'+(TL[f.type]||f.type)+'</span><span class="fb-date">'+new Date(f.createdAt).toLocaleString('zh-CN')+'</span></div><div>'+f.content+'</div>'+(f.keywords&&f.keywords.length?'<div style="margin-top:0.5rem;font-size:0.8rem;color:var(--muted)">关键词：'+f.keywords.join(', ')+'</div>':'')+'</div>'
+  ).join('');
+}
+async function submitFB(e){
+  e.preventDefault();
+  const btn=document.getElementById('fb-btn'),st=document.getElementById('fb-status');
+  btn.disabled=true;
+  const body=getFBBody();
+  try{
+    const r=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('提交失败');
+    st.className='fb-status ok';st.textContent='反馈已保存'+(body.saveAsSkill?'，已生成 Skill':'');
+    document.getElementById('fb-content').value='';document.getElementById('fb-keywords').value='';
+    loadFB();setTimeout(()=>{st.textContent='';},3000);
+  }catch(err){st.className='fb-status err';st.textContent=err.message;}
+  finally{btn.disabled=false;}
+}
+async function regenFB(){
+  const content=document.getElementById('fb-content').value.trim();
+  if(!content){alert('请先填写反馈');return;}
+  const btn=document.querySelector('.btn-regen');btn.disabled=true;btn.textContent='生成中...';
+  try{
+    const body=getFBBody();
+    await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const r=await fetch('/api/regenerate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:RTITLE,feedback:content,domain:RDOMAIN})});
+    if(!r.ok)throw new Error('生成失败');
+    const result=await r.json();window.open(result.url,'_blank');
+    document.getElementById('fb-content').value='';loadFB();
+  }catch(err){alert(err.message);}
+  finally{btn.disabled=false;btn.textContent='基于反馈重新生成';}
+}
+async function followUp(){
+  const q=prompt('请输入追问问题：');
+  if(!q)return;
+  const btn=document.querySelector('.btn-followup');btn.disabled=true;btn.textContent='生成中...';
+  try{
+    const r=await fetch('/api/follow-up',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({parentReportId:RID,question:q})});
+    if(!r.ok)throw new Error('生成失败');
+    const result=await r.json();window.open(result.url,'_blank');
+  }catch(err){alert(err.message);}
+  finally{btn.disabled=false;btn.textContent='追问深挖';}
+}
+function getFBBody(){
+  return{reportId:RID,reportTitle:RTITLE,type:document.getElementById('fb-type').value,content:document.getElementById('fb-content').value.trim(),keywords:(document.getElementById('fb-keywords').value.trim()||'').split(',').map(k=>k.trim()).filter(Boolean),saveAsSkill:document.getElementById('fb-skill').checked};
+}
+loadFB();
+</script>
+</body>
+</html>

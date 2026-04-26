@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理台 — DeepDive</title>
+<style>
+:root { --ink:#18181b;--muted:#71717a;--border:#e4e4e7;--bg:#fff;--bg-2:#fafafa;--accent:#2563eb;--se:#2563eb;--cs:#be185d;--ok:#10b981;--err:#ef4444; }
+@media(prefers-color-scheme:dark){:root{--ink:#fafafa;--muted:#a1a1aa;--border:#27272a;--bg:#09090b;--bg-2:#18181b;--accent:#60a5fa;--se:#60a5fa;--cs:#f472b6;}}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);max-width:960px;margin:0 auto;padding:1.5rem}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+header h1{font-size:1.5rem}
+header a{color:var(--accent);text-decoration:none;font-size:0.9rem}
+.tabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid var(--border)}
+.tab{padding:0.6rem 1.2rem;cursor:pointer;font-size:0.9rem;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--muted)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.panel{display:none}
+.panel.active{display:block}
+.sub-tabs{display:flex;gap:0.5rem;margin-bottom:1rem}
+.sub-tab{padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.85rem;border:1px solid var(--border);background:var(--bg)}
+.sub-tab.active{background:var(--accent);color:white;border-color:var(--accent)}
+.source-card{border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.source-info{flex:1;min-width:0}
+.source-info h4{font-size:0.95rem;margin-bottom:0.25rem}
+.source-info p{font-size:0.8rem;color:var(--muted);word-break:break-all}
+.source-type{font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:3px;background:#dbeafe;color:#1d4ed8;white-space:nowrap}
+.source-actions{display:flex;gap:0.5rem;flex-shrink:0}
+.btn{padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--ink);cursor:pointer;font-size:0.8rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.btn.danger{color:var(--err);border-color:var(--err)}
+.btn.danger:hover{background:var(--err);color:white}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:0.3rem}
+.status-dot.ok{background:var(--ok)}
+.status-dot.err{background:var(--err)}
+.status-dot.pending{background:var(--muted)}
+.form-row{display:flex;gap:0.75rem;margin-bottom:0.75rem;align-items:center;flex-wrap:wrap}
+.form-row label{font-size:0.85rem;color:var(--muted);min-width:80px}
+.form-row input,.form-row select{padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--ink);font-size:0.85rem}
+.form-row input[type="text"]{flex:1;min-width:200px}
+.form-row input[type="number"]{width:80px}
+.add-form{border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1rem;background:var(--bg-2)}
+.schedule-section{border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1rem}
+.schedule-section h3{font-size:1rem;margin-bottom:1rem}
+.history-item{font-size:0.85rem;padding:0.5rem 0;border-bottom:1px solid var(--border);display:flex;gap:1rem;align-items:center}
+.task-row{font-size:0.85rem;padding:0.75rem;border:1px solid var(--border);border-radius:6px;margin-bottom:0.5rem;display:flex;gap:0.75rem;align-items:center}
+.task-type{font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:3px;white-space:nowrap;font-weight:500}
+.task-type.generate{background:#dbeafe;color:#1d4ed8}
+.task-type.regenerate{background:#fef3c7;color:#92400e}
+.task-type.follow-up{background:#d1fae5;color:#059669}
+.task-type.brief{background:#f3e8ff;color:#7c3aed}
+.task-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-time{color:var(--muted);font-size:0.8rem;white-space:nowrap}
+.task-status{font-size:0.8rem;white-space:nowrap}
+.status-dot.running{background:#f59e0b}
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1.25rem;font-size:0.85rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:none;z-index:200}
+</style>
+</head>
+<body>
+<header>
+  <h1>DeepDive 管理台</h1>
+  <a href="/">← 返回首页</a>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="sources" onclick="switchTab('sources')">信息源管理</div>
+  <div class="tab" data-tab="schedule" onclick="switchTab('schedule')">定时任务</div>
+  <div class="tab" data-tab="tasks" onclick="switchTab('tasks')">任务监控</div>
+  <div class="tab" data-tab="templates" onclick="switchTab('templates')">PPT 模板</div>
+</div>
+
+<!-- 信息源管理 -->
+<div class="panel active" id="panel-sources">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div class="sub-tabs" id="domain-tabs"></div>
+    <div class="form-row" style="margin:0">
+      <label>maxItems:</label>
+      <input type="number" id="max-items" min="1" max="100" style="width:60px">
+      <button class="btn primary" onclick="saveMaxItems()">保存</button>
+    </div>
+  </div>
+  <div id="source-list"></div>
+  <button class="btn" onclick="toggleAddForm()" id="add-btn">+ 添加信息源</button>
+  <div class="add-form" id="add-form" style="display:none">
+    <div class="form-row">
+      <label>名称</label>
+      <input type="text" id="new-name" placeholder="如 Anthropic Blog">
+    </div>
+    <div class="form-row">
+      <label>类型</label>
+      <select id="new-type" onchange="toggleUrlKw()">
+        <option value="rss">RSS</option>
+        <option value="hn">Hacker News</option>
+      </select>
+    </div>
+    <div class="form-row" id="row-url">
+      <label>URL</label>
+      <input type="text" id="new-url" placeholder="https://example.com/feed.xml">
+    </div>
+    <div class="form-row" id="row-kw" style="display:none">
+      <label>关键词</label>
+      <input type="text" id="new-kw" placeholder="逗号分隔，如 CVE, zero-day">
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
+      <button class="btn primary" onclick="addSource()">添加</button>
+      <button class="btn" onclick="toggleAddForm()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 定时任务 -->
+<div class="panel" id="panel-schedule">
+  <div class="schedule-section">
+    <h3>Brief 定时配置</h3>
+    <div class="form-row">
+      <label>启用</label>
+      <input type="checkbox" id="sch-enabled">
+    </div>
+    <div class="form-row">
+      <label>触发时间</label>
+      <input type="number" id="sch-hour" min="0" max="23" style="width:60px"> <span style="font-size:0.85rem;color:var(--muted)">:00（每天）</span>
+    </div>
+    <div class="form-row">
+      <label>触发领域</label>
+      <label style="min-width:auto"><input type="checkbox" id="sch-se" value="software-engineering"> 软件工程</label>
+      <label style="min-width:auto"><input type="checkbox" id="sch-cs" value="cybersecurity"> 网络安全</label>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:1rem">
+      <button class="btn primary" onclick="saveSchedule()">保存配置</button>
+      <button class="btn" onclick="runNow()">立即执行</button>
+    </div>
+  </div>
+  <div class="schedule-section">
+    <h3>执行历史</h3>
+    <div id="history-list"><span style="color:var(--muted);font-size:0.85rem">暂无记录</span></div>
+  </div>
+</div>
+
+<!-- 任务监控 -->
+<div class="panel" id="panel-tasks">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div class="sub-tabs" id="task-type-tabs">
+      <div class="sub-tab active" onclick="switchTaskType('')">全部</div>
+      <div class="sub-tab" onclick="switchTaskType('generate')">综述生成</div>
+      <div class="sub-tab" onclick="switchTaskType('regenerate')">重新生成</div>
+      <div class="sub-tab" onclick="switchTaskType('follow-up')">追问深挖</div>
+      <div class="sub-tab" onclick="switchTaskType('brief')">Brief</div>
+    </div>
+    <label style="font-size:0.8rem;color:var(--muted);display:flex;align-items:center;gap:0.4rem;cursor:pointer">
+      <input type="checkbox" id="task-auto-refresh" checked onchange="toggleAutoRefresh()"> 自动刷新
+    </label>
+  </div>
+  <div id="task-list"><span style="color:var(--muted);font-size:0.85rem">加载中...</span></div>
+</div>
+
+<!-- PPT 模板 -->
+<div class="panel" id="panel-templates">
+  <div class="schedule-section">
+    <h3>PPT 模板管理</h3>
+    <div class="form-row">
+      <label>默认模板:</label>
+      <select id="tpl-default" style="min-width:160px">
+        <option value="tech-blue">Tech Blue (科技蓝)</option>
+        <option value="minimal-white">Minimal White (极简白)</option>
+        <option value="dark-pro">Dark Pro (暗色)</option>
+        <option value="huawei">Huawei (华为风格)</option>
+      </select>
+      <button class="btn primary" onclick="saveDefaultTemplate()">保存</button>
+    </div>
+  </div>
+  <div id="tpl-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let sourcesData = {};
+let currentDomain = 'software-engineering';
+
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name==='schedule') loadSchedule();
+  if (name==='tasks') loadTasks();
+  if (name==='templates') loadTemplates();
+}
+
+// Toast
+function toast(msg) {
+  const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';
+  setTimeout(()=>{t.style.display='none'},3000);
+}
+
+// === Sources ===
+async function loadSources() {
+  const r = await fetch('/api/sources');
+  sourcesData = await r.json();
+  document.getElementById('max-items').value = sourcesData.maxItemsPerSource || 20;
+  renderDomainTabs();
+  renderSources();
+}
+
+function renderDomainTabs() {
+  const c = document.getElementById('domain-tabs');
+  c.innerHTML = Object.entries(sourcesData.domains||{}).map(([k,v]) =>
+    `<div class="sub-tab ${k===currentDomain?'active':''}" onclick="switchDomain('${k}')">${v.label}</div>`
+  ).join('');
+}
+
+function switchDomain(d) { currentDomain=d; renderDomainTabs(); renderSources(); }
+
+function renderSources() {
+  const dom = sourcesData.domains?.[currentDomain];
+  if (!dom) { document.getElementById('source-list').innerHTML=''; return; }
+  document.getElementById('source-list').innerHTML = dom.sources.map((s,i) => {
+    const detail = s.type==='hn' ? `关键词: ${(s.keywords||[]).join(', ')}` : s.url;
+    return `<div class="source-card">
+      <div class="source-info">
+        <h4><span class="status-dot pending" id="dot-${i}"></span>${s.name}</h4>
+        <p><span class="source-type">${s.type.toUpperCase()}</span> ${detail}</p>
+      </div>
+      <div class="source-actions">
+        <button class="btn" onclick="testSource(${i})">测试</button>
+        <button class="btn danger" onclick="deleteSource(${i})">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function testSource(idx) {
+  const dot = document.getElementById('dot-'+idx);
+  dot.className='status-dot pending';
+  const s = sourcesData.domains[currentDomain].sources[idx];
+  try {
+    const r = await fetch('/api/sources/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});
+    const d = await r.json();
+    dot.className = d.count > 0 ? 'status-dot ok' : 'status-dot err';
+    toast(d.count > 0 ? `${s.name}: 抓取到 ${d.count} 条` : `${s.name}: 无内容`);
+  } catch(e) { dot.className='status-dot err'; toast('测试失败: '+e.message); }
+}
+
+async function deleteSource(idx) {
+  if (!confirm('确认删除？')) return;
+  sourcesData.domains[currentDomain].sources.splice(idx, 1);
+  await saveSources();
+  renderSources();
+}
+
+function toggleAddForm() {
+  const f=document.getElementById('add-form');
+  f.style.display = f.style.display==='none'?'block':'none';
+}
+
+function toggleUrlKw() {
+  const isHN = document.getElementById('new-type').value==='hn';
+  document.getElementById('row-url').style.display = isHN?'none':'flex';
+  document.getElementById('row-kw').style.display = isHN?'flex':'none';
+}
+
+async function addSource() {
+  const name = document.getElementById('new-name').value.trim();
+  const type = document.getElementById('new-type').value;
+  if (!name) { toast('请填写名称'); return; }
+  const src = { type, name };
+  if (type==='hn') {
+    src.keywords = document.getElementById('new-kw').value.split(',').map(k=>k.trim()).filter(Boolean);
+    if (!src.keywords.length) { toast('请填写关键词'); return; }
+  } else {
+    src.url = document.getElementById('new-url').value.trim();
+    if (!src.url) { toast('请填写 URL'); return; }
+  }
+  sourcesData.domains[currentDomain].sources.push(src);
+  await saveSources();
+  renderSources();
+  toggleAddForm();
+  document.getElementById('new-name').value='';
+  document.getElementById('new-url').value='';
+  document.getElementById('new-kw').value='';
+  toast('已添加: '+name);
+}
+
+async function saveSources() {
+  await fetch('/api/sources',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(sourcesData)});
+}
+
+async function saveMaxItems() {
+  sourcesData.maxItemsPerSource = parseInt(document.getElementById('max-items').value) || 20;
+  await saveSources();
+  toast('maxItemsPerSource 已保存');
+}
+
+// === Schedule ===
+async function loadSchedule() {
+  const r = await fetch('/api/schedule');
+  const d = await r.json();
+  const s = d.schedule || {};
+  document.getElementById('sch-enabled').checked = s.enabled !== false;
+  document.getElementById('sch-hour').value = s.hour ?? 8;
+  document.getElementById('sch-se').checked = (s.domains||[]).includes('software-engineering');
+  document.getElementById('sch-cs').checked = (s.domains||[]).includes('cybersecurity');
+  renderHistory(d.history || []);
+}
+
+function renderHistory(list) {
+  const c = document.getElementById('history-list');
+  if (!list.length) { c.innerHTML='<span style="color:var(--muted);font-size:0.85rem">暂无记录</span>'; return; }
+  c.innerHTML = list.slice(-10).reverse().map(h => {
+    const dotClass = h.status==='success'?'ok':'err';
+    const domains = (h.domains||[]).map(d=>d==='cybersecurity'?'网络安全':'软件工程').join('+');
+    return `<div class="history-item"><span class="status-dot ${dotClass}"></span><span>${h.time}</span><span>${h.status==='success'?'成功':'失败'}</span><span style="color:var(--muted)">${domains}</span></div>`;
+  }).join('');
+}
+
+async function saveSchedule() {
+  const domains = [];
+  if (document.getElementById('sch-se').checked) domains.push('software-engineering');
+  if (document.getElementById('sch-cs').checked) domains.push('cybersecurity');
+  const schedule = {
+    enabled: document.getElementById('sch-enabled').checked,
+    hour: parseInt(document.getElementById('sch-hour').value) || 8,
+    domains,
+  };
+  await fetch('/api/schedule',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({schedule})});
+  toast('定时配置已保存');
+}
+
+async function runNow() {
+  toast('正在执行 Brief 生成 ...');
+  try {
+    const r = await fetch('/api/brief',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    if (!r.ok) throw new Error('执行失败');
+    toast('Brief 生成完成');
+    loadSchedule();
+  } catch(e) { toast('执行失败: '+e.message); }
+}
+
+// === Tasks ===
+const TASK_LABELS = {generate:'综述生成',regenerate:'重新生成','follow-up':'追问深挖',brief:'Brief 生成'};
+let currentTaskType = '';
+let taskTimer = null;
+
+function switchTaskType(type) {
+  currentTaskType = type;
+  document.querySelectorAll('#task-type-tabs .sub-tab').forEach(t => {
+    const isAll = !type && t.textContent === '全部';
+    const isMatch = type && TASK_LABELS[type] && t.textContent.includes(TASK_LABELS[type].replace(' 生成',''));
+    t.classList.toggle('active', isAll || isMatch);
+  });
+  loadTasks();
+}
+
+async function loadTasks() {
+  try {
+    const url = '/api/tasks' + (currentTaskType ? '?type=' + currentTaskType : '');
+    const r = await fetch(url);
+    const d = await r.json();
+    renderTasks(d.tasks || []);
+  } catch(e) {
+    document.getElementById('task-list').innerHTML = '<span style="color:var(--err);font-size:0.85rem">加载失败</span>';
+  }
+}
+
+function renderTasks(list) {
+  const c = document.getElementById('task-list');
+  if (!list.length) { c.innerHTML = '<span style="color:var(--muted);font-size:0.85rem">暂无任务记录</span>'; return; }
+  c.innerHTML = list.map(t => {
+    const dotClass = t.status === 'running' ? 'running' : t.status === 'success' ? 'ok' : 'err';
+    const statusText = t.status === 'running' ? '执行中...' : t.status === 'success' ? '成功' : '失败';
+    let duration = '';
+    if (t.finishedAt && t.createdAt) {
+      const ms = new Date(t.finishedAt) - new Date(t.createdAt);
+      duration = ms < 1000 ? ms + 'ms' : (ms / 1000).toFixed(1) + 's';
+    } else if (t.status === 'running') {
+      const ms = Date.now() - new Date(t.createdAt);
+      duration = (ms / 1000).toFixed(0) + 's...';
+    }
+    const time = t.createdAt ? new Date(t.createdAt).toLocaleString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '';
+    const errTip = t.error ? ' title="' + t.error.replace(/"/g,'&quot;') + '"' : '';
+    return `<div class="task-row">
+      <span class="status-dot ${dotClass}"></span>
+      <span class="task-type ${t.type}">${TASK_LABELS[t.type]||t.type}</span>
+      <span class="task-title">${t.title}</span>
+      <span class="task-time">${time}</span>
+      <span class="task-status"${errTip}>${statusText}${duration ? ' · ' + duration : ''}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleAutoRefresh() {
+  if (document.getElementById('task-auto-refresh').checked) {
+    startTaskTimer();
+  } else {
+    clearInterval(taskTimer); taskTimer = null;
+  }
+}
+
+function startTaskTimer() {
+  clearInterval(taskTimer);
+  taskTimer = setInterval(() => {
+    if (document.getElementById('panel-tasks').classList.contains('active')) loadTasks();
+  }, 5000);
+}
+
+startTaskTimer();
+
+// === Templates ===
+const TPL_META = {
+  'tech-blue': { name: 'Tech Blue', desc: '科技蓝 — 深蓝渐变 + 白字，专业严肃', primary: '#2563eb', bg: '#ffffff' },
+  'minimal-white': { name: 'Minimal White', desc: '极简白 — 大量留白，苹果风格', primary: '#111827', bg: '#ffffff' },
+  'dark-pro': { name: 'Dark Pro', desc: '暗色主题 — 深灰底 + 亮蓝强调', primary: '#60a5fa', bg: '#0f172a' },
+  'huawei': { name: 'Huawei', desc: '华为风格 — 红白灰配色，结构化框架', primary: '#CC0000', bg: '#ffffff' },
+};
+
+async function loadTemplates() {
+  const cfg = await (await fetch('/api/schedule')).json();
+  const def = cfg.schedule?.defaultTemplate || (loadConfig && loadConfig().defaultTemplate) || 'tech-blue';
+  // try reading from config
+  try {
+    const r = await fetch('/api/schedule');
+    const d = await r.json();
+    const dt = d.defaultTemplate || 'tech-blue';
+    document.getElementById('tpl-default').value = dt;
+  } catch(e) {
+    document.getElementById('tpl-default').value = 'tech-blue';
+  }
+  renderTemplateCards();
+}
+
+function renderTemplateCards() {
+  const c = document.getElementById('tpl-list');
+  c.innerHTML = Object.entries(TPL_META).map(([key, m]) => {
+    return `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="height:60px;background:${m.bg};display:flex;align-items:center;justify-content:center;border-bottom:3px solid ${m.primary}">
+        <span style="font-size:1.1rem;font-weight:700;color:${m.primary}">${m.name}</span>
+      </div>
+      <div style="padding:1rem">
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">${m.desc}</div>
+        <div style="display:flex;gap:0.3rem;align-items:center">
+          <div style="width:20px;height:20px;border-radius:4px;background:${m.primary}"></div>
+          <div style="width:20px;height:20px;border-radius:4px;background:${m.bg};border:1px solid var(--border)"></div>
+          <span style="font-size:0.75rem;color:var(--muted);margin-left:0.5rem">${key}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveDefaultTemplate() {
+  const tpl = document.getElementById('tpl-default').value;
+  // save via schedule API (config.json)
+  const r = await fetch('/api/schedule');
+  const cfg = await r.json();
+  cfg.defaultTemplate = tpl;
+  await fetch('/api/schedule', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ schedule: cfg.schedule, defaultTemplate: tpl }) });
+  toast('默认模板已设为: ' + tpl);
+}
+
+loadSources();
+</script>
+</body>
+</html>
