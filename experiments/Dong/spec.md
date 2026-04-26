@@ -142,8 +142,8 @@ experiments/Dong/
 
 ## 决策定稿（2026-04-26）
 
-1. **技术栈**：Python 3.11+ / Anthropic Claude（Sonnet 4.6 默认、Opus 4.7 难点）/ **Astro**（站点）
-2. **依赖**：spec 列出的全部批准（`anthropic`、`feedparser`、`httpx`、`trafilatura`、`rapidfuzz`、`pyyaml`、`uv`、`astro`）
+1. **技术栈**：Python 3.11+ / **LLM 后端可切换**（默认 Anthropic Claude Sonnet 4.6 / Opus 4.7 难点；OpenAI 兼容协议备选——Gemini / DeepSeek / Kimi / OpenRouter / 自架代理 等同一份代码可接） / **Astro**（站点）
+2. **依赖**：spec 列出的全部批准（`anthropic`、`openai`、`feedparser`、`httpx`、`trafilatura`、`rapidfuzz`、`pyyaml`、`uv`、`astro`）
 3. **重要性判定**：LLM 打分 + 阈值（≥4 进「最关注」、3 进「值得一看」、<3 丢弃）
 4. **prompt 思路**：多步（每条独立打分+1 句摘要 → 合成 brief）
 5. **去重粒度**：同一事件多家报道合并成 1 条，取主源

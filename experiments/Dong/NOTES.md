@@ -9,8 +9,8 @@
 |---|---|
 | 语言 | Python 3.11+ |
 | 包管理 | uv |
-| LLM | Anthropic Claude — Sonnet 4.6 默认 / Opus 4.7 难点 |
-| LLM SDK | `anthropic`（带 prompt caching） |
+| LLM | **可切换后端**：默认 Anthropic Claude（Sonnet 4.6 / Opus 4.7 难点），OpenAI 兼容协议备选（Gemini / DeepSeek / Kimi / OpenRouter / 自架代理） |
+| LLM SDK | `anthropic` + `openai`（同时装；按 `LLM_BACKEND` env 选） |
 | HTTP | `httpx` |
 | RSS 解析 | `feedparser` |
 | 正文抽取 | `trafilatura`（按需） |
@@ -81,6 +81,8 @@ fetch (并发)  →  dedup  →  rank (LLM 1-5 分)  →  summarize (LLM)  →  
 4. **Anthropic 没公开 RSS**，而且踩这个坑的代价是直到 fetch 跑起来才发现——spec 里讨论"信息源选哪 5 个"时根本没人想到去 ping 一下 URL。教训：spec 里的"已选定 5 个核心源"应该带 health check（`curl -I` 200 OK）作为锁定前置条件。
 5. **OpenAI RSS 是历史全量**（实测 918 条），DeepMind 100 条也偏多。两天窗口能压到 7 条但漏掉 04-23 的 GPT-5.5 主公告（核心信号），三天窗口拿到 27 条且关键信号齐——所以默认 `--window-days=3`。
 6. **同一时间戳批量发布**会让 dedup 错把"一次文档站发布"当 N 条独立信号：04-23 10:00 OpenAI 一次性推了 8 条 Codex 文档到 RSS。标题 fuzzy 匹配抓不住（标题都不一样），但靠"同源 + 同时戳" 可以。这条留给 rank 阶段用 LLM 处理（让模型理解"这 8 条是同一事件"），先不在 dedup 里硬编码规则。
+7. **"Claude API 中转代理"分两类，长得一样但本质不同**：(a) **API 转发型**——按 token 计费，纯透明转发，能用；(b) **Claude Code 共享池型**（如 yibuapi.com）——背后是转售 Claude Pro 终端额度，给每个请求强行注入 Claude Code 工具集、替换 system prompt、忽略 `tool_choice=none`，从客户端**完全无法绕开**。我们撞上了 (b)，用 9 种请求形状全失败。教训：选代理时关键词要找"Anthropic API 中转 按量计费"，**不要**找"Claude Code 包月共享"。这次踩坑的直接产物是引入了 LLM 后端抽象层（`deep_dive/llm/`），从此换 backend 只改 env 不改代码。
+8. **过度抽象的诱惑 vs 踩坑后的正确投资**：在写第一版 rank.py 时我没做后端抽象，因为"现在只用 Anthropic"。yibuapi 坑出现后才补抽象层——~150 行代码，但回报是"以后任何代理 / 模型问题都只动 env"。教训：**当你预计可能要换/对比某个组件时**，抽象不算过度设计；**当你 pretty sure 不会换**时，YAGNI 优先。这次的判断点是"团队还在评估模型"——抽象就值得。
 
 ## 如果再来一次
 
@@ -110,11 +112,17 @@ cd site && npm run dev
 cd site && npm run build
 ```
 
-环境变量：
+环境变量（详细配置见 `.env.example`）：
 
-| 变量 | 必需 | 说明 |
+| 变量 | 何时必需 | 说明 |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | rank / summarize 阶段必需（render / fetch / dedup 不需要） | Anthropic 或代理给的 key |
-| `ANTHROPIC_BASE_URL` | 走第三方代理时必需 | 代理域名 + `/v1`，例如 `https://example.com/v1` |
+| `LLM_BACKEND` | 可选 | `anthropic`（默认）或 `openai` |
+| `ANTHROPIC_API_KEY` | backend=anthropic 时 | Anthropic 或兼容代理的 key |
+| `ANTHROPIC_BASE_URL` | 走代理时 | 代理 URL |
+| `OPENAI_API_KEY` | backend=openai 时 | Gemini / DeepSeek / Kimi 等的 key |
+| `OPENAI_BASE_URL` | backend=openai 时 | 提供商对应 URL |
+| `OPENAI_MODEL` | backend=openai 时 | 模型名（每家不同） |
+
+CLI 也支持 `--backend anthropic|openai` 临时覆盖 env。
 
 加载顺序：`cli.py` 启动时读 `experiments/Dong/.env` 注入 `os.environ`，**shell 里已 export 的优先**（方便临时调试用别的 key）。`.env` 已被 `.gitignore` 排除。
