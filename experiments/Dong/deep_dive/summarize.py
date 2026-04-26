@@ -41,6 +41,9 @@ def _extract_json(text: str) -> dict:
         raise
 
 
+from dataclasses import field
+
+
 @dataclass
 class SummarizedItem:
     source: str
@@ -52,6 +55,8 @@ class SummarizedItem:
     reason: str
     short: str
     long: str
+    key_points: list[str] = field(default_factory=list)
+    implications: list[str] = field(default_factory=list)
 
 
 def _format_user_prompt(item: dict) -> str:
@@ -59,6 +64,8 @@ def _format_user_prompt(item: dict) -> str:
     if len(summary) > 1500:
         summary = summary[:1500] + "...(已截断)"
     today = datetime.now(timezone.utc).date().isoformat()
+    score = item.get("score", 0)
+    deep_required = "必填（≥4 是「最关注」会展开看）" if score >= 4 else "可输出空数组 [] 节省 token（=3 是「值得一看」不展开）"
     return (
         f"今日日期（UTC）：{today}\n\n"
         f"待摘要条目（仅一条）：\n\n"
@@ -66,22 +73,26 @@ def _format_user_prompt(item: dict) -> str:
         f"- 发布时间：{item.get('published_iso') or item.get('published') or '未知'}\n"
         f"- 标题：{item['title']}\n"
         f"- URL：{item['url']}\n"
-        f"- ranker 打分：{item['score']}（理由：{item['reason']}）\n"
+        f"- ranker 打分：{score}（理由：{item['reason']}）\n"
         f"- 源摘要（来自 RSS，质量参差）：{summary or '（无）'}\n\n"
-        f"输出两版中文摘要。直接返回 JSON，不要任何前后文字、不要代码块标记、不要调用任何工具，schema：\n"
-        f'{{"short": "<≤30 字一句话>", "long": "<60-150 字一段话，2-4 句>"}}\n'
-        f"不要在 short 或 long 里放 URL。"
+        f"输出 4 个字段。直接返回 JSON，不要任何前后文字、不要代码块标记、不要调用任何工具。\n"
+        f"key_points/implications 字段说明：本条 {deep_required}\n"
+        f"schema:\n"
+        f'{{"short": "<≤30 字一句话>", "long": "<60-150 字一段话，2-4 句>", '
+        f'"key_points": ["..."], "implications": ["..."]}}\n'
+        f"不要在任何字段里放 URL。"
     )
 
 
-def _summarize_real(client, item: dict, system_prompt: str, retries: int = 1) -> tuple[str, str, dict]:
+def _summarize_real(client, item: dict, system_prompt: str, retries: int = 1) -> tuple[dict, dict]:
+    """返回 ({short, long, key_points, implications}, usage)。"""
     last_err: Exception | None = None
     last_text: str = ""
     for attempt in range(retries + 1):
         result = client.complete(
             system=system_prompt,
             user=_format_user_prompt(item),
-            # 同 rank.py：留 thinking 预算
+            # 留 thinking 预算 + 4 字段（含数组）的输出空间
             max_tokens=2048,
         )
         usage = {
@@ -93,21 +104,32 @@ def _summarize_real(client, item: dict, system_prompt: str, retries: int = 1) ->
         last_text = result.text
         try:
             data = _extract_json(result.text)
-            return str(data["short"]), str(data["long"]), usage
+            return {
+                "short": str(data["short"]).strip(),
+                "long": str(data["long"]).strip(),
+                "key_points": [str(x).strip() for x in (data.get("key_points") or []) if str(x).strip()],
+                "implications": [str(x).strip() for x in (data.get("implications") or []) if str(x).strip()],
+            }, usage
         except (json.JSONDecodeError, KeyError, ValueError, TypeError) as e:
             last_err = e
             log.warning("[尝试 %d/%d] JSON 解析失败 (%s)，原文: %s", attempt + 1, retries + 1, e, result.text[:200])
     raise RuntimeError(f"summarize 解析失败（{retries + 1} 次尝试）。最后原文: {last_text!r}") from last_err
 
 
-def _summarize_mock(item: dict) -> tuple[str, str]:
+def _summarize_mock(item: dict) -> dict:
     src = (item.get("summary") or "").strip()
     if not src:
         src = item["title"]
     src = src.replace("\n", " ").strip()
     short = (item["title"][:28] + "..") if len(item["title"]) > 30 else item["title"]
     long_text = src[:150] if len(src) >= 60 else (src + "（[mock] 源摘要太短，--dry-run 占位）")
-    return short, "[mock] " + long_text
+    score = item.get("score", 0)
+    if score >= 4:
+        kp = ["[mock] 关键要点 1：score=" + str(score), "[mock] 关键要点 2：占位条目"]
+        im = ["[mock] 启示 1：dry-run 产物不能直接对外", "[mock] 启示 2：跑真 LLM 替换"]
+    else:
+        kp, im = [], []
+    return {"short": short, "long": "[mock] " + long_text, "key_points": kp, "implications": im}
 
 
 def _load_ranked(path: Path) -> list[dict]:
@@ -131,12 +153,12 @@ def run(in_path: Path, out_path: Path, dry_run: bool, min_score: int, backend: s
     if dry_run:
         log.warning("--dry-run 模式：跳过 LLM 调用，使用截断式 mock 摘要")
         for it in selected:
-            short, long_ = _summarize_mock(it)
+            mock = _summarize_mock(it)
             summarized.append(SummarizedItem(
                 source=it["source"], title=it["title"], url=it["url"],
                 published=it.get("published"), published_iso=it.get("published_iso"),
                 score=it["score"], reason=it["reason"],
-                short=short, long=long_,
+                **mock,
             ))
     else:
         client = get_client(backend=backend)
@@ -147,7 +169,7 @@ def run(in_path: Path, out_path: Path, dry_run: bool, min_score: int, backend: s
         skipped = 0
         for i, it in enumerate(selected, 1):
             try:
-                short, long_, usage = _summarize_real(client, it, system_prompt)
+                fields, usage = _summarize_real(client, it, system_prompt)
             except Exception as e:
                 # 单条失败 graceful skip：丢这条也不影响其余 brief 出
                 log.warning("[%d/%d] 跳过 (%s): %s", i, len(selected), type(e).__name__, it["title"][:60])
@@ -157,7 +179,7 @@ def run(in_path: Path, out_path: Path, dry_run: bool, min_score: int, backend: s
                 source=it["source"], title=it["title"], url=it["url"],
                 published=it.get("published"), published_iso=it.get("published_iso"),
                 score=it["score"], reason=it["reason"],
-                short=short, long=long_,
+                **fields,
             ))
             totals["input"] += usage["input_tokens"]
             totals["cache_read"] += usage["cache_read_input_tokens"]

@@ -23,6 +23,28 @@ def _section_top(items: list[dict]) -> str:
         lines.append("")
         lines.append(f"来源：[{it['title']}]({it['url']})")
         lines.append("")
+        # 折叠的"延伸思考"块——5 分钟扫的人看不到，深读时点开。
+        # 仅当至少有 key_points 或 implications 时输出。
+        kp = it.get("key_points") or []
+        im = it.get("implications") or []
+        if kp or im:
+            lines.append("<details>")
+            lines.append("<summary>延伸思考</summary>")
+            lines.append("")
+            if kp:
+                lines.append("**关键要点**")
+                lines.append("")
+                for p in kp:
+                    lines.append(f"- {p}")
+                lines.append("")
+            if im:
+                lines.append("**对我们的启示**")
+                lines.append("")
+                for p in im:
+                    lines.append(f"- {p}")
+                lines.append("")
+            lines.append("</details>")
+            lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
