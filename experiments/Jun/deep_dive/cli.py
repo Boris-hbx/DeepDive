@@ -73,11 +73,25 @@ def update_index(site_dir: Path, date: str):
     index_html = render_index(briefs)
     save_html(index_html, site_dir / "index.html")
 
+@click.group()
+def cli():
+    """DeepDive - 洞察探索 CLI"""
+    pass
+
+@cli.command()
+@click.option("--date", help="Brief date (YYYY-MM-DD)", default=None)
+def run(date):
+    """运行流水线"""
+    from .config import load_config
+    if date is None:
+        date = datetime.now().strftime("%Y-%m-%d")
+    run_pipeline(date)
+
 @click.command()
 @click.option("--date", help="Brief date (YYYY-MM-DD)", default=None)
 @click.option("--serve", is_flag=True, help="Start local server after generation")
 @click.option("--port", default=8080, help="Server port")
-def main(date, serve, port):
+def serve(date, serve, port):
     """DeepDive - 洞察探索 CLI"""
     if date is None:
         date = datetime.now().strftime("%Y-%m-%d")
