@@ -1,0 +1,14 @@
+{
+  "sources": {
+    "whitelist": [
+      "https://news.ycombinator.com/rss"
+    ],
+    "use_web_search": true,
+    "search_engine": "duckduckgo",
+    "max_results": 20
+  },
+  "brief": {
+    "max_top_stories": 3,
+    "max_secondary_stories": 5
+  }
+}
