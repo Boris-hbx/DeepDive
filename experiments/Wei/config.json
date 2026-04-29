@@ -3,7 +3,8 @@
     "enabled": true,
     "hour": 8,
     "domains": [
-      "software-engineering"
+      "software-engineering",
+      "cybersecurity"
     ]
   },
   "defaultTemplate": "huawei",
@@ -31,6 +32,206 @@
         "software-engineering",
         "cybersecurity"
       ]
+    },
+    {
+      "time": "2026-04-28 00:53:56",
+      "status": "failed",
+      "domains": [
+        "software-engineering"
+      ]
+    },
+    {
+      "time": "2026-04-28 02:52:08",
+      "status": "success",
+      "domains": [
+        "software-engineering"
+      ]
+    },
+    {
+      "time": "2026-04-28 03:00:04",
+      "status": "success",
+      "domains": [
+        "software-engineering"
+      ]
+    },
+    {
+      "time": "2026-04-28 03:56:34",
+      "status": "success",
+      "domains": [
+        "software-engineering"
+      ]
+    },
+    {
+      "time": "2026-04-28 04:09:20",
+      "status": "success",
+      "domains": [
+        "software-engineering"
+      ]
+    },
+    {
+      "time": "2026-04-28 07:22:47",
+      "status": "success",
+      "domains": [
+        "software-engineering"
+      ]
+    },
+    {
+      "time": "2026-04-28 08:32:56",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-28 13:53:01",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-28 14:26:56",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-28 14:31:20",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-28 14:47:29",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-28 14:51:28",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 00:05:08",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 01:16:05",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 01:31:26",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 01:49:55",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 03:08:26",
+      "status": "failed",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 08:39:14",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 08:55:55",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 10:49:49",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 11:48:22",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 12:31:22",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-29 12:37:21",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
     }
-  ]
+  ],
+  "llm": {
+    "preset": "deepseek",
+    "baseURL": "https://api.deepseek.com/v1",
+    "model": "deepseek-v4-pro",
+    "protocol": "openai"
+  },
+  "llmScoring": {
+    "enabled": false,
+    "maxItems": 15,
+    "model": "deepseek-chat"
+  },
+  "email": {
+    "smtp": {
+      "host": "smtp.139.com",
+      "port": 465,
+      "secure": true
+    },
+    "from": "",
+    "recipients": [
+      "13509612680@139.com"
+    ]
+  }
 }

@@ -42,6 +42,32 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 .tag.domain-se { background: #dbeafe; color: var(--se); }
 .tag.domain-cs { background: #fce7f3; color: var(--cs); }
 .tag.type-followup { background: #d1fae5; color: #059669; }
+/* Selection mode */
+.card .sel { position: absolute; top: 0.75rem; right: 0.75rem; width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); display: none; z-index: 1; }
+.sel-mode .card .sel { display: block; }
+.sel-mode .card { cursor: default; }
+.sel-bar { display: none; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; }
+.sel-bar.visible { display: flex; }
+.sel-bar .count { font-size: 0.85rem; font-weight: 600; }
+/* Confirm modal */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
+.confirm-box { background: var(--bg); border-radius: 12px; padding: 2rem; width: 90%; max-width: 420px; border: 1px solid var(--border); text-align: center; }
+.confirm-box h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+.confirm-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+.confirm-box .actions { display: flex; gap: 0.75rem; justify-content: center; }
+.confirm-box .actions button { padding: 0.5rem 1.5rem; border-radius: 6px; font-size: 0.9rem; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--ink); }
+.confirm-box .actions button.primary-danger { background: #ef4444; color: white; border-color: #ef4444; }
+/* Send email modal */
+.send-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
+.send-box { background: var(--bg); border-radius: 12px; padding: 2rem; width: 90%; max-width: 480px; border: 1px solid var(--border); }
+.send-box h3 { font-size: 1.1rem; margin-bottom: 0.25rem; }
+.send-box .report-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; }
+.send-box .recipient-list { max-height: 200px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem; }
+.send-box .recipient-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; font-size: 0.85rem; }
+.send-box .recipient-row input { accent-color: var(--accent); }
+.send-box .actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+.send-box .actions button { padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--ink); }
+.send-box .actions button.primary { background: var(--accent); color: white; border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -74,8 +100,15 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
     <option value="newest">最新优先</option>
     <option value="title">按标题</option>
   </select>
-  <button class="primary" onclick="showModal()">新建洞察</button>
+  <button class="primary" onclick="window.location.href='/insight.html'">新建洞察</button>
   <button onclick="triggerBrief()">生成 Brief</button>
+  <button id="sel-toggle" onclick="toggleSelMode()">选择</button>
+</div>
+<div class="sel-bar" id="sel-bar">
+  <span class="count" id="sel-count">已选 0 项</span>
+  <button id="sel-all-btn" onclick="selectAll()">全选</button>
+  <button onclick="clearSelection()">取消选择</button>
+  <button class="primary" id="del-btn" style="background:#ef4444;border-color:#ef4444;display:none" onclick="confirmDelete()">删除选中</button>
 </div>
 <div class="grid" id="grid"></div>
 
@@ -117,13 +150,21 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 
 <script>
 let reports = [];
+let defaultTemplate = 'tech-blue';
+let selMode = false;
+let selectedIds = new Set();
 const DL = {'software-engineering':'软件工程','cybersecurity':'网络安全'};
 const TY = {'survey':'综述','follow-up':'追问','daily-brief':'Brief'};
 
 async function load() {
   try {
-    const r = await fetch('/reports/index.json');
+    const [r, s] = await Promise.all([
+      fetch('/reports/index.json'),
+      fetch('/api/schedule'),
+    ]);
     reports = await r.json();
+    const cfg = await s.json();
+    defaultTemplate = cfg.defaultTemplate || 'tech-blue';
   } catch(e) { reports = []; }
   render();
 }
@@ -165,18 +206,27 @@ function render() {
     const typeTag = r.type === 'follow-up' ? '<span class="tag type-followup">追问</span>' : '';
     const safeId = r.id;
     const safeTitle = encodeURIComponent(r.title);
-    return `<div class="card ${dc}" onclick="window.open('/reports/${r.path}.${fmt}','_blank')">
+    const checked = selMode && selectedIds.has(safeId) ? ' checked' : '';
+    return `<div class="card ${dc}" onclick="${selMode ? 'toggleCard(event,\'' + safeId + '\')' : 'window.open(\'/reports/' + r.path + '.' + fmt + '\',\'_blank\')'}">
+      <input type="checkbox" class="sel" id="chk-${safeId}" data-id="${safeId}"${checked} onclick="event.stopPropagation()" onchange="onCheckChange()">
       <h3>${r.title}</h3>
       <div class="card-meta">${date} · ${TY[r.type]||r.type}</div>
       <div class="card-tags">${domainTag}${typeTag}${userTags}${autoTags}</div>
       <div style="margin-top:0.5rem">
         <select onclick="event.stopPropagation()" id="tpl-${safeId}" style="font-size:0.7rem;padding:0.15rem 0.3rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--ink)">
-          <option value="tech-blue">科技蓝</option><option value="minimal-white">极简白</option><option value="dark-pro">暗色</option><option value="huawei">华为</option>
+          ${['tech-blue','minimal-white','dark-pro','huawei'].map(v => `<option value="${v}"${v === defaultTemplate ? ' selected' : ''}>${{'tech-blue':'科技蓝','minimal-white':'极简白','dark-pro':'暗色','huawei':'华为'}[v]}</option>`).join('')}
         </select>
         <button onclick="event.stopPropagation();downloadPptx('${safeId}','${safeTitle}')" style="font-size:0.7rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--accent);cursor:pointer">下载 PPT</button>
+        <button onclick="event.stopPropagation();showSendModal('${safeId}')" style="font-size:0.7rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--ink);cursor:pointer">发送报告</button>
       </div>
     </div>`;
   }).join('');
+
+  // Restore checkbox state in selection mode
+  if (selMode) {
+    document.getElementById('grid').classList.add('sel-mode');
+    updateSelUI();
+  }
 }
 
 function showModal() { document.getElementById('modal').style.display = 'flex'; }
@@ -228,15 +278,176 @@ document.getElementById('format-select').addEventListener('change', render);
 async function downloadPptx(reportId, encodedTitle) {
   const title = decodeURIComponent(encodedTitle);
   const tplSelect = document.getElementById('tpl-' + reportId);
-  const template = tplSelect ? tplSelect.value : 'tech-blue';
+  const template = tplSelect ? tplSelect.value : defaultTemplate;
   showToast('正在生成 PPT (' + template + ') ...');
   try {
     const r = await fetch('/api/pptx', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ reportId, template }) });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error);
     showToast('PPT 生成完成，开始下载');
-    const a = document.createElement('a'); a.href = d.url + '?t=' + Date.now(); a.download = title + '-' + template + '.pptx'; a.click();
+    const a = document.createElement('a');
+    a.href = d.url + '?t=' + Date.now();
+    a.download = title + '-' + template + '.pptx';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => document.body.removeChild(a), 100);
   } catch(err) { showToast('PPT 生成失败: ' + err.message); }
+}
+
+// === Selection & Delete ===
+function toggleSelMode() {
+  selMode = !selMode;
+  if (!selMode) { selectedIds.clear(); }
+  document.getElementById('grid').classList.toggle('sel-mode', selMode);
+  document.getElementById('sel-toggle').textContent = selMode ? '取消' : '选择';
+  updateSelUI();
+  render();
+}
+
+function toggleCard(ev, id) {
+  ev.stopPropagation();
+  const chk = document.getElementById('chk-' + id);
+  if (!chk) return;
+  chk.checked = !chk.checked;
+  if (chk.checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateSelUI();
+}
+
+function onCheckChange() {
+  selectedIds.clear();
+  document.querySelectorAll('.card .sel:checked').forEach(cb => selectedIds.add(cb.dataset.id));
+  updateSelUI();
+}
+
+function selectAll() {
+  const visible = document.querySelectorAll('.card .sel');
+  if (visible.length === 0) return;
+  const allChecked = [...visible].every(cb => cb.checked);
+  visible.forEach(cb => { cb.checked = !allChecked; });
+  selectedIds.clear();
+  if (!allChecked) visible.forEach(cb => selectedIds.add(cb.dataset.id));
+  document.getElementById('sel-all-btn').textContent = allChecked ? '全选' : '取消全选';
+  updateSelUI();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  document.querySelectorAll('.card .sel').forEach(cb => cb.checked = false);
+  updateSelUI();
+}
+
+function updateSelUI() {
+  document.getElementById('sel-bar').classList.toggle('visible', selMode);
+  document.getElementById('sel-count').textContent = `已选 ${selectedIds.size} 项`;
+  document.getElementById('del-btn').style.display = selectedIds.size > 0 ? '' : 'none';
+}
+
+function confirmDelete() {
+  if (selectedIds.size === 0) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.id = 'confirm-overlay';
+  overlay.innerHTML = `<div class="confirm-box">
+    <h3>确认删除</h3>
+    <p>将永久删除选中的 ${selectedIds.size} 份报告及其所有关联文件（含 PPT、元数据等），不可恢复。</p>
+    <div class="actions">
+      <button id="confirm-cancel" autofocus>取消</button>
+      <button id="confirm-ok" class="primary-danger">确认删除</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+
+  document.getElementById('confirm-cancel').addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+  document.getElementById('confirm-ok').addEventListener('click', async () => {
+    document.body.removeChild(overlay);
+    await executeDelete();
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) document.body.removeChild(overlay);
+  });
+}
+
+async function executeDelete() {
+  const ids = [...selectedIds];
+  showToast(`正在删除 ${ids.length} 份报告 ...`);
+  try {
+    const r = await fetch('/api/reports', { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ids }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    const msg = d.notFound?.length ? `已删除 ${d.deleted.length} 份，${d.notFound.length} 份未找到` : `已删除 ${d.deleted.length} 份报告`;
+    showToast(msg);
+    selectedIds.clear();
+    if (selMode) { selMode = false; document.getElementById('grid').classList.remove('sel-mode'); document.getElementById('sel-toggle').textContent = '选择'; }
+    updateSelUI();
+    load();
+  } catch(err) { showToast('删除失败: ' + err.message); }
+}
+
+// === Send Report Email ===
+let cachedRecipients = [];
+
+async function loadRecipients() {
+  if (cachedRecipients.length) return cachedRecipients;
+  try {
+    const r = await fetch('/api/email-config');
+    const d = await r.json();
+    cachedRecipients = d.recipients || [];
+  } catch(_) { cachedRecipients = []; }
+  return cachedRecipients;
+}
+
+async function showSendModal(reportId) {
+  const report = reports.find(r => r.id === reportId);
+  if (!report) { showToast('报告不存在'); return; }
+
+  const recipients = await loadRecipients();
+  if (!recipients.length) { showToast('未配置收件人，请先在管理台→邮件配置中添加'); return; }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'send-overlay';
+  overlay.id = 'send-overlay';
+  overlay.innerHTML = `<div class="send-box">
+    <h3>发送报告</h3>
+    <div class="report-title">${report.title}</div>
+    <div class="recipient-list">
+      ${recipients.map((addr, i) => `<div class="recipient-row">
+        <input type="checkbox" id="rcpt-${i}" value="${addr}" checked>
+        <label for="rcpt-${i}">${addr}</label>
+      </div>`).join('')}
+    </div>
+    <div class="actions">
+      <button id="send-cancel">取消</button>
+      <button id="send-ok" class="primary">发送</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+
+  document.getElementById('send-cancel').addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+  document.getElementById('send-ok').addEventListener('click', async () => {
+    const selected = [...overlay.querySelectorAll('.recipient-row input:checked')].map(cb => cb.value);
+    if (!selected.length) { showToast('请至少选择一个收件人'); return; }
+    document.body.removeChild(overlay);
+    await executeSend(reportId, selected);
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) document.body.removeChild(overlay);
+  });
+}
+
+async function executeSend(reportId, recipients) {
+  showToast('正在发送邮件 ...');
+  try {
+    const r = await fetch('/api/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ reportId, recipients }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    const msg = d.rejected?.length ? `发送完成，${d.rejected.length} 个地址被拒收` : '邮件已发送';
+    showToast(msg);
+  } catch(err) { showToast('发送失败: ' + err.message); }
 }
 
 load();

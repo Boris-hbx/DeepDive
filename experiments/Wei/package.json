@@ -10,6 +10,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
     "marked": "^18.0.2",
+    "nodemailer": "^8.0.7",
     "pptxgenjs": "^4.0.1",
     "rss-parser": "^3.13.0"
   }

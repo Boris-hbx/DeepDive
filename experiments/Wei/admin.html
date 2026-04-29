@@ -69,6 +69,8 @@ header a{color:var(--accent);text-decoration:none;font-size:0.9rem}
   <div class="tab" data-tab="schedule" onclick="switchTab('schedule')">定时任务</div>
   <div class="tab" data-tab="tasks" onclick="switchTab('tasks')">任务监控</div>
   <div class="tab" data-tab="templates" onclick="switchTab('templates')">PPT 模板</div>
+  <div class="tab" data-tab="llm" onclick="switchTab('llm')">模型配置</div>
+  <div class="tab" data-tab="email" onclick="switchTab('email')">邮件配置</div>
 </div>
 
 <!-- 信息源管理 -->
@@ -173,6 +175,96 @@ header a{color:var(--accent);text-decoration:none;font-size:0.9rem}
   <div id="tpl-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem"></div>
 </div>
 
+<!-- 模型配置 -->
+<div class="panel" id="panel-llm">
+  <div class="schedule-section">
+    <h3>LLM 模型配置</h3>
+    <div class="form-row">
+      <label>Provider</label>
+      <select id="llm-preset" onchange="onPresetChange()" style="min-width:180px">
+        <option value="deepseek">DeepSeek（默认）</option>
+        <option value="claude">Claude (Anthropic)</option>
+        <option value="openai">OpenAI</option>
+        <option value="gemini">Gemini (OpenAI compat)</option>
+        <option value="custom">自定义</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>API Key</label>
+      <input type="password" id="llm-apikey" placeholder="sk-..." style="flex:1;min-width:200px">
+      <button class="btn" onclick="toggleApiKeyVisibility()" id="apikey-toggle" style="white-space:nowrap">显示</button>
+    </div>
+    <div class="form-row">
+      <label>Base URL</label>
+      <input type="text" id="llm-baseurl" placeholder="https://api.deepseek.com/v1" style="flex:1;min-width:200px">
+    </div>
+    <div class="form-row">
+      <label>模型名</label>
+      <input type="text" id="llm-model" placeholder="deepseek-chat" style="flex:1;min-width:200px">
+    </div>
+    <div class="form-row">
+      <label>协议</label>
+      <select id="llm-protocol">
+        <option value="openai">OpenAI 兼容</option>
+        <option value="anthropic">Anthropic 原生</option>
+      </select>
+      <span style="font-size:0.8rem;color:var(--muted)">DeepSeek / Gemini / OpenAI 选 OpenAI 兼容；Claude 直连选 Anthropic 原生</span>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:1rem;align-items:center">
+      <button class="btn primary" onclick="saveLlmConfig()">保存配置</button>
+      <button class="btn" onclick="testLlmConfig()">测试连接</button>
+      <span id="llm-test-result" style="font-size:0.85rem;margin-left:0.5rem"></span>
+    </div>
+  </div>
+  <div class="schedule-section" style="margin-top:1rem">
+    <h3>快速预设</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-top:0.5rem" id="preset-cards"></div>
+  </div>
+</div>
+
+<!-- 邮件配置 -->
+<div class="panel" id="panel-email">
+  <div class="schedule-section">
+    <h3>SMTP 服务器</h3>
+    <div class="form-row">
+      <label>SMTP Host</label>
+      <input type="text" id="email-host" placeholder="smtp.example.com" style="flex:1;min-width:200px">
+    </div>
+    <div class="form-row">
+      <label>端口</label>
+      <input type="number" id="email-port" value="465" min="1" max="65535" style="width:100px">
+      <label style="min-width:auto"><input type="checkbox" id="email-secure" checked> SSL/TLS</label>
+    </div>
+    <div class="form-row">
+      <label>用户名</label>
+      <input type="text" id="email-user" placeholder="user@example.com" style="flex:1;min-width:200px">
+    </div>
+    <div class="form-row">
+      <label>密码</label>
+      <input type="password" id="email-pwd" placeholder="SMTP 密码或授权码" style="flex:1;min-width:200px">
+      <button class="btn" onclick="toggleEmailPwd()" id="email-pwd-toggle" style="white-space:nowrap">显示</button>
+    </div>
+    <div class="form-row">
+      <label>发件人</label>
+      <input type="text" id="email-from" placeholder="sender@example.com" style="flex:1;min-width:200px">
+      <span style="font-size:0.8rem;color:var(--muted)">留空则使用用户名</span>
+    </div>
+  </div>
+  <div class="schedule-section">
+    <h3>收件人列表</h3>
+    <div id="recipient-list" style="margin-bottom:0.75rem"><span style="color:var(--muted);font-size:0.85rem">暂无收件人</span></div>
+    <div class="form-row">
+      <input type="text" id="new-recipient" placeholder="输入邮箱地址" style="flex:1;min-width:200px">
+      <button class="btn primary" onclick="addRecipient()">添加</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.75rem;margin-top:1rem;align-items:center">
+    <button class="btn primary" onclick="saveEmailConfig()">保存配置</button>
+    <button class="btn" onclick="testEmail()">测试发送</button>
+    <span id="email-test-result" style="font-size:0.85rem"></span>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -187,6 +279,8 @@ function switchTab(name) {
   if (name==='schedule') loadSchedule();
   if (name==='tasks') loadTasks();
   if (name==='templates') loadTemplates();
+  if (name==='llm') loadLlmConfig();
+  if (name==='email') loadEmailConfig();
 }
 
 // Toast
@@ -416,15 +510,12 @@ const TPL_META = {
 };
 
 async function loadTemplates() {
-  const cfg = await (await fetch('/api/schedule')).json();
-  const def = cfg.schedule?.defaultTemplate || (loadConfig && loadConfig().defaultTemplate) || 'tech-blue';
-  // try reading from config
   try {
     const r = await fetch('/api/schedule');
     const d = await r.json();
-    const dt = d.defaultTemplate || 'tech-blue';
-    document.getElementById('tpl-default').value = dt;
+    document.getElementById('tpl-default').value = d.defaultTemplate || 'tech-blue';
   } catch(e) {
+    console.error('加载模板配置失败:', e);
     document.getElementById('tpl-default').value = 'tech-blue';
   }
   renderTemplateCards();
@@ -460,6 +551,215 @@ async function saveDefaultTemplate() {
 }
 
 loadSources();
+
+// === LLM Config ===
+const PRESETS = {
+  deepseek: { label: 'DeepSeek', baseURL: 'https://api.deepseek.com/v1', model: 'deepseek-chat', protocol: 'openai', desc: '高性价比，推荐默认' },
+  claude:   { label: 'Claude',   baseURL: '', model: 'claude-sonnet-4-20250514', protocol: 'anthropic', desc: 'Anthropic 原生协议' },
+  openai:   { label: 'OpenAI',   baseURL: 'https://api.openai.com/v1', model: 'gpt-4o', protocol: 'openai', desc: 'GPT 系列' },
+  gemini:   { label: 'Gemini',   baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.0-flash', protocol: 'openai', desc: 'Google，免费额度大' },
+  custom:   { label: '自定义',   baseURL: '', model: '', protocol: 'openai', desc: '任意 OpenAI 兼容代理' },
+};
+
+async function loadLlmConfig() {
+  try {
+    const r = await fetch('/api/llm-config');
+    const d = await r.json();
+    document.getElementById('llm-preset').value = d.preset || 'deepseek';
+    document.getElementById('llm-apikey').value = d.apiKey || '';
+    document.getElementById('llm-baseurl').value = d.baseURL || '';
+    document.getElementById('llm-model').value = d.model || '';
+    document.getElementById('llm-protocol').value = d.protocol || 'openai';
+    renderPresetCards(d.preset || 'deepseek');
+  } catch(e) { toast('加载模型配置失败: ' + e.message); }
+}
+
+function onPresetChange() {
+  const preset = document.getElementById('llm-preset').value;
+  const p = PRESETS[preset];
+  if (!p) return;
+  if (p.baseURL) document.getElementById('llm-baseurl').value = p.baseURL;
+  if (p.model)   document.getElementById('llm-model').value = p.model;
+  document.getElementById('llm-protocol').value = p.protocol;
+  renderPresetCards(preset);
+}
+
+function renderPresetCards(active) {
+  document.getElementById('preset-cards').innerHTML = Object.entries(PRESETS).filter(([k]) => k !== 'custom').map(([key, p]) => {
+    const isActive = key === active;
+    return `<div onclick="selectPreset('${key}')" style="border:2px solid ${isActive ? 'var(--accent)' : 'var(--border)'};border-radius:8px;padding:0.75rem;cursor:pointer;background:${isActive ? 'var(--bg-2)' : 'var(--bg)'}">
+      <div style="font-weight:600;font-size:0.9rem;margin-bottom:0.25rem;color:${isActive ? 'var(--accent)' : 'var(--ink)'}">${p.label}</div>
+      <div style="font-size:0.78rem;color:var(--muted)">${p.desc}</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem;word-break:break-all">${p.model}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectPreset(key) {
+  document.getElementById('llm-preset').value = key;
+  onPresetChange();
+}
+
+function toggleApiKeyVisibility() {
+  const inp = document.getElementById('llm-apikey');
+  const btn = document.getElementById('apikey-toggle');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '隐藏'; }
+  else { inp.type = 'password'; btn.textContent = '显示'; }
+}
+
+async function saveLlmConfig() {
+  const body = {
+    preset:   document.getElementById('llm-preset').value,
+    apiKey:   document.getElementById('llm-apikey').value,
+    baseURL:  document.getElementById('llm-baseurl').value,
+    model:    document.getElementById('llm-model').value,
+    protocol: document.getElementById('llm-protocol').value,
+  };
+  if (!body.apiKey) { toast('请填写 API Key'); return; }
+  await fetch('/api/llm-config', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  toast('模型配置已保存');
+}
+
+async function testLlmConfig() {
+  const result = document.getElementById('llm-test-result');
+  result.textContent = '测试中...';
+  result.style.color = 'var(--muted)';
+  try {
+    const r = await fetch('/api/llm-test', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      result.textContent = `✓ 连接成功 · ${d.model} · ${d.latencyMs}ms`;
+      result.style.color = 'var(--ok)';
+    } else {
+      result.textContent = '✗ ' + (d.error || '失败');
+      result.style.color = 'var(--err)';
+    }
+  } catch(e) {
+    result.textContent = '✗ ' + e.message;
+    result.style.color = 'var(--err)';
+  }
+}
+
+// === Email Config ===
+let emailRecipients = [];
+
+async function loadEmailConfig() {
+  try {
+    const r = await fetch('/api/email-config');
+    const d = await r.json();
+    document.getElementById('email-host').value = d.smtp?.host || '';
+    document.getElementById('email-port').value = d.smtp?.port || 465;
+    document.getElementById('email-secure').checked = d.smtp?.secure !== false;
+    document.getElementById('email-user').value = d.smtp?.hasUser ? '***' : '';
+    document.getElementById('email-pwd').value = d.smtp?.hasPass ? '***' : '';
+    document.getElementById('email-from').value = d.from || '';
+    emailRecipients = d.recipients || [];
+    renderRecipients();
+  } catch(e) { toast('加载邮件配置失败: ' + e.message); }
+}
+
+function renderRecipients() {
+  const c = document.getElementById('recipient-list');
+  if (!emailRecipients.length) { c.innerHTML = '<span style="color:var(--muted);font-size:0.85rem">暂无收件人</span>'; return; }
+  c.innerHTML = emailRecipients.map((addr, i) =>
+    `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;font-size:0.85rem">${addr}</span>
+      <button class="btn danger" onclick="removeRecipient(${i})" style="padding:0.2rem 0.5rem;font-size:0.75rem">删除</button>
+    </div>`
+  ).join('');
+}
+
+function addRecipient() {
+  const inp = document.getElementById('new-recipient');
+  const addr = inp.value.trim();
+  if (!addr) { toast('请输入邮箱地址'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) { toast('邮箱格式不正确'); return; }
+  if (emailRecipients.includes(addr)) { toast('该邮箱已在列表中'); return; }
+  emailRecipients.push(addr);
+  inp.value = '';
+  renderRecipients();
+}
+
+function removeRecipient(idx) {
+  emailRecipients.splice(idx, 1);
+  renderRecipients();
+}
+
+function toggleEmailPwd() {
+  const inp = document.getElementById('email-pwd');
+  const btn = document.getElementById('email-pwd-toggle');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '隐藏'; }
+  else { inp.type = 'password'; btn.textContent = '显示'; }
+}
+
+async function saveEmailConfig() {
+  const user = document.getElementById('email-user').value;
+  const pwd = document.getElementById('email-pwd').value;
+  if (!user) { toast('请填写 SMTP 用户名'); return; }
+  if (!pwd) { toast('请填写 SMTP 密码'); return; }
+
+  const body = {
+    smtp: {
+      host: document.getElementById('email-host').value,
+      port: parseInt(document.getElementById('email-port').value) || 465,
+      secure: document.getElementById('email-secure').checked,
+      user: user,
+      password: pwd,
+    },
+    from: document.getElementById('email-from').value,
+    recipients: emailRecipients,
+  };
+  if (!body.smtp.host) { toast('请填写 SMTP Host'); return; }
+  try {
+    const r = await fetch('/api/email-config', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error); }
+    toast('邮件配置已保存');
+  } catch(e) { toast('保存失败: ' + e.message); }
+}
+
+async function testEmail() {
+  const result = document.getElementById('email-test-result');
+  result.textContent = '发送中...';
+  result.style.color = 'var(--muted)';
+  if (!emailRecipients.length) { result.textContent = '请先添加收件人'; result.style.color = 'var(--err)'; return; }
+  try {
+    await saveEmailConfigSilent();
+    const r = await fetch('/api/send-email', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ reportId: '__test__', recipients: emailRecipients }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      result.textContent = '✓ 测试邮件已发送';
+      result.style.color = 'var(--ok)';
+    } else {
+      result.textContent = '✗ ' + (d.error || '失败');
+      result.style.color = 'var(--err)';
+    }
+  } catch(e) {
+    result.textContent = '✗ ' + e.message;
+    result.style.color = 'var(--err)';
+  }
+}
+
+async function saveEmailConfigSilent() {
+  const user = document.getElementById('email-user').value;
+  const pwd = document.getElementById('email-pwd').value;
+  const body = {
+    smtp: {
+      host: document.getElementById('email-host').value,
+      port: parseInt(document.getElementById('email-port').value) || 465,
+      secure: document.getElementById('email-secure').checked,
+      user: user === '***' ? '***' : user,
+      password: pwd === '***' ? '***' : pwd,
+    },
+    from: document.getElementById('email-from').value,
+    recipients: emailRecipients,
+  };
+  await fetch('/api/email-config', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+}
+
+
 </script>
 </body>
 </html>
