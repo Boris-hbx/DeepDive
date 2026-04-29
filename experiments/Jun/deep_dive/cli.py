@@ -79,6 +79,32 @@ def cli():
     pass
 
 @cli.command()
+@click.option("--minimax-api-key", help="Set MiniMax API key")
+@click.option("--show", is_flag=True, help="Show current config")
+def config(minimax_api_key, show):
+    """配置 API keys"""
+    from .config import load_user_config, save_user_config
+
+    user_config = load_user_config()
+
+    if show:
+        click.echo("Current config:")
+        for key, value in user_config.items():
+            if "key" in key.lower():
+                click.echo(f"  {key}: {'*' * (len(str(value)) - 4) + str(value)[-4:] if value else 'not set'}")
+            else:
+                click.echo(f"  {key}: {value}")
+        return
+
+    if minimax_api_key:
+        user_config["minimax_api_key"] = minimax_api_key
+        save_user_config(user_config)
+        click.echo("MiniMax API key saved.")
+        return
+
+    click.echo("Use --minimax-api-key KEY to set, or --show to display.")
+
+@cli.command()
 @click.option("--date", help="Brief date (YYYY-MM-DD)", default=None)
 def run(date):
     """运行流水线"""
