@@ -1,0 +1,27 @@
+{
+  "id": "2e93cacd-fe10-4cd3-bc03-7bb8a0da80a8",
+  "title": "AI 时代软件工程中的skill工程能力建设方向分析-DS",
+  "createdAt": "2026-04-28T01:37:43.880Z",
+  "type": "survey",
+  "domain": "software-engineering",
+  "parentReportId": null,
+  "tags": {
+    "user": [],
+    "auto": [
+      "Skill工程化",
+      "多Agent协作",
+      "有状态编排",
+      "质量评估",
+      "工具调用",
+      "RAG",
+      "大模型应用"
+    ]
+  },
+  "metadata": {
+    "inputTokens": 397,
+    "outputTokens": 3645,
+    "cost": 0.05586599999999999,
+    "llmProvider": "claude"
+  },
+  "conversationHistory": []
+}

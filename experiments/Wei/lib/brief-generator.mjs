@@ -1,59 +1,91 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createProvider } from './llm-provider.mjs';
-import { fetchAllSources } from './fetcher.mjs';
-import { dedup } from './dedup.mjs';
-import { getBriefPrompt } from './prompts.mjs';
+import { createPipeline } from './pipeline/runner.mjs';
+import { fetchStage, dedupStage, rankStage, briefSummarizeStage } from './pipeline/stages.mjs';
+import { createLLMScoreStage } from './llm-scorer.mjs';
 import { briefToHTML } from './markdown-to-html.mjs';
 import { saveBrief } from './storage.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
+
+function ensureDir(dir) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
 
 function loadSources() {
   const p = path.join(__dirname, '..', 'sources.json');
   return JSON.parse(fs.readFileSync(p, 'utf-8'));
 }
 
-async function generateDomainBrief(domainKey, domainConfig, provider) {
-  const label = domainConfig.label;
-  console.log(`\n[${label}] 抓取信息源 ...`);
-
-  const items = await fetchAllSources(domainConfig.sources);
-  console.log(`  抓取到 ${items.length} 条`);
-
-  if (items.length === 0) {
-    console.log(`  无内容，生成空 brief`);
-    const date = new Date().toISOString().slice(0, 10);
-    const markdown = `# ${label}每日 Brief — ${date}\n\n今日${label}领域无重要事件。`;
-    const html = briefToHTML(markdown, domainKey, date);
-    saveBrief({ date, domain: domainKey, generatedAt: new Date().toISOString(), llmProvider: provider, markdown, html, noNews: true });
-    return;
-  }
-
-  const unique = dedup(items);
-  console.log(`  去重后 ${unique.length} 条`);
-
-  const llm = createProvider(provider);
-  console.log(`  LLM 生成 brief ...`);
-
-  const prompt = getBriefPrompt(domainKey, unique.slice(0, 30));
-  const result = await llm.generate(prompt);
-  let markdown = result.text
-    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
-    .replace(/<reflection>[\s\S]*?<\/reflection>/gi, '')
-    .trim();
-
-  const date = new Date().toISOString().slice(0, 10);
-  const noNews = markdown.includes('无重要事件');
-  const html = briefToHTML(markdown, domainKey, date);
-
-  saveBrief({ date, domain: domainKey, generatedAt: new Date().toISOString(), llmProvider: provider, markdown, html, noNews });
-
-  console.log(`  Brief 生成完成 (token: ${result.usage.input} in / ${result.usage.output} out)`);
+function loadAppConfig() {
+  if (!fs.existsSync(CONFIG_PATH)) return {};
+  try { return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8')); } catch (_) { return {}; }
 }
 
-export async function generateBrief({ domain, provider = 'claude' }) {
+function dateDir() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function saveArtifact(stage, domainKey, data) {
+  const dir = path.join(DATA_DIR, dateDir());
+  ensureDir(dir);
+  const file = path.join(dir, `${domainKey}_${stage}.json`);
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8');
+  console.log(`  [落盘] ${file} (${Array.isArray(data) ? data.length + ' 条' : 'ok'})`);
+}
+
+async function generateDomainBrief(domainKey, domainConfig, provider) {
+  const label = domainConfig.label;
+  console.log(`\n[${label}] Pipeline 开始`);
+
+  // Merge ranking config from sources.json into domainConfig
+  const sourcesConfig = loadSources();
+  const mergedConfig = {
+    ...domainConfig,
+    ranking: sourcesConfig.ranking || {},
+  };
+
+  // Build stages list
+  const stages = [
+    fetchStage(mergedConfig.sources),
+    { name: 'persist-fetched', run: async (state) => {
+      saveArtifact('fetched', domainKey, state.items);
+      return state;
+    }},
+    dedupStage,
+    { name: 'persist-deduped', run: async (state) => {
+      saveArtifact('deduped', domainKey, state.items);
+      return state;
+    }},
+    rankStage(mergedConfig),
+    { name: 'persist-ranked', run: async (state) => {
+      saveArtifact('ranked', domainKey, state.items);
+      return state;
+    }},
+  ];
+
+  // Conditionally inject LLM scoring stage
+  const appConfig = loadAppConfig();
+  if (appConfig.llmScoring?.enabled) {
+    stages.push(createLLMScoreStage(appConfig.llmScoring));
+    stages.push({ name: 'persist-llm-scored', run: async (state) => {
+      saveArtifact('llm-scored', domainKey, state.items);
+      return state;
+    }});
+  }
+
+  stages.push(briefSummarizeStage(domainKey, label));
+
+  const run = createPipeline(stages, { provider, domain: domainKey });
+
+  const result = await run({ items: [], domain: domainKey });
+  return result;
+}
+
+export async function generateBrief({ domain, provider = '' }) {
   const config = loadSources();
   const domains = config.domains;
 
@@ -62,7 +94,11 @@ export async function generateBrief({ domain, provider = 'claude' }) {
     await generateDomainBrief(domain, domains[domain], provider);
   } else {
     for (const [key, cfg] of Object.entries(domains)) {
-      await generateDomainBrief(key, cfg, provider);
+      try {
+        await generateDomainBrief(key, cfg, provider);
+      } catch (err) {
+        console.error(`  [${cfg.label}] Brief 生成失败: ${err.message}`);
+      }
     }
   }
 

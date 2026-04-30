@@ -125,5 +125,85 @@
       "auto": []
     },
     "path": "2026/04/26/brief-cybersecurity"
+  },
+  {
+    "id": "2e93cacd-fe10-4cd3-bc03-7bb8a0da80a8",
+    "title": "AI 时代软件工程中的skill工程能力建设方向分析-DS",
+    "createdAt": "2026-04-28T01:37:43.880Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": [
+        "Skill工程化",
+        "多Agent协作",
+        "有状态编排",
+        "质量评估",
+        "工具调用",
+        "RAG",
+        "大模型应用"
+      ]
+    },
+    "path": "2026/04/28/ai-时代软件工程中的skill工程能力建设方向分析-ds"
+  },
+  {
+    "id": "brief-2026-04-28-software-engineering",
+    "title": "软件工程每日 Brief — 2026-04-28",
+    "createdAt": "2026-04-28T14:50:03.253Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/28/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-04-28-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-04-28",
+    "createdAt": "2026-04-28T14:51:28.309Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/28/brief-cybersecurity"
+  },
+  {
+    "id": "a94904cd-0364-41cf-add1-3be7a3302c20",
+    "title": "洞察主题：Rust移动应用开发的可行性分析，背景：目前在移动终端应用开发领域，有KMP/CMP等跨平台的开发框架，有没有可能用Rust来开发跨平台的移动应用，有哪些优势，有哪些挑战。",
+    "createdAt": "2026-04-29T03:38:40.294Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/29/洞察主题-rust移动应用开发的可行性分析-背景-目前在移动终端应用开发领域-有kmp-cmp等跨平台的开发框架-有没有"
+  },
+  {
+    "id": "brief-2026-04-29-software-engineering",
+    "title": "软件工程每日 Brief — 2026-04-29",
+    "createdAt": "2026-04-29T12:35:49.307Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/29/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-04-29-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-04-29",
+    "createdAt": "2026-04-29T12:37:21.905Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/29/brief-cybersecurity"
   }
 ]

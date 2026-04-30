@@ -153,6 +153,212 @@ export function getSummarizePrompt(markdown) {
 ${markdown.slice(0, 6000)}`;
 }
 
+export function getDocAnalysisPrompt(item) {
+  return `请用 1-2 句话总结以下文章的核心内容，并提取 2-3 个关键技术点。
+
+文章标题：${item.title}
+来源：${item.source}
+摘要：${item.snippet.slice(0, 300)}
+
+请按以下 JSON 格式输出（不要其他内容）：
+{"summary": "1-2 句话中文总结", "keyPoints": ["关键点1", "关键点2", "关键点3"]}`;
+}
+
+export function getOutlinePrompt(topic, docSummaries) {
+  const summariesBlock = docSummaries.map((item, i) =>
+    `${i + 1}. [${item.source}] ${item.title}\n   摘要: ${item._summary || item.snippet.slice(0, 200)}\n   关键点: ${(item._keyPoints || []).join('; ') || '无'}`
+  ).join('\n\n');
+
+  return `你是一位资深技术分析师。基于以下从各信息源采集并分析过的文档，为洞察报告生成一份 1-3 级标题纲要。
+
+**报告课题**：${topic}
+
+**已分析的文档**：
+${summariesBlock}
+
+请生成一个 JSON 数组表示的纲要树，每个节点必须包含：
+- id：唯一字符串
+- title：标题文本
+- level：1/2/3
+- keyPoints：该章节的核心观点（1-3 条，字符串数组）
+- materials：支撑该章节的关键素材/来源引用（1-3 条，字符串数组，格式如 "来源名称: 一句话说明"）
+- children：子节点数组（可选）
+
+纲要应覆盖该课题的核心维度，逻辑清晰、有层次，每个章节都有实质性的观点和素材支撑。
+
+只输出 JSON 数组，不要其他内容：
+[
+  {"id": "1", "title": "一级标题", "level": 1, "keyPoints": ["核心观点1", "核心观点2"], "materials": ["OpenAI Blog: GPT-5.5 在代码生成上的突破", "Simon Willison: 关于 LLM 工具链的实践总结"], "children": [
+    {"id": "1-1", "title": "二级标题", "level": 2, "keyPoints": ["具体发现"], "materials": ["Latent Space: AI Agent 在企业落地的案例"]}
+  ]}
+]`;
+}
+
+export function getBodyGenerationPrompt(topic, outline, docSummaries) {
+  const outlineText = outlineToMarkdown(outline);
+  const summariesBlock = docSummaries.map((item, i) =>
+    `${i + 1}. [${item.source}] ${item.title}\n   摘要: ${item._summary || item.snippet.slice(0, 200)}\n   链接: ${item.url}`
+  ).join('\n\n');
+
+  return `你是一位资深技术分析师。请按照以下纲要以 Markdown 格式生成洞察报告正文。
+
+**报告课题**：${topic}
+
+**参考文档**：
+${summariesBlock}
+
+**报告纲要**：
+${outlineText}
+
+要求：
+1. 严格按照上述纲要结构输出，每个标题都保留
+2. 内容要有深度，每个观点都要有具体的技术细节或数据支撑
+3. 对比分析要客观，列出各方案的真实优劣
+4. 引用参考文档时使用 [来源名称](URL) 格式
+5. 在报告末尾添加 ## 来源与参考 章节，列出所有引用的文档
+6. 直接输出 Markdown，从 # 标题开始，不要包含 <thinking> 或任何 XML 标签`;
+
+  function outlineToMarkdown(outline) {
+    const lines = [];
+    for (const node of outline) {
+      const prefix = '#'.repeat(Math.min(node.level, 3) + 1);
+      lines.push(`${prefix} ${node.title}`);
+      if (node.children) {
+        for (const child of node.children) {
+          const cPrefix = '#'.repeat(Math.min(child.level, 3) + 1);
+          lines.push(`${cPrefix} ${child.title}`);
+          if (child.children) {
+            for (const gc of child.children) {
+              const gcPrefix = '#'.repeat(Math.min(gc.level, 3) + 1);
+              lines.push(`${gcPrefix} ${gc.title}`);
+            }
+          }
+        }
+      }
+    }
+    return lines.join('\n');
+  }
+}
+
+export function getModifyPrompt(instruction, currentMarkdown) {
+  return `你是一位资深技术分析师。请根据以下指令修改报告。
+
+**修改指令**：${instruction}
+
+**当前报告**：
+${currentMarkdown}
+
+要求：
+1. 只修改指令涉及的部分，保持其他内容和结构不变
+2. 如果要调整章节顺序，请移动整个章节（包括其子章节）
+3. 如果要合并章节，请保留两章的核心内容
+4. 如果要添加内容，请保持与原文风格一致
+5. 直接输出修改后的完整 Markdown 报告，不要包含 <thinking> 或任何 XML 标签`;
+}
+
+export function getInitialThinkingPrompt(topic, domain, timeRange) {
+  const domainHint = domain ? `\n**领域**：${domain === 'cybersecurity' ? '网络安全' : '软件工程'}` : '';
+  const timeHint = timeRange ? `\n**时间范围**：${timeRange}` : '';
+  return `你是一位资深技术分析师。请对以下技术课题进行初步的系统性思考和分析，可以开放搜索，以及你已有的知识。
+
+**课题**：${topic}${domainHint}${timeHint}
+
+请按以下结构输出 Markdown：
+
+## 课题理解
+用 2-3 句话概括该课题的核心问题域。
+
+## 当前技术格局
+列出该领域当前的主流技术方案、框架或平台（至少 5 项），每项 1 句话说明。
+
+## 关键趋势
+列出该领域最近 1-2 年的重要发展趋势（3-5 条）。
+
+## 主要挑战与争议
+列出该领域面临的技术挑战或业界争议（3-5 条）。
+
+## 值得深入的方向
+列出你认为值得深入分析的子方向（5-8 个），这些将作为后续洞察报告纲要的候选。
+
+## 建议关注的信息源类型
+建议补充哪些类型的信息源（如学术论文、官方博客、行业报告、开源项目等）来深化分析。
+
+要求：
+1. 每个观点都要有具体的技术细节，不要泛泛而谈
+2. 直接输出 Markdown，不要包含 <thinking> 标签或任何 XML 标签
+3. 在你不确定的领域，标注"（待验证）"`;
+}
+
+export function getBrainstormUpdatePrompt(topic, chatHistory, currentAnalysis, newMessage) {
+  const historyBlock = chatHistory.length > 0
+    ? '\n**对话历史**：\n' + chatHistory.map(m => `${m.role === 'user' ? '用户' : 'AI'}：${m.content}`).join('\n')
+    : '';
+  const analysisBlock = currentAnalysis
+    ? `\n**当前分析文档**：\n${currentAnalysis}`
+    : '';
+
+  return `你是一位资深技术分析师，正在与用户进行洞察 brainstorm。
+
+**洞察课题**：${topic}${historyBlock}${analysisBlock}
+
+**用户新消息**：${newMessage}
+
+请根据用户的新消息，更新分析文档（如果是首次则新建），并给出一句简短的 Chat 回复。
+
+分析文档应包含以下结构（按需更新，不必每次全部重写）：
+- ## 课题理解：核心问题域
+- ## 关键方向：值得深入的子方向（随对话逐步丰富）
+- ## 技术格局：主流方案/框架/工具
+- ## 关键挑战：技术挑战或争议
+- ## 洞察线索：用户补充的背景、约束、特殊视角
+
+要求：
+1. 分析文档是累积的——保留已有内容，在用户新消息的基础上增补或修订
+2. Chat 回复简短（1-2 句），说明做了什么更新，并引导用户继续
+3. 输出严格的 JSON，格式：{"analysis": "完整的 Markdown 分析文档", "reply": "一句话回复"}
+4. 不要在 JSON 外输出任何内容`;
+}
+
+export function getOutlineFromChatPrompt(topic, chatHistory, analysisDoc) {
+  const historyBlock = chatHistory.map(m => `${m.role === 'user' ? '用户' : 'AI'}：${m.content}`).join('\n');
+
+  return `你是一位资深技术分析师。基于以下 brainstorm 对话和分析文档，为洞察报告生成一份结构化纲要。
+
+**洞察课题**：${topic}
+
+**Brainstorm 对话**：
+${historyBlock}
+
+**分析文档**：
+${analysisDoc}
+
+请生成一个 JSON 数组表示的纲要树，每个节点包含：
+- id：唯一字符串
+- title：标题文本
+- level：1/2/3
+- keyPoints：该章节的核心观点（1-3 条，字符串数组）
+- materials：支撑素材/来源引用（1-3 条，字符串数组）
+- children：子节点数组（可选）
+
+纲要应充分体现 brainstorm 中用户强调的方向和背景，逻辑清晰、有层次。
+
+只输出 JSON 数组，不要其他内容：`;
+}
+
+export function getOutlineModifyPrompt(instruction, currentOutline) {
+  return `你是一位资深技术分析师。请根据以下指令修改洞察报告纲要。
+
+**修改指令**：${instruction}
+
+**当前纲要**（JSON）：
+${JSON.stringify(currentOutline, null, 2)}
+
+要求：
+1. 只修改指令涉及的部分，保持其他节点不变
+2. 保持 JSON 格式，每个节点包含 id/title/level/keyPoints/materials
+3. 只输出修改后的完整 JSON 数组，不要其他内容`;
+}
+
 export function getImageKeywordsPrompt(sectionTitles) {
   const list = sectionTitles.map((t, i) => `${i + 1}. ${t}`).join('\n');
   return `为以下幻灯片章节标题各生成一个英文搜索关键词，用于在 Unsplash 图库搜索配图。

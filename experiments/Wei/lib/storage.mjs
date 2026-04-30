@@ -7,6 +7,14 @@ const REPORTS_DIR = path.join(__dirname, '..', 'reports');
 const BRIEFS_DIR = path.join(__dirname, '..', 'briefs');
 const INDEX_PATH = path.join(REPORTS_DIR, 'index.json');
 
+// 简单 promise-chain 锁，序列化 index.json 写操作，避免竞态
+let _indexLock = Promise.resolve();
+function withIndexLock(fn) {
+  const p = _indexLock.then(() => fn());
+  _indexLock = p.catch(() => {});
+  return p;
+}
+
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
@@ -55,24 +63,26 @@ export function saveReport(report) {
 }
 
 function updateIndex(report, relPath) {
-  ensureDir(REPORTS_DIR);
-  let index = [];
-  if (fs.existsSync(INDEX_PATH)) {
-    try { index = JSON.parse(fs.readFileSync(INDEX_PATH, 'utf-8')); } catch (_) {}
-  }
+  return withIndexLock(() => {
+    ensureDir(REPORTS_DIR);
+    let index = [];
+    if (fs.existsSync(INDEX_PATH)) {
+      try { index = JSON.parse(fs.readFileSync(INDEX_PATH, 'utf-8')); } catch (_) {}
+    }
 
-  index = index.filter(e => e.id !== report.id);
-  index.push({
-    id: report.id,
-    title: report.title,
-    createdAt: report.createdAt,
-    type: report.type,
-    domain: report.domain || null,
-    tags: report.tags,
-    path: relPath,
+    index = index.filter(e => e.id !== report.id);
+    index.push({
+      id: report.id,
+      title: report.title,
+      createdAt: report.createdAt,
+      type: report.type,
+      domain: report.domain || null,
+      tags: report.tags,
+      path: relPath,
+    });
+
+    fs.writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2), 'utf-8');
   });
-
-  fs.writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2), 'utf-8');
 }
 
 export function saveBrief(brief) {
@@ -101,6 +111,13 @@ export function saveBrief(brief) {
   const slug = `brief${suffix}`;
   fs.writeFileSync(path.join(reportDir, `${slug}.md`), brief.markdown, 'utf-8');
   fs.writeFileSync(path.join(reportDir, `${slug}.html`), brief.html, 'utf-8');
+  fs.writeFileSync(path.join(reportDir, `${slug}.meta.json`), JSON.stringify({
+    date: brief.date,
+    domain: brief.domain,
+    generatedAt: brief.generatedAt,
+    llmProvider: brief.llmProvider,
+    noNews: brief.noNews,
+  }, null, 2), 'utf-8');
   const relPath = `${yyyy}/${mm}/${dd}/${slug}`;
   const id = `brief-${brief.date}${suffix}`;
   updateIndex({

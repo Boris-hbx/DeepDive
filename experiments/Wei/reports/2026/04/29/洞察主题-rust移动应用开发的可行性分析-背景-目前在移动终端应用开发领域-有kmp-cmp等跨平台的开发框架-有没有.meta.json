@@ -1,0 +1,16 @@
+{
+  "id": "a94904cd-0364-41cf-add1-3be7a3302c20",
+  "title": "洞察主题：Rust移动应用开发的可行性分析，背景：目前在移动终端应用开发领域，有KMP/CMP等跨平台的开发框架，有没有可能用Rust来开发跨平台的移动应用，有哪些优势，有哪些挑战。",
+  "createdAt": "2026-04-29T03:38:40.294Z",
+  "type": "survey",
+  "domain": "software-engineering",
+  "parentReportId": null,
+  "tags": {
+    "user": [],
+    "auto": []
+  },
+  "metadata": {
+    "llmProvider": "DeepSeek"
+  },
+  "conversationHistory": []
+}

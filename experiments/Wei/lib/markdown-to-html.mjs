@@ -54,9 +54,27 @@ hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
 .fb-status.err { color: #ef4444; border: 1px solid #ef4444; }
 `;
 
+const FEEDBACK_CSS = `
+.af-panel { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2); }
+.af-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.af-row:last-child { border-bottom: none; }
+.af-idx { color: var(--muted); font-size: 0.75rem; min-width: 24px; text-align: right; }
+.af-info { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.15rem; }
+.af-title { font-size: 0.85rem; font-weight: 500; color: var(--ink); text-decoration: none; }
+.af-title:hover { color: var(--accent); text-decoration: underline; }
+.af-source { color: var(--muted); font-size: 0.7rem; }
+.af-btns { display: flex; gap: 0.3rem; }
+.af-btn { padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--ink); cursor: pointer; font-size: 0.7rem; white-space: nowrap; transition: border-color 0.15s; }
+.af-btn:hover:not(:disabled) { border-color: var(--accent); }
+.af-high:hover:not(:disabled) { border-color: #10b981; color: #10b981; }
+.af-mid:hover:not(:disabled) { border-color: #f59e0b; color: #f59e0b; }
+.af-low:hover:not(:disabled) { border-color: var(--muted); color: var(--muted); }
+.af-status { font-size: 0.7rem; min-width: 80px; }
+`;
+
 export function markdownToHTML(markdown, title, metadata = {}) {
   const html = marked(markdown);
-  const { createdAt, tags = {}, cost = 0, llmProvider = 'claude', reportId = '', domain = '' } = metadata;
+  const { createdAt, tags = {}, cost = 0, llmProvider = '', reportId = '', domain = '' } = metadata;
   const allTags = [...(tags.user || []), ...(tags.auto || [])].join(', ');
   const safeTitle = title.replace(/'/g, "\\'");
   const domainLabel = domain === 'cybersecurity' ? '网络安全' : domain === 'software-engineering' ? '软件工程' : '';
@@ -176,10 +194,40 @@ loadFB();
 </html>`;
 }
 
-export function briefToHTML(markdown, domain, date) {
+export function briefToHTML(markdown, domain, date, rankedItems = []) {
   const html = marked(markdown);
   const domainLabel = domain === 'cybersecurity' ? '网络安全' : '软件工程';
   const domainClass = domain === 'cybersecurity' ? 'cs' : 'se';
+
+  // Build per-article feedback panel if we have ranked items
+  let feedbackPanel = '';
+  if (rankedItems.length > 0) {
+    const articleRows = rankedItems.slice(0, 20).map((item, i) => {
+      const safeTitle = (item.title || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const safeUrl = (item.url || '').replace(/"/g, '&quot;');
+      const safeSource = (item.source || '').replace(/"/g, '&quot;');
+      return `<div class="af-row" data-url="${safeUrl}" data-title="${safeTitle}" data-source="${safeSource}">
+  <span class="af-idx">${i + 1}</span>
+  <div class="af-info">
+    <a class="af-title" href="${safeUrl}" target="_blank">${safeTitle}</a>
+    <span class="af-source">${safeSource}</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>`;
+    }).join('\n');
+
+    feedbackPanel = `
+<div class="af-panel">
+  <h2 style="font-size:1.1rem;margin-bottom:0.5rem">文章兴趣标注</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">标注你对各文章的兴趣程度，系统会学习你的偏好来优化未来的排名。</p>
+  ${articleRows}
+</div>`;
+  }
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -187,15 +235,47 @@ export function briefToHTML(markdown, domain, date) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${domainLabel} Brief ${date} — DeepDive</title>
-<style>${CSS}</style>
+<style>${CSS}${FEEDBACK_CSS}</style>
 </head>
 <body>
 <div class="meta">
   <span class="domain-tag ${domainClass}">${domainLabel}</span> · 每日 Brief · ${date}
 </div>
 ${html}
+${feedbackPanel}
 <hr>
 <div class="meta">本 Brief 由 DeepDive 洞察 Agent 自动生成</div>
+<script>
+const RDOMAIN = '${domain}';
+async function rateArticle(btn, interest) {
+  const row = btn.closest('.af-row');
+  const statusEl = row.querySelector('.af-status');
+  const body = {
+    articleUrl: row.dataset.url,
+    articleTitle: row.dataset.title,
+    source: row.dataset.source,
+    domain: RDOMAIN,
+    interest: interest,
+  };
+  try {
+    const r = await fetch('/api/article-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error('提交失败');
+    row.querySelectorAll('.af-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.4'; });
+    btn.style.opacity = '1';
+    btn.style.fontWeight = 'bold';
+    const labels = { high: '已标注：高兴趣', medium: '已标注：中兴趣', low: '已标注：低兴趣' };
+    statusEl.textContent = labels[interest] || '已标注';
+    statusEl.style.color = 'var(--ok)';
+  } catch (err) {
+    statusEl.textContent = err.message;
+    statusEl.style.color = 'var(--err)';
+  }
+}
+</script>
 </body>
 </html>`;
 }

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件工程 Brief 2026-04-29 — DeepDive</title>
+<style>
+:root {
+  --ink: #18181b; --muted: #71717a; --muted-2: #a1a1aa;
+  --border: #e4e4e7; --bg: #ffffff; --bg-2: #fafafa; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fafafa; --muted: #a1a1aa; --muted-2: #71717a;
+    --border: #27272a; --bg: #09090b; --bg-2: #18181b; --accent: #60a5fa;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--ink); background: var(--bg); padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2.5rem; margin: 2rem 0 1rem; font-weight: 700; }
+h2 { font-size: 1.75rem; margin: 2rem 0 1rem; font-weight: 600; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+h3 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; font-weight: 600; }
+p { margin: 1rem 0; }
+ul, ol { margin: 1rem 0; padding-left: 2rem; }
+li { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+th { background: var(--bg-2); font-weight: 600; }
+code { background: var(--bg-2); padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: var(--bg-2); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin: 1rem 0; }
+.domain-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 500; }
+.domain-tag.se { background: #dbeafe; color: #1d4ed8; }
+.domain-tag.cs { background: #fce7f3; color: #be185d; }
+.fb-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+.fb-panel h3 { margin-top: 0; font-size: 1.1rem; }
+.fb-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+.fb-form label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.fb-form textarea, .fb-form input, .fb-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font-family: inherit; font-size: 0.9rem; }
+.fb-form textarea { min-height: 80px; resize: vertical; }
+.fb-form button { padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; align-self: flex-start; }
+.fb-form button:hover { opacity: 0.9; }
+.fb-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.fb-form .btn-regen { background: var(--bg); color: var(--accent); border: 1px solid var(--accent); }
+.fb-form .btn-regen:hover { background: var(--accent); color: white; }
+.fb-form .btn-followup { background: var(--bg); color: #059669; border: 1px solid #059669; }
+.fb-form .btn-followup:hover { background: #059669; color: white; }
+.fb-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-top: 0.75rem; }
+.fb-item-head { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.fb-type { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--accent); color: white; }
+.fb-date { font-size: 0.8rem; color: var(--muted); }
+.fb-status { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+.fb-status.ok { color: #10b981; border: 1px solid #10b981; }
+.fb-status.err { color: #ef4444; border: 1px solid #ef4444; }
+
+.af-panel { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2); }
+.af-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.af-row:last-child { border-bottom: none; }
+.af-idx { color: var(--muted); font-size: 0.75rem; min-width: 24px; text-align: right; }
+.af-info { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.15rem; }
+.af-title { font-size: 0.85rem; font-weight: 500; color: var(--ink); text-decoration: none; }
+.af-title:hover { color: var(--accent); text-decoration: underline; }
+.af-source { color: var(--muted); font-size: 0.7rem; }
+.af-btns { display: flex; gap: 0.3rem; }
+.af-btn { padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--ink); cursor: pointer; font-size: 0.7rem; white-space: nowrap; transition: border-color 0.15s; }
+.af-btn:hover:not(:disabled) { border-color: var(--accent); }
+.af-high:hover:not(:disabled) { border-color: #10b981; color: #10b981; }
+.af-mid:hover:not(:disabled) { border-color: #f59e0b; color: #f59e0b; }
+.af-low:hover:not(:disabled) { border-color: var(--muted); color: var(--muted); }
+.af-status { font-size: 0.7rem; min-width: 80px; }
+</style>
+</head>
+<body>
+<div class="meta">
+  <span class="domain-tag se">软件工程</span> · 每日 Brief · 2026-04-29
+</div>
+<h1>软件工程每日 Brief — 2026-04-28</h1>
+<h2>最关注的事</h2>
+<h3>1. GitHub Copilot 开始转向按使用量计费</h3>
+<p>GitHub 宣布自 6 月 1 日起，Copilot 使用将消耗 GitHub AI 信用点数，正式从订阅制转向按用量付费。这一计费模式调整将直接影响大量开发者和企业的成本结构，也为 AI 编码辅助工具的定价演进提供了重要参考。 <a href="https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/">原文</a></p>
+<h3>2. GitHub 紧急修复 git push 管道中的关键远程代码执行漏洞</h3>
+<p>GitHub 在一例严重漏洞被发现后，两小时内完成验证、修复与排查，并确认无野外利用。该漏洞影响 git push 管道，对代码托管基础设施的安全构成直接威胁，突显了软件供应链持续面临的攻击风险。 <a href="https://github.blog/security/securing-the-git-push-pipeline-responding-to-a-critical-remote-code-execution-vulnerability/">原文</a></p>
+<h3>3. OpenAI 开源 Codex 编排规范 Symphony</h3>
+<p>OpenAI 发布开源规范 Symphony，可将 Issue 跟踪器转变为常驻 AI 代理系统，旨在减少上下文切换、提升工程产出。若被主流平台广泛采纳，有望重塑开发者与项目管理工具之间的协作方式。 <a href="https://openai.com/index/open-source-codex-orchestration-symphony">原文</a></p>
+<h2>值得一看的事</h2>
+<ul>
+<li>OpenAI 发布面向“智能时代”的网络安全行动蓝图，主张普及 AI 驱动的网络防御以保护关键系统。 <a href="https://openai.com/index/cybersecurity-in-the-intelligence-age">原文</a></li>
+<li>pip 26.1 正式引入 lockfile 支持与依赖冷却机制，显著增强 Python 包管理可重复性与安全性。 <a href="https://simonwillison.net/2026/Apr/28/pip-261/#atom-everything">原文</a></li>
+<li>OpenAI 正式上线 AWS，企业现在可直接在 AWS 环境中使用 GPT 模型、Codex 和托管代理。 <a href="https://openai.com/index/openai-on-aws">原文</a></li>
+<li>Claude Code 质量报告迎来更新，回应社区关于性能与准确性的反馈。 <a href="https://simonwillison.net/2026/Apr/24/recent-claude-code-quality-reports/#atom-everything">原文</a></li>
+<li>AI 代码补全工具 Supermaven 宣布加入 Cursor，进一步整合 IDE 内 AI 能力。 <a href="https://cursor.com/blog/supermaven">原文</a></li>
+</ul>
+
+
+<div class="af-panel">
+  <h2 style="font-size:1.1rem;margin-bottom:0.5rem">文章兴趣标注</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">标注你对各文章的兴趣程度，系统会学习你的偏好来优化未来的排名。</p>
+  <div class="af-row" data-url="https://openai.com/index/cybersecurity-in-the-intelligence-age" data-title="Cybersecurity in the Intelligence Age" data-source="OpenAI Blog">
+  <span class="af-idx">1</span>
+  <div class="af-info">
+    <a class="af-title" href="https://openai.com/index/cybersecurity-in-the-intelligence-age" target="_blank">Cybersecurity in the Intelligence Age</a>
+    <span class="af-source">OpenAI Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.latent.space/p/ainews-not-much-happened-today" data-title="[AINews] not much happened today" data-source="Latent Space">
+  <span class="af-idx">2</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.latent.space/p/ainews-not-much-happened-today" target="_blank">[AINews] not much happened today</a>
+    <span class="af-source">Latent Space</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/Apr/28/openai-codex/#atom-everything" data-title="Quoting OpenAI Codex base_instructions" data-source="Simon Willison">
+  <span class="af-idx">3</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/Apr/28/openai-codex/#atom-everything" target="_blank">Quoting OpenAI Codex base_instructions</a>
+    <span class="af-source">Simon Willison</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://github.blog/developer-skills/github/github-for-beginners-getting-started-with-markdown/" data-title="GitHub for Beginners: Getting started with Markdown" data-source="GitHub Blog">
+  <span class="af-idx">4</span>
+  <div class="af-info">
+    <a class="af-title" href="https://github.blog/developer-skills/github/github-for-beginners-getting-started-with-markdown/" target="_blank">GitHub for Beginners: Getting started with Markdown</a>
+    <span class="af-source">GitHub Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://github.blog/security/securing-the-git-push-pipeline-responding-to-a-critical-remote-code-execution-vulnerability/" data-title="Securing the git push pipeline: Responding to a critical remote code execution vulnerability" data-source="GitHub Blog">
+  <span class="af-idx">5</span>
+  <div class="af-info">
+    <a class="af-title" href="https://github.blog/security/securing-the-git-push-pipeline-responding-to-a-critical-remote-code-execution-vulnerability/" target="_blank">Securing the git push pipeline: Responding to a critical remote code execution vulnerability</a>
+    <span class="af-source">GitHub Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/Apr/28/matthew-yglesias/#atom-everything" data-title="Quoting Matthew Yglesias" data-source="Simon Willison">
+  <span class="af-idx">6</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/Apr/28/matthew-yglesias/#atom-everything" target="_blank">Quoting Matthew Yglesias</a>
+    <span class="af-source">Simon Willison</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://github.blog/news-insights/company-news/an-update-on-github-availability/" data-title="An update on GitHub availability" data-source="GitHub Blog">
+  <span class="af-idx">7</span>
+  <div class="af-info">
+    <a class="af-title" href="https://github.blog/news-insights/company-news/an-update-on-github-availability/" target="_blank">An update on GitHub availability</a>
+    <span class="af-source">GitHub Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://openai.com/index/openai-on-aws" data-title="OpenAI models, Codex, and Managed Agents come to AWS" data-source="OpenAI Blog">
+  <span class="af-idx">8</span>
+  <div class="af-info">
+    <a class="af-title" href="https://openai.com/index/openai-on-aws" target="_blank">OpenAI models, Codex, and Managed Agents come to AWS</a>
+    <span class="af-source">OpenAI Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/Apr/24/llm/#atom-everything" data-title="llm 0.31" data-source="Simon Willison">
+  <span class="af-idx">9</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/Apr/24/llm/#atom-everything" target="_blank">llm 0.31</a>
+    <span class="af-source">Simon Willison</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/" data-title="GitHub Copilot is moving to usage-based billing" data-source="GitHub Blog">
+  <span class="af-idx">10</span>
+  <div class="af-info">
+    <a class="af-title" href="https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/" target="_blank">GitHub Copilot is moving to usage-based billing</a>
+    <span class="af-source">GitHub Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://openai.com/index/our-commitment-to-community-safety" data-title="Our commitment to community safety" data-source="OpenAI Blog">
+  <span class="af-idx">11</span>
+  <div class="af-info">
+    <a class="af-title" href="https://openai.com/index/our-commitment-to-community-safety" target="_blank">Our commitment to community safety</a>
+    <span class="af-source">OpenAI Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://openai.com/index/open-source-codex-orchestration-symphony" data-title="An open-source spec for orchestration: Symphony" data-source="OpenAI Blog">
+  <span class="af-idx">12</span>
+  <div class="af-info">
+    <a class="af-title" href="https://openai.com/index/open-source-codex-orchestration-symphony" target="_blank">An open-source spec for orchestration: Symphony</a>
+    <span class="af-source">OpenAI Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.latent.space/p/ainews-imagegen-is-on-the-path-to" data-title="[AINews] ImageGen is on the Path to AGI" data-source="Latent Space">
+  <span class="af-idx">13</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.latent.space/p/ainews-imagegen-is-on-the-path-to" target="_blank">[AINews] ImageGen is on the Path to AGI</a>
+    <span class="af-source">Latent Space</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/Apr/28/pip-261/#atom-everything" data-title="What's new in pip 26.1 - lockfiles and dependency cooldowns!" data-source="Simon Willison">
+  <span class="af-idx">14</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/Apr/28/pip-261/#atom-everything" target="_blank">What's new in pip 26.1 - lockfiles and dependency cooldowns!</a>
+    <span class="af-source">Simon Willison</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://openai.com/index/openai-available-at-fedramp-moderate" data-title="OpenAI available at FedRAMP Moderate" data-source="OpenAI Blog">
+  <span class="af-idx">15</span>
+  <div class="af-info">
+    <a class="af-title" href="https://openai.com/index/openai-available-at-fedramp-moderate" target="_blank">OpenAI available at FedRAMP Moderate</a>
+    <span class="af-source">OpenAI Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.latent.space/p/appliedintuition" data-title="Physical AI that Moves the World — Qasar Younis & Peter Ludwig, Applied Intuition" data-source="Latent Space">
+  <span class="af-idx">16</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.latent.space/p/appliedintuition" target="_blank">Physical AI that Moves the World — Qasar Younis & Peter Ludwig, Applied Intuition</a>
+    <span class="af-source">Latent Space</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/Apr/28/talkie/#atom-everything" data-title="Introducing talkie: a 13B vintage language model from 1930" data-source="Simon Willison">
+  <span class="af-idx">17</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/Apr/28/talkie/#atom-everything" target="_blank">Introducing talkie: a 13B vintage language model from 1930</a>
+    <span class="af-source">Simon Willison</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/Apr/27/vibevoice/#atom-everything" data-title="microsoft/VibeVoice" data-source="Simon Willison">
+  <span class="af-idx">18</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/Apr/27/vibevoice/#atom-everything" target="_blank">microsoft/VibeVoice</a>
+    <span class="af-source">Simon Willison</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://openai.com/index/next-phase-of-microsoft-partnership" data-title="The next phase of the Microsoft OpenAI partnership" data-source="OpenAI Blog">
+  <span class="af-idx">19</span>
+  <div class="af-info">
+    <a class="af-title" href="https://openai.com/index/next-phase-of-microsoft-partnership" target="_blank">The next phase of the Microsoft OpenAI partnership</a>
+    <span class="af-source">OpenAI Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://openai.com/index/choco" data-title="Choco automates food distribution with AI agents" data-source="OpenAI Blog">
+  <span class="af-idx">20</span>
+  <div class="af-info">
+    <a class="af-title" href="https://openai.com/index/choco" target="_blank">Choco automates food distribution with AI agents</a>
+    <span class="af-source">OpenAI Blog</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+</div>
+<hr>
+<div class="meta">本 Brief 由 DeepDive 洞察 Agent 自动生成</div>
+<script>
+const RDOMAIN = 'software-engineering';
+async function rateArticle(btn, interest) {
+  const row = btn.closest('.af-row');
+  const statusEl = row.querySelector('.af-status');
+  const body = {
+    articleUrl: row.dataset.url,
+    articleTitle: row.dataset.title,
+    source: row.dataset.source,
+    domain: RDOMAIN,
+    interest: interest,
+  };
+  try {
+    const r = await fetch('/api/article-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error('提交失败');
+    row.querySelectorAll('.af-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.4'; });
+    btn.style.opacity = '1';
+    btn.style.fontWeight = 'bold';
+    const labels = { high: '已标注：高兴趣', medium: '已标注：中兴趣', low: '已标注：低兴趣' };
+    statusEl.textContent = labels[interest] || '已标注';
+    statusEl.style.color = 'var(--ok)';
+  } catch (err) {
+    statusEl.textContent = err.message;
+    statusEl.style.color = 'var(--err)';
+  }
+}
+</script>
+</body>
+</html>

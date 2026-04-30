@@ -48,5 +48,15 @@
     "saveAsSkill": true,
     "id": "baefb71f-48ac-45d4-a20e-25a9d891b64c",
     "createdAt": "2026-04-26T10:38:01.601Z"
+  },
+  {
+    "reportId": "a94904cd-0364-41cf-add1-3be7a3302c20",
+    "reportTitle": "洞察主题：Rust移动应用开发的可行性分析，背景：目前在移动终端应用开发领域，有KMP/CMP等跨平台的开发框架，有没有可能用Rust来开发跨平台的移动应用，有哪些优势，有哪些挑战。",
+    "type": "insight",
+    "content": "请重点分析一下makepad",
+    "keywords": [],
+    "saveAsSkill": false,
+    "id": "48f4e814-7db9-4801-9960-29b0cfc9f0d7",
+    "createdAt": "2026-04-29T04:29:49.013Z"
   }
 ]

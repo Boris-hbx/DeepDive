@@ -2,4 +2,8 @@ node_modules/
 .env
 .image-cache/
 briefs/
-skills/
+skills/*.json
+skills/custom/
+data/
+memory/
+evolution/

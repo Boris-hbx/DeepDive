@@ -51,7 +51,7 @@ export async function downloadImage(imageUrl, filename) {
   }
 }
 
-export async function generateImageKeywords(sections, provider = 'claude') {
+export async function generateImageKeywords(sections, provider = '') {
   const titles = sections.map(s => s.heading).filter(Boolean);
   if (titles.length === 0) return [];
   try {
@@ -66,7 +66,7 @@ export async function generateImageKeywords(sections, provider = 'claude') {
   return titles.map(t => t.replace(/[^\w\s]/g, '').slice(0, 30));
 }
 
-export async function getImagesForSections(sections, provider = 'claude') {
+export async function getImagesForSections(sections, provider = '') {
   const key = getUnsplashKey();
   if (!key) {
     console.log('  未配置 UNSPLASH_ACCESS_KEY，跳过配图');
@@ -76,19 +76,19 @@ export async function getImagesForSections(sections, provider = 'claude') {
   console.log('  生成配图关键词 ...');
   const keywords = await generateImageKeywords(sections, provider);
 
-  console.log(`  搜索 ${keywords.length} 张配图 ...`);
-  const images = [];
-  for (let i = 0; i < sections.length; i++) {
+  console.log(`  搜索 ${keywords.length} 张配图 (并行) ...`);
+  const jobs = sections.map(async (_, i) => {
     const kw = keywords[i] || null;
-    if (!kw) { images.push(null); continue; }
+    if (!kw) return null;
     const url = await searchUnsplash(kw);
-    if (!url) { images.push(null); continue; }
+    if (!url) return null;
     const filename = `img-${Date.now()}-${i}.jpg`;
-    const localPath = await downloadImage(url, filename);
-    images.push(localPath);
-  }
+    return await downloadImage(url, filename);
+  });
+  const images = await Promise.allSettled(jobs);
+  const resolved = images.map(r => r.status === 'fulfilled' ? r.value : null);
 
-  const found = images.filter(Boolean).length;
+  const found = resolved.filter(Boolean).length;
   console.log(`  配图完成: ${found}/${sections.length} 张`);
-  return images;
+  return resolved;
 }

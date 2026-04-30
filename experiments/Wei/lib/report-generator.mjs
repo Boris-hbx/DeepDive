@@ -1,8 +1,10 @@
-import { createProvider } from './llm-provider.mjs';
+import { createProvider, calcCost } from './llm-provider.mjs';
 import { getSurveyPrompt, getAutoTagPrompt, getDomainClassifyPrompt, getFollowUpPrompt, getSummarizePrompt } from './prompts.mjs';
 import { markdownToHTML } from './markdown-to-html.mjs';
 import { saveReport, loadReportMeta, loadReportMarkdown, updateReportMeta } from './storage.mjs';
-import { getSkillsForTopic } from './feedback.mjs';
+import { matchSkills } from './skills/index.mjs';
+import { recallContext, recallPreferences, saveReportMemory, indexReport } from './memory/index.mjs';
+import { trackGeneration } from './evolution/index.mjs';
 import { generatePptx } from './pptx-generator.mjs';
 import crypto from 'crypto';
 import path from 'path';
@@ -118,7 +120,7 @@ async function classifyDomain(llm, topic) {
   return ['software-engineering'];
 }
 
-export async function generateSurvey({ topic, timeRange, userTags = [], provider = 'claude', domain, feedbackHint, template = 'tech-blue' }) {
+export async function generateSurvey({ topic, timeRange, userTags = [], provider = '', domain, feedbackHint, template = 'tech-blue' }) {
   const llm = createProvider(provider);
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
@@ -134,7 +136,7 @@ export async function generateSurvey({ topic, timeRange, userTags = [], provider
 
   console.log(`[1/3] 生成综述报告：${topic} ...`);
 
-  const skills = getSkillsForTopic(topic);
+  const skills = matchSkills(topic, resolvedDomain);
   let skillHint = '';
   if (skills.length > 0) {
     console.log(`  发现 ${skills.length} 个相关 Skill，注入 prompt`);
@@ -142,7 +144,14 @@ export async function generateSurvey({ topic, timeRange, userTags = [], provider
       skills.map(s => `- [${s.type}] ${s.content}`).join('\n');
   }
 
-  const prompt = getSurveyPrompt(topic, timeRange, resolvedDomain) + skillHint +
+  // 记忆召回
+  const { context: memoryContext, memories } = recallContext(topic, resolvedDomain);
+  if (memories.length > 0) {
+    console.log(`  记忆召回: ${memories.length} 个相关历史报告`);
+  }
+  const prefContext = recallPreferences();
+
+  const prompt = getSurveyPrompt(topic, timeRange, resolvedDomain) + memoryContext + prefContext + skillHint +
     (feedbackHint ? `\n\n用户对上一版报告的反馈，请在本次生成中重点改进：\n${feedbackHint}` : '');
   const result = await llm.generate(prompt);
   let markdown = cleanLLMOutput(result.text);
@@ -158,12 +167,11 @@ export async function generateSurvey({ topic, timeRange, userTags = [], provider
   }
 
   const tags = { user: userTags, auto: autoTags };
-  const inputCost = (result.usage.input / 1_000_000) * 3;
-  const outputCost = (result.usage.output / 1_000_000) * 15;
+  const cost = calcCost(provider, result.usage.input, result.usage.output);
   const metadata = {
     inputTokens: result.usage.input,
     outputTokens: result.usage.output,
-    cost: inputCost + outputCost,
+    cost,
     llmProvider: provider,
   };
 
@@ -173,6 +181,27 @@ export async function generateSurvey({ topic, timeRange, userTags = [], provider
 
   const report = { id, title: topic, createdAt, type: 'survey', domain: resolvedDomain, tags, markdown, html, marpMarkdown, metadata };
   const { dir, slug, relPath } = saveReport(report);
+
+  // 存入记忆系统
+  try {
+    saveReportMemory(id, {
+      title: topic, domain: resolvedDomain, tags,
+      summary: markdown.slice(0, 500),
+      cost: metadata.cost, provider, createdAt,
+    });
+    indexReport(id, topic, tags, resolvedDomain);
+    console.log(`  记忆: 已索引`);
+  } catch (err) {
+    console.log(`  记忆索引失败: ${err.message}`);
+  }
+
+  // 演进追踪
+  trackGeneration({
+    topic, domain: resolvedDomain, reportId: id, model: provider,
+    inputTokens: result.usage.input, outputTokens: result.usage.output,
+    cost: metadata.cost, skillCount: skills.length, memoryCount: memories.length,
+    durationMs: 0,
+  });
 
   // 生成可编辑 PPTX
   try {
@@ -196,7 +225,7 @@ export async function generateSurvey({ topic, timeRange, userTags = [], provider
   return { ...report, path: relPath };
 }
 
-export async function generateFollowUp({ parentReportId, question, provider = 'claude' }) {
+export async function generateFollowUp({ parentReportId, question, provider = '' }) {
   const llm = createProvider(provider);
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
@@ -224,10 +253,11 @@ export async function generateFollowUp({ parentReportId, question, provider = 'c
   let markdown = cleanLLMOutput(result.text);
 
   const tags = parentMeta.tags || { user: [], auto: [] };
+  const cost = calcCost(provider, result.usage.input, result.usage.output);
   const metadata = {
     inputTokens: result.usage.input,
     outputTokens: result.usage.output,
-    cost: (result.usage.input / 1_000_000) * 3 + (result.usage.output / 1_000_000) * 15,
+    cost,
     llmProvider: provider,
   };
 

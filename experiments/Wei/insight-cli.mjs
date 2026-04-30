@@ -1,5 +1,16 @@
 #!/usr/bin/env node
 import { generateSurvey, generateFollowUp } from './lib/report-generator.mjs';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function loadConfig() {
+  const p = path.join(__dirname, 'config.json');
+  if (!fs.existsSync(p)) return {};
+  try { return JSON.parse(fs.readFileSync(p, 'utf-8')); } catch (_) { return {}; }
+}
 
 const args = process.argv.slice(2);
 
@@ -13,9 +24,10 @@ const hasFlag = (name) => args.includes(`--${name}`);
 const topic = getArg('topic');
 const timeRange = getArg('time');
 const tagsRaw = getArg('tags');
-const provider = getArg('provider') || 'claude';
+const cfg = loadConfig();
+const provider = getArg('provider') || '';
 const domain = getArg('domain');
-const template = getArg('template') || 'tech-blue';
+const template = getArg('template') || cfg.defaultTemplate || 'tech-blue';
 const isBrief = hasFlag('brief');
 const isFollowUp = hasFlag('follow-up');
 const parentId = getArg('parent');

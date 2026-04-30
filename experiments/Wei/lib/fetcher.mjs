@@ -22,20 +22,83 @@ async function fetchRSS(source) {
     source: source.name,
     publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
     snippet: stripHTML(item.contentSnippet || item.content || '').slice(0, 500),
+    points: null,
+    comments: null,
   }));
+}
+
+// Parse "Points: N / Comments: M" from hnrss.org content text
+function parseHNPointsAndComments(text) {
+  if (!text) return { points: null, comments: null };
+  let points = null;
+  let comments = null;
+  const pMatch = text.match(/Points:?\s*(\d+)/i);
+  if (pMatch) points = parseInt(pMatch[1], 10);
+  const cMatch = text.match(/Comments:?\s*(\d+)/i);
+  if (cMatch) comments = parseInt(cMatch[1], 10);
+  return { points, comments };
+}
+
+// Extract HN item ID from URL like https://news.ycombinator.com/item?id=NNNNNN
+function extractHNId(url) {
+  if (!url) return null;
+  const match = url.match(/[?&]id=(\d+)/);
+  return match ? match[1] : null;
+}
+
+// Fallback: fetch single HN item from Firebase API
+async function fetchHNItemById(id) {
+  try {
+    const res = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return { score: data.score ?? null, descendants: data.descendants ?? null };
+  } catch (_) {
+    return null;
+  }
 }
 
 async function fetchHN(source) {
   const keywords = (source.keywords || []).join('+OR+');
   const url = `https://hnrss.org/newest?q=${encodeURIComponent(keywords)}&count=20`;
   const feed = await parser.parseURL(url);
-  return (feed.items || []).map(item => ({
-    title: item.title || '',
-    url: item.link || '',
-    source: 'Hacker News',
-    publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
-    snippet: stripHTML(item.contentSnippet || item.content || '').slice(0, 500),
-  }));
+  const contentTexts = (feed.items || []).map(item => {
+    const raw = item.contentSnippet || item.content || '';
+    const { points, comments } = parseHNPointsAndComments(raw);
+    const id = extractHNId(item.link || '');
+    return { item, points, comments, id };
+  });
+
+  // For items without points, try Firebase API in parallel
+  const missingIds = contentTexts.filter(c => c.points == null && c.id).map(c => c.id);
+  const firebaseResults = new Map();
+  if (missingIds.length > 0) {
+    const fbCalls = await Promise.allSettled(missingIds.map(id => fetchHNItemById(id)));
+    fbCalls.forEach((r, i) => {
+      if (r.status === 'fulfilled' && r.value) firebaseResults.set(missingIds[i], r.value);
+    });
+  }
+
+  return contentTexts.map(({ item, points, comments, id }) => {
+    let finalPoints = points;
+    let finalComments = comments;
+    if (finalPoints == null && id && firebaseResults.has(id)) {
+      const fb = firebaseResults.get(id);
+      finalPoints = fb.score;
+      finalComments = fb.descendants;
+    }
+    return {
+      title: item.title || '',
+      url: item.link || '',
+      source: 'Hacker News',
+      publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
+      snippet: stripHTML(item.contentSnippet || item.content || '').slice(0, 500),
+      points: finalPoints,
+      comments: finalComments,
+    };
+  });
 }
 
 export async function fetchAllSources(sources) {

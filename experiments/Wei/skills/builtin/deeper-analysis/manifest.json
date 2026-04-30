@@ -1,0 +1,12 @@
+{
+  "name": "深入技术分析",
+  "version": "1.0.0",
+  "type": "insight",
+  "description": "要求报告增加源码级细节、架构图和具体实现方案",
+  "keywords": ["架构", "源码", "实现", "设计模式", "性能优化"],
+  "hooks": ["prePrompt"],
+  "domain": "software-engineering",
+  "id": "builtin/deeper-analysis",
+  "createdAt": "2026-04-28T00:00:00.000Z",
+  "updatedAt": "2026-04-28T00:00:00.000Z"
+}
