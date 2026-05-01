@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talk Report — "Software Fundamentals Matter More Than
+Ever" — Boris DeepDive</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="nav"><a href="index.html">← 全部报告</a></div>
+<h1 id="talk-report--software-fundamentals-matter-more-than-ever">Talk
+Report — "Software Fundamentals Matter More Than Ever"</h1>
+<blockquote>
+<p>Matt Pocock @ AI Engineer 大会 · 2026-04-23 · 18 min keynote</p>
+<p>观看：<a href="https://youtu.be/v4F1gFy-hqg">YouTube</a>（188K views
+· 8.9K likes）</p>
+</blockquote>
+<h2 id="tldr">TL;DR</h2>
+<p>针对火热的 <strong>specs-to-code</strong> 流派给出反命题：<strong>bad
+code is the most expensive it's ever been</strong>。论证基础是软件熵——好
+codebase 里 AI 表现极好，坏 codebase 里 AI 反而加速崩坏。给出 5
+个常见失败模式 + 对应的 skill 化解，每个 skill 都引用 20+
+年的工程经典作为理论根（Ousterhout / Brooks / Pragmatic Programmer / DDD
+/ Kent Beck）。</p>
+<h2 id="演讲背景">演讲背景</h2>
+<ul>
+<li><strong>AI Engineer 大会</strong>：AI
+工程师圈最有影响力的现场会议</li>
+<li><strong>Matt Pocock</strong>：TypeScript 教育者出身（Total
+TypeScript），近 18 个月转向 AI coding 工程实战；新开课程叫 <em>Claude
+Code for Real Engineers</em></li>
+<li>同期还做了 96 分钟实操 workshop（详见姊妹报告
+<code>2026-04-26-talk-walkthrough.md</code>）</li>
+</ul>
+<h2 id="核心反命题">核心反命题</h2>
+<p>驱动 specs-to-code movement 的口号 <strong>"code is cheap"</strong>
+是错的。</p>
+<p>Matt 亲测的反例：反复改 spec、不看 code、反复让 LLM 重
+compile——结果<strong>越改越烂</strong>。他用《Pragmatic
+Programmer》的"软件熵"概念解释：每次只看局部、不顾整体设计的
+change，codebase 必然向无序漂移；AI 把这个过程加速到分钟级。</p>
+<p>主张：</p>
+<pre><code>good codebase is easy to change
+  → AI 在好 codebase 里能展现真本事
+  → 软件工程基础不是更不重要，是更重要</code></pre>
+<h2 id="5-个失败模式--5-个-skill">5 个失败模式 → 5 个 skill</h2>
+<p>GitHub repo <code>mattpocockuk/skills</code>，13K+ stars。</p>
+<h3 id="1-ai-没做我想要的">1. AI 没做我想要的</h3>
+<p><strong>理论根</strong>：Brooks《Design of Design》的 <em>design
+concept</em>——多人共同设计时存在不可写到 markdown 的"共享心智模型"。</p>
+<p><strong>Skill <code>grill-me</code></strong>：让 AI 反复盘问 40-100
+个问题，walk down the design tree，直到达成 shared understanding 才产
+PRD。</p>
+<p><strong>Matt 直接评论 Claude Code plan mode</strong>："plan mode
+太急于产出 asset，我更喜欢先建 shared design concept 再说。"</p>
+<h3 id="2-ai-啰嗦--跨频道">2. AI 啰嗦 / 跨频道</h3>
+<p><strong>理论根</strong>：DDD 的 <em>ubiquitous
+language</em>——开发者、领域专家、代码三方共享的术语集。</p>
+<p><strong>Skill <code>ubiquitous-language</code></strong>：自动扫
+codebase 提炼术语 → 生成 markdown 术语表 → AI thinking trace
+立刻收敛，implementation 也更对齐 plan。</p>
+<h3 id="3-ai-outrun-headlights写得比测得快">3. AI outrun
+headlights（写得比测得快）</h3>
+<p><strong>理论根</strong>：Pragmatic Programmer 的 <em>"rate of
+feedback is your speed limit"</em>。</p>
+<p><strong>对策</strong>：强制 TDD。LLM 默认会写一大块再回头补测试，TDD
+倒逼小步走、每步验证。</p>
+<h3 id="4-测试本身难写--codebase-不可测">4. 测试本身难写 / codebase
+不可测</h3>
+<p><strong>理论根</strong>：Ousterhout《Philosophy of Software
+Design》的 <em>deep modules</em>——少而大、简单接口包大复杂度。</p>
+<p><strong>Skill <code>improve-codebase-architecture</code></strong>：把
+shallow modules（AI 默认产物）重构成 deep modules。Matt
+直言："<strong>AI 自己生成的 codebase 形态正好是 AI
+自己最难导航的形态</strong>。"</p>
+<h3 id="5-你大脑跟不上-ai-速度">5. 你大脑跟不上 AI 速度</h3>
+<p><strong>理论根</strong>：Kent Beck <em>"invest in the design of the
+system every day"</em>。</p>
+<p><strong>对策</strong>："design the interface, delegate the
+implementation"——把 deep module 当 gray box，你只设计接口，实现交给
+AI。节约 cognitive load 是工程化大规模 agent 协作的可持续前提。</p>
+<h2 id="金句">金句</h2>
+<ul>
+<li><em>"specs-to-code is divesting from design, not
+investing."</em></li>
+<li><em>"AI is a great on-the-ground sergeant; you need someone
+strategic above—and that's you."</em></li>
+<li><em>"good code bases are easy to change. So if you can't change a
+codebase without causing bugs, then it's a bad codebase."</em></li>
+<li><em>"Bad code is the most expensive it's ever been."</em></li>
+</ul>
+<h2 id="与本周-daily-brief-的关系">与本周 daily brief 的关系</h2>
+<p>形成与 vendor 主线（GPT-5.5 / Anthropic stumble / Copilot 收紧，详见
+<code>2026-04-26.md</code>）的<strong>对位</strong>：</p>
+<table>
+<thead>
+<tr class="header">
+<th>维度</th>
+<th>vendor 那边</th>
+<th>Matt 这边</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>主战线</td>
+<td>模型即产品、平台 lock-in 升级</td>
+<td>工具变强不改变工程本质</td>
+</tr>
+<tr class="even">
+<td>算力账单</td>
+<td>"agentic 太贵 → 收紧 tier"</td>
+<td>bad codebase 让 agent 烧 token 失控；好 codebase 是省 token
+的根本</td>
+</tr>
+<tr class="odd">
+<td>抽象方向</td>
+<td>平台往上吃</td>
+<td>老书+老抽象（DDD/TDD/Ousterhout）回归</td>
+</tr>
+<tr class="even">
+<td>立场口号</td>
+<td>"spec → 自动化 → 用户"</td>
+<td>"shared mental model → small steps → testable boundaries"</td>
+</tr>
+</tbody>
+</table>
+<h2 id="蓝军视角分析">蓝军视角分析</h2>
+<p><strong>原文观点</strong>：bad code is the most expensive it's ever
+been；软件基础在 AI 时代更重要。</p>
+<p><strong>蓝军视角分析</strong>：这个论点对资深工程师极具安慰性，但有几个值得反问的维度。其一是
+<strong>selection bias</strong>——Matt 引用的"老书"（Ousterhout / Brooks
+/ Pragmatic Programmer）都是经过时间筛选活下来的
+winners，同期失败的方法论根本不会出现在他的书架上。其二是 <strong>sample
+size</strong>——specs-to-code 越改越烂是 Matt
+一人的体验、他课程学生的反馈也是 self-selected。其三是
+<strong>forward-looking
+适用性</strong>：如果未来模型更擅长保持设计一致性（Opus
+5+/GPT-7+），"老基础回归"的论点会被时间稀释——他实际论证的是"今天 AI
+的边界"，不是"AI
+时代的永恒真理"。最后是<strong>目标错位</strong>：真正写出 spaghetti
+的开发者大概率不会因为这场 keynote 去 Amazon 买 Philosophy of Software
+Design——这场演讲是给已经看过的人的安慰，不是给真正需要它的人的指南。</p>
+<h2 id="观看链接">观看链接</h2>
+<p><a href="https://youtu.be/v4F1gFy-hqg">Software Fundamentals Matter
+More Than Ever — Matt Pocock · YouTube</a></p>
+</body>
+</html>

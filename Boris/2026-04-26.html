@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Brief — 2026-04-26 — Boris DeepDive</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="nav"><a href="index.html">← 全部报告</a></div>
+<h1 id="daily-brief--2026-04-26">Daily Brief — 2026-04-26</h1>
+<blockquote>
+<p>一句话摘要：本周 OpenAI 凭 GPT-5.5 + Codex superapp 重塑 agentic
+coding 格局，同时 Anthropic 双线 stumble、GitHub Copilot 收紧入门
+tier——agentic 算力账单开始浮现。</p>
+<p>数据源：11 个 / 已扫条目：120 / 入选条目：8</p>
+</blockquote>
+<h2 id="最关注的事">最关注的事</h2>
+<h3 id="1-gpt-55--codex-合体openai-把-agentic-coding-卷成模型即产品">1.
+GPT-5.5 + Codex 合体：OpenAI 把 agentic coding 卷成"模型即产品"</h3>
+<p>OpenAI 于 4 月 23 日发布 GPT-5.5，定位"最强模型"，重点强化 coding
+与跨工具数据分析；同期把 Codex 与 ChatGPT 主线合并、推出 workspace
+agents、扩张到企业端 4M 周活——配套还有 Codex Automations、Plugins/Skills
+体系、WebSockets-based Responses API 等多篇 academy 文档。Latent Space
+跟进口号"等同 Claude Opus 4.7 智能 / 1/4 成本"。但 Simon Willison
+实测发现 API 尚未公开开放、需绕 Codex
+订阅接入——访问通路本身成为新的护城河。Romain Huet 同时透露 Codex
+与主线模型已合并，不再有独立"代码模型"分支。对 agentic SE
+的含义：底座原生 agentic 能力 + 平台 lock-in
+一并升级，应用层"模型选型"的灵活度被压缩。</p>
+<p>来源：<a
+href="https://openai.com/index/introducing-gpt-5-5">Introducing GPT-5.5
+· OpenAI</a></p>
+<p>相关来源：</p>
+<ul>
+<li><a href="https://simonwillison.net/2026/Apr/23/gpt-5-5/">A pelican
+for GPT-5.5 via the semi-official Codex backdoor API · Simon
+Willison</a></li>
+<li><a
+href="https://www.latent.space/p/ainews-gpt-55-and-openai-codex-superapp">GPT-5.5
+and OpenAI Codex Superapp Launch · Latent Space</a></li>
+<li><a href="https://simonwillison.net/2026/Apr/25/romain-huet/">Quoting
+Romain Huet（Codex 与主线合并）· Simon Willison</a></li>
+</ul>
+<h3
+id="2-anthropic-同周双-stumbleclaude-code-质量-postmortem--100月-试探">2.
+Anthropic 同周双 stumble：Claude Code 质量 postmortem + $100/月
+试探</h3>
+<p>2026-04-24 Anthropic 发布 Claude Code 质量 postmortem，承认 4 月以来
+harness 多处 bug——其中一个让 idle session
+反复丢失上下文，导致用户体验明显下滑——并强调"是 harness
+不是模型缺陷"。同周早些时候社区还在消化 Anthropic 一度尝试把 Claude Code
+限制到 Max plan（$100+/月）后迅速撤回的 silent
+test，外界普遍读为定价试探。彭博 4-24 同步曝出 Google 拟向 Anthropic
+投资 400 亿美元——三条线挤在 GPT-5.5 launch
+同一窗口期，时机重合度异常高，叠加读出来更像产品线重组与资源紧张，而非各自独立的运营波动。</p>
+<p>来源：<a
+href="https://www.anthropic.com/engineering/april-23-postmortem">An
+update on recent Claude Code quality reports · Anthropic
+Engineering</a></p>
+<p>相关来源：</p>
+<ul>
+<li><a
+href="https://simonwillison.net/2026/Apr/22/claude-code-confusion/">Is
+Claude Code going to cost $100/month? Probably not · Simon
+Willison</a></li>
+</ul>
+<h3 id="3-github-copilot-individual-计费收紧agentic-算力账单浮出水面">3.
+GitHub Copilot Individual 计费收紧：agentic 算力账单浮出水面</h3>
+<p>2026-04-20 GitHub 公告调整 Copilot Individual
+订阅：暂停新订、收紧用量上限、把 Claude Opus 4.7 限制到 premium
+tier。官方理由是 agentic workflows 算力消耗远超原计费模型预期。同期
+GitHub 还在 Status Page 上新增 "Copilot AI Model Provider"
+独立组件——等同把外部 LLM
+故障显式承认为产品风险面。这是首个主流平台把"agentic 比 chat
+贵得多"明示给消费者，agentic 不再被免费补贴掩盖。叠加 Anthropic 同周对
+Claude Code 高用量 plan 的"$100/月试探"，agentic coding
+行业的"前期补贴-后期收割"曲线在 2026Q2 同时进入收割期。</p>
+<p>来源：<a
+href="https://github.blog/news-insights/company-news/changes-to-github-copilot-individual-plans/">Changes
+to GitHub Copilot Individual plans · GitHub Blog</a></p>
+<p>相关来源：</p>
+<ul>
+<li><a
+href="https://openai.com/index/speeding-up-agentic-workflows-with-websockets">Speeding
+up agentic workflows with WebSockets in the Responses API ·
+OpenAI</a>（同主题不同应对策略：协议层优化）</li>
+</ul>
+<h2 id="值得一看的事">值得一看的事</h2>
+<ul>
+<li>DeepSeek V4 系列发布，V4-Pro（1.6T/49B active）与 V4-Flash（284B/13B
+active）支持 1M token context，号称"前沿质量、零头价格" — <a
+href="https://www.latent.space/p/ainews-deepseek-v4-pro-16t-a49b-and">DeepSeek
+V4 Pro and Flash · Latent Space</a></li>
+<li>Qwen3.6-27B 27B dense 模型在编码/SVG 生成上反超自家 397B MoE
+旗舰，量化后 16.8GB 可本地跑 — <a
+href="https://simonwillison.net/2026/Apr/24/deepseek-v4/">DeepSeek V4 -
+almost on the frontier · Simon Willison</a></li>
+<li>Mozilla 用 Claude Mythos Preview 在 Firefox 150 中找出 271
+个安全漏洞，"防守方第一次有了胜算" — <a
+href="https://blog.mozilla.org/en/privacy-security/ai-security-zero-day-vulnerabilities/">Quoting
+Bobby Holley · Simon Willison</a></li>
+<li><code>llm</code> CLI 0.31 发布，加 GPT-5.5 支持、verbosity
+控制、image detail level — <a
+href="https://simonwillison.net/2026/Apr/24/llm/">llm 0.31 · Simon
+Willison</a></li>
+<li>彭博：Google 拟向 Anthropic 投资 400 亿美元，行业资本节奏与 agentic
+算力成本同步走高 — <a
+href="https://www.bloomberg.com/news/articles/2026-04-24/google-plans-to-invest-up-to-40-billion-in-anthropic">Google
+plans to invest up to $40B in Anthropic · Bloomberg</a></li>
+</ul>
+<h2 id="今日观察小结">今日观察小结</h2>
+<p>本周三件最关注 + 值得一看里的 Google
+投资，连成一条线：<strong>agentic coding 的硬件 / 算力 /
+商业模式三个维度同时进入压力测试</strong>。GPT-5.5 用底座侧 lock-in
+应对，Anthropic 用质量+定价双向调整应对，GitHub 用 tier
+升级应对——三家应对策略截然不同，下周看哪条最先反馈到开发者实际选择上。</p>
+<hr />
+<h2 id="蓝军反驳boris-实验扩展非-spec-契约">蓝军反驳（Boris 实验扩展，非
+spec 契约）</h2>
+<blockquote>
+<p>由当前会话的 Claude 代笔。MVP 流水线上线后会替换为独立 critique
+agent。</p>
+</blockquote>
+<h3 id="反驳-1针对-gpt-55--codex-章节">反驳 #1（针对 GPT-5.5 + Codex
+章节）</h3>
+<p><strong>原文观点</strong>：GPT-5.5"等同 Claude Opus 4.7 智能、1/4
+成本"，重塑 agentic coding 经济学。</p>
+<p><strong>蓝军视角分析</strong>：benchmark
+智能不等于生产稳定。Anthropic 同周公布的 Claude Code postmortem 恰好说明
+bench 分高 ≠ 部署稳——大规模 agent loop 里错误重试 5 次，"1/4
+成本"就持平。况且每次大模型发布都喊一次"重定义经济学"（GPT-4o、Sonnet
+4.6 同款话术），最后仍要靠 caching、batch、自托管组合才划算。</p>
+<h3 id="反驳-2针对-anthropic-双-stumble-章节">反驳 #2（针对 Anthropic 双
+stumble 章节）</h3>
+<p><strong>原文观点</strong>：Claude Code 质量下降是「harness bug
+不是模型缺陷」。</p>
+<p><strong>蓝军视角分析</strong>：把锅给 harness 是 Anthropic
+的最优叙事，但回避了更大的问题——idle session 反复丢上下文这种
+bug，为什么没在内部 dogfooding 里抓到？正好赶在 GPT-5.5
+直接对标的窗口期暴发，说明内部测试覆盖度不足以保证
+production-quality。"模型没问题"听起来像安抚，暴露的实际是工程文化问题，比
+model bug 更难短期修复。</p>
+<h3 id="反驳-3针对-github-copilot-收紧章节">反驳 #3（针对 GitHub Copilot
+收紧章节）</h3>
+<p><strong>原文观点</strong>：agentic workflows 太贵，所以 GitHub 收紧
+Individual 订阅。</p>
+<p><strong>蓝军视角分析</strong>：真正在烧 agentic 算力的是已在
+enterprise tier 的人，Individual 不是开销大户。收紧入门 tier
+没解决根本问题，反而把"想试试"的开发者推向 Cursor / Aider / Claude
+Code——典型反向激励。Copilot 装机量靠的就是周末 hacker
+和初学者建立的搜索/教程生态，这部分用户被推走，"AI
+编程默认选项"的心智份额会被快速侵蚀。</p>
+</body>
+</html>
