@@ -1,0 +1,87 @@
+# 信息源配置（主题：agentic SE）
+#
+# 借鉴自：ninjaer/AI-Daily-Report (gitcode.com/ninjaer/AI-Daily-Report)
+# 已按 agentic SE 相关性筛选 —— AI 编程助手（Claude Code/Cursor/Copilot/Aider）、
+# 代码 agent 框架、SWE-bench、code LLM、tool use 等主题为主
+#
+# 字段：name / url / category / language(可选)
+# fetch.ts 读取此文件
+
+# ---- 一手原厂（agent 工具/code LLM 发布源头）----
+- name: Anthropic Engineering
+  url: https://raw.githubusercontent.com/conoro/anthropic-engineering-rss-feed/main/anthropic_engineering_rss.xml
+  category: Vendor
+  # Claude Code、tool use 一手；社区维护的 RSS 镜像（官方无 RSS）
+
+- name: OpenAI Blog
+  url: https://openai.com/blog/rss.xml
+  category: Vendor
+  # Codex / Operator / o-series
+
+- name: GitHub Blog
+  url: https://github.blog/feed/
+  category: Vendor
+  # Copilot 系列
+
+- name: Google AI Blog
+  url: https://blog.google/technology/ai/rss/
+  category: Vendor
+  # Jules / Gemini for code
+
+- name: Hugging Face Blog
+  url: https://huggingface.co/blog/feed.xml
+  category: Vendor
+  # 开源 code 模型 / agent 框架
+
+# ---- 高信噪比博主（agentic SE 实战派）----
+- name: Simon Willison
+  url: https://simonwillison.net/atom/everything/
+  category: Practitioner
+  # LLM/agent 工具实战王者，频率高、密度大
+
+- name: Latent Space
+  url: https://www.latent.space/feed
+  category: Practitioner
+  # AI engineer 主战场，agent / code 话题密集
+
+- name: Lilian Weng
+  url: https://lilianweng.github.io/index.xml
+  category: Practitioner
+  # agent 系统设计深度长文（频率低但单篇高价值）
+
+- name: Max Woolf (minimaxir)
+  url: https://minimaxir.com/index.xml
+  category: Practitioner
+  # LLM 实践、benchmark
+
+# ---- 程序员社区（agentic SE 新工具发布必经）----
+- name: Hacker News Best
+  url: https://hnrss.org/best
+  category: Community
+  # agent 工具/Show HN 上榜后多是 agentic SE
+
+- name: Lobsters
+  url: https://lobste.rs/rss
+  category: Community
+  # 偏工程师视角的链接聚合
+
+
+# ============================================================
+# 以下为「可能相关但噪音/相关性较弱」，默认禁用，按需取消注释
+# ============================================================
+
+# - name: DeepMind Blog
+#   url: https://deepmind.google/blog/rss.xml
+#   category: Vendor
+#   # 偏基础研究，agentic SE 命中率低
+
+# - name: ArXiv CS.SE
+#   url: http://arxiv.org/rss/cs.SE
+#   category: Papers
+#   # 软工论文，能筛到 SWE-bench / code-agent 评测
+
+# - name: 机器之心
+#   url: https://www.jiqizhixin.com/rss
+#   category: Chinese
+#   language: zh
+#   # 中文 AI 新闻，偶有 Cursor/Devin 类报道

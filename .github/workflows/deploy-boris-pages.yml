@@ -1,0 +1,49 @@
+# 部署 Boris 的 Daily Report 到 GitHub Pages
+#
+# 用 pandoc 把 daily-report/*.md 转成静态 HTML，推到 gh-pages 分支的 /Boris/ 子目录。
+# 使用 keep_files: true 不覆盖其他成员的子目录。
+#
+# 访问 URL：https://boris-hbx.github.io/DeepDive/Boris/
+#
+# 触发：experiments/Boris/daily-report/ 改动时跑，或手动触发。
+
+name: Deploy Boris's reports to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/Boris/daily-report/**'
+      - 'experiments/Boris/scripts/build-pages.sh'
+      - '.github/workflows/deploy-boris-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-boris-pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pandoc
+        run: sudo apt-get install -y pandoc
+
+      - name: Build static site
+        run: bash experiments/Boris/scripts/build-pages.sh
+
+      - name: Deploy to gh-pages /Boris/
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: experiments/Boris/_site
+          destination_dir: Boris
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'deploy(Boris): ${{ github.sha }}'

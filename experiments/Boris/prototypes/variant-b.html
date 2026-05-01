@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Variant B · 终端深 — DeepDive Boris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --bg-card: #161b22;
+    --bg-input: #0a0d12;
+    --border: #30363d;
+    --border-soft: #21262d;
+    --fg: #f0f6fc;
+    --fg-soft: #c9d1d9;
+    --fg-muted: #8b949e;
+    --fg-dim: #6e7681;
+    --accent: #39d353;
+    --accent-soft: rgba(57, 211, 83, 0.12);
+    --accent-border: rgba(57, 211, 83, 0.4);
+    --critique: #4ec9c9;
+    --critique-soft: rgba(78, 201, 201, 0.10);
+    --critique-border: rgba(78, 201, 201, 0.4);
+    --warn: #f0883e;
+    --link: #58a6ff;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--fg-soft);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse at top, rgba(57, 211, 83, 0.04), transparent 50%),
+      radial-gradient(ellipse at bottom, rgba(78, 201, 201, 0.03), transparent 50%);
+    background-attachment: fixed;
+  }
+  .mono { font-family: var(--mono); }
+
+  /* ── 顶部 ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(13, 17, 23, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+    font-family: var(--mono); font-size: 13px;
+  }
+  .topbar-inner {
+    max-width: 1080px; margin: 0 auto; padding: 0 28px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { color: var(--fg); font-weight: 600; }
+  .brand .prompt { color: var(--accent); margin-right: 8px; }
+  .brand .path { color: var(--fg-muted); }
+  .brand .cursor { display: inline-block; width: 8px; height: 14px; background: var(--accent); margin-left: 4px; vertical-align: middle; animation: blink 1.1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .nav { display: flex; gap: 22px; }
+  .nav a { color: var(--fg-muted); text-decoration: none; transition: color 0.15s; }
+  .nav a:hover { color: var(--accent); }
+  .back { color: var(--fg-dim); }
+  .back:hover { color: var(--critique) !important; }
+
+  /* ── 段落标签 ── */
+  .section-label {
+    max-width: 1080px; margin: 64px auto 24px; padding: 0 28px;
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+    display: flex; align-items: center; gap: 12px;
+    letter-spacing: 0.04em;
+  }
+  .section-label::before { content: '//'; color: var(--accent); }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .container { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+  .container-wide { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+  /* ── 首页 hero ── */
+  .hero {
+    padding: 56px 0 32px;
+    border-radius: 12px;
+    position: relative;
+  }
+  .terminal-chrome {
+    display: flex; gap: 8px; margin-bottom: 24px;
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+    align-items: center;
+  }
+  .term-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .term-dot.r { background: #ff5f56; }
+  .term-dot.y { background: #ffbd2e; }
+  .term-dot.g { background: #27c93f; }
+  .term-title { margin-left: 12px; }
+  .hero-prompt { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 16px; }
+  .hero-prompt::before { content: '$ '; color: var(--fg-dim); }
+  .hero h1 { font-family: var(--mono); font-size: 36px; font-weight: 700; color: var(--fg); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 18px; }
+  .hero h1 .accent { color: var(--accent); }
+  .hero p { font-size: 16px; color: var(--fg-soft); max-width: 600px; line-height: 1.7; }
+  .hero-meta { margin-top: 24px; font-family: var(--mono); font-size: 12px; color: var(--fg-dim); display: flex; gap: 18px; flex-wrap: wrap; }
+  .hero-meta span::before { content: '› '; color: var(--accent); }
+
+  /* ── 首页 brief 列表（log 风）── */
+  .briefs {
+    padding: 32px 0 0;
+    font-family: var(--mono);
+  }
+  .briefs-head { font-size: 11px; color: var(--fg-dim); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+  .briefs-head .col-date { display: inline-block; width: 110px; }
+  .briefs-head .col-title { display: inline-block; }
+  .brief-row {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--border-soft);
+    text-decoration: none;
+    color: inherit;
+    align-items: baseline;
+    transition: background 0.12s, padding-left 0.12s;
+  }
+  .brief-row:hover { background: var(--bg-soft); padding-left: 8px; }
+  .brief-row .date { font-size: 12.5px; color: var(--accent); font-weight: 500; }
+  .brief-row .title { font-family: var(--sans); font-size: 15px; color: var(--fg); font-weight: 500; }
+  .brief-row .title .summary { font-family: var(--sans); font-weight: 400; color: var(--fg-muted); display: block; font-size: 13.5px; margin-top: 4px; line-height: 1.5; }
+  .brief-row .stats { font-size: 11px; color: var(--fg-dim); white-space: nowrap; }
+  .brief-row .stats .crit-tag { color: var(--critique); margin-left: 8px; }
+  .brief-row.empty .title { color: var(--fg-muted); font-style: italic; }
+  .brief-row.empty .date { color: var(--fg-dim); }
+
+  /* ── 详情页 ── */
+  .article { padding: 64px 0 48px; }
+  .article-head {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .article-head::before {
+    content: '';
+    position: absolute; top: 0; left: 0; bottom: 0;
+    width: 3px; background: var(--accent); border-radius: 2px 0 0 2px;
+  }
+  .article-eyebrow { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.05em; }
+  .article h1 { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; margin-bottom: 14px; line-height: 1.25; }
+  .article-summary { color: var(--fg-soft); font-size: 15px; }
+  .article-summary .stats { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); margin-top: 10px; }
+  .article-summary .stats span { color: var(--accent); }
+
+  .article h2 {
+    font-family: var(--mono);
+    font-size: 18px; font-weight: 600;
+    color: var(--fg);
+    margin: 56px 0 8px;
+  }
+  .article h2::before { content: '## '; color: var(--accent); }
+
+  .item { margin: 28px 0; padding: 20px 24px; background: var(--bg-soft); border: 1px solid var(--border-soft); border-radius: 6px; }
+  .item:hover { border-color: var(--border); }
+  .item-title { font-size: 17px; font-weight: 600; color: var(--fg); margin-bottom: 10px; display: flex; align-items: baseline; gap: 12px; }
+  .item-num { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 700; min-width: 28px; }
+  .item-body { color: var(--fg-soft); font-size: 14.5px; }
+  .item-source { margin-top: 12px; font-family: var(--mono); font-size: 12.5px; }
+  .item-source::before { content: '└─ source: '; color: var(--fg-dim); }
+  .item-source a { color: var(--link); text-decoration: none; border-bottom: 1px dotted var(--link); }
+  .item-source a:hover { background: rgba(88, 166, 255, 0.1); }
+
+  .secondary { margin-top: 24px; list-style: none; }
+  .secondary li {
+    padding: 11px 0 11px 18px;
+    border-bottom: 1px dashed var(--border-soft);
+    font-size: 14px;
+    position: relative;
+  }
+  .secondary li::before {
+    content: '•';
+    color: var(--accent);
+    position: absolute;
+    left: 0;
+    font-family: var(--mono);
+  }
+  .secondary li:last-child { border-bottom: 0; }
+  .secondary a { color: var(--link); text-decoration: none; border-bottom: 1px dotted rgba(88, 166, 255, 0.4); }
+  .secondary a:hover { background: rgba(88, 166, 255, 0.08); border-bottom-color: var(--link); }
+
+  /* ── 蓝军 ── */
+  .critique-section {
+    margin-top: 64px; padding-top: 32px;
+    border-top: 1px dashed var(--border);
+  }
+  .critique-prompt { font-family: var(--mono); font-size: 12px; color: var(--critique); margin-bottom: 8px; }
+  .critique-prompt::before { content: '$ '; color: var(--fg-dim); }
+  .critique-title { font-family: var(--mono); font-size: 22px; color: var(--fg); margin-bottom: 8px; font-weight: 700; }
+  .critique-title::before { content: '⚔ '; color: var(--critique); }
+  .critique-lede { color: var(--fg-muted); font-size: 14px; margin-bottom: 28px; }
+
+  .critique-card {
+    margin: 18px 0;
+    background: var(--bg-soft);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--critique);
+    border-radius: 0 6px 6px 0;
+    padding: 18px 22px;
+  }
+  .critique-card-head {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--critique); margin-bottom: 12px;
+    letter-spacing: 0.05em;
+    display: flex; justify-content: space-between;
+  }
+  .critique-card-head .id { color: var(--fg-dim); }
+  .critique-quote {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--fg-muted);
+    background: var(--bg-input);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .critique-quote::before {
+    content: 'quote: ';
+    color: var(--fg-dim);
+    font-size: 11px;
+  }
+  .critique-body { font-size: 14.5px; color: var(--fg-soft); }
+  .critique-body strong { color: var(--critique); font-weight: 500; }
+
+  /* ── footer ── */
+  footer {
+    max-width: 1080px; margin: 96px auto 48px; padding: 24px 28px 0;
+    border-top: 1px dashed var(--border);
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+    display: flex; justify-content: space-between;
+  }
+  footer a { color: var(--critique); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs</span><span class="cursor"></span></div>
+    <div class="nav">
+      <a href="#homepage">homepage</a>
+      <a href="#detail">detail</a>
+      <a href="./index.html" class="back">← /select</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 首页 ═══════ -->
+<div class="section-label" id="homepage">PREVIEW · HOMEPAGE</div>
+
+<div class="container-wide">
+  <section class="hero">
+    <div class="terminal-chrome">
+      <span class="term-dot r"></span>
+      <span class="term-dot y"></span>
+      <span class="term-dot g"></span>
+      <span class="term-title">deepdive — boris@daily-brief — 8×40</span>
+    </div>
+    <div class="hero-prompt">deepdive run --topic="agentic-software-engineering"</div>
+    <h1>Daily Brief on <span class="accent">Agentic Software Engineering</span></h1>
+    <p>每天从 5 个一手信息源里筛 3 条最值得关注的事，再让<strong>蓝军 Agent</strong>替你挑刺——读完只要 3 分钟，但深度对得起你的注意力。</p>
+    <div class="hero-meta">
+      <span>5 sources active</span>
+      <span>auto-build via gh-actions</span>
+      <span>last run 18 min ago</span>
+    </div>
+  </section>
+
+  <section class="briefs">
+    <div class="briefs-head">
+      <span class="col-date">DATE</span>
+      <span class="col-title">TITLE / SUMMARY · STATS</span>
+    </div>
+
+    <a class="brief-row" href="#detail">
+      <span class="date">2026-04-26</span>
+      <span class="title">Introducing GPT-5.5
+        <span class="summary">OpenAI 发布最强模型，跨工具协作能力增强；agent 编排层定位需重新评估。</span>
+      </span>
+      <span class="stats">[5/1078/8] <span class="crit-tag">+3 critiques</span></span>
+    </a>
+
+    <a class="brief-row" href="#detail">
+      <span class="date">2026-04-25</span>
+      <span class="title">DeepSeek V4 系列预览
+        <span class="summary">1.6T 参数开源 MoE 刷新开放权重规模，Pro/Flash 双款均支持华为昇腾。</span>
+      </span>
+      <span class="stats">[5/892/6]</span>
+    </a>
+
+    <a class="brief-row" href="#detail">
+      <span class="date">2026-04-24</span>
+      <span class="title">Claude Code Hooks v2 与多 agent 编排实践
+        <span class="summary">Anthropic 更新 Hook 接口；社区涌现多种 sub-agent 编排模板。</span>
+      </span>
+      <span class="stats">[5/1241/5]</span>
+    </a>
+
+    <a class="brief-row empty" href="#detail">
+      <span class="date">2026-04-23</span>
+      <span class="title">// no signal
+        <span class="summary">5 个源中无达到入选标准的事项。明天再来。</span>
+      </span>
+      <span class="stats">[5/776/0]</span>
+    </a>
+  </section>
+</div>
+
+<!-- ═══════ 详情页 ═══════ -->
+<div class="section-label" id="detail">PREVIEW · BRIEF DETAIL</div>
+
+<div class="container">
+  <article class="article">
+    <header class="article-head">
+      <div class="article-eyebrow">brief/2026-04-26.md</div>
+      <h1>Daily Brief — 2026-04-26</h1>
+      <div class="article-summary">
+        今天最值得关注的方向是 <strong style="color: var(--accent);">Introducing GPT-5.5</strong>。
+        <div class="stats">sources=<span>5</span> · scanned=<span>1078</span> · selected=<span>8</span></div>
+      </div>
+    </header>
+
+    <h2>最关注的事</h2>
+
+    <section class="item">
+      <div class="item-title"><span class="item-num">[01]</span><span>Introducing GPT-5.5</span></div>
+      <p class="item-body">OpenAI 发布 GPT-5.5，官方定位为其最强模型，重点提升 coding、研究和跨工具数据分析等复杂任务能力，同时强调速度改进。对 agent 工程化的直接含义：底座模型原生的跨工具协作能力增强，此前靠应用层 prompt 编排和工具链拼装补齐的部分 gap 可能被模型层吸收，现有 agent 架构中的编排层定位需要重新评估。</p>
+      <p class="item-source"><a href="https://openai.com/index/introducing-gpt-5-5">openai.com/index/introducing-gpt-5-5</a></p>
+    </section>
+
+    <section class="item">
+      <div class="item-title"><span class="item-num">[02]</span><span>GPT-5.5 System Card</span></div>
+      <p class="item-body">OpenAI 发布 GPT-5.5 的 System Card，按惯例包含模型能力基准、安全评估及红队测试结果。该文档大概率涵盖 agentic 场景下的 benchmark 数据，是了解 GPT-5.5 在 agent 任务中能力边界与已知风险的一手材料。作为模型发布后的补充文档，技术细节密度通常高于公告本身。</p>
+      <p class="item-source"><a href="https://openai.com/index/gpt-5-5-system-card">openai.com/index/gpt-5-5-system-card</a></p>
+    </section>
+
+    <section class="item">
+      <div class="item-title"><span class="item-num">[03]</span><span>A pelican for GPT-5.5 via the semi-official Codex backdoor API</span></div>
+      <p class="item-body">OpenAI 发布 GPT-5.5，面向 Codex 和 ChatGPT 付费用户开放，但官方 API 尚未上线，称需额外安全审查。Simon Willison 通过 Codex 提供的半官方接口绕道实测，评价模型快速高效。文章同时指出 OpenClaw 等 agent 工具经订阅接口调用模型的做法正与平台方产生摩擦，API 开放节奏和接入策略对 agent 工程化落地有直接影响。</p>
+      <p class="item-source"><a href="https://simonwillison.net/2026/Apr/23/gpt-5-5/#atom-everything">simonwillison.net/2026/Apr/23/gpt-5-5</a></p>
+    </section>
+
+    <h2>值得一看的事</h2>
+    <ul class="secondary">
+      <li>Latent Space 复盘 AIE Europe，探讨 agent 创业方向 — <a href="https://www.latent.space/p/unsupervised-learning-2026">AIE Europe Debrief + Agent Labs Thesis</a></li>
+      <li>DeepSeek 发布 V4 系列预览，1.6T 参数开源 MoE 刷新开放权重规模 — <a href="https://simonwillison.net/2026/Apr/24/deepseek-v4/#atom-everything">DeepSeek V4 — almost on the frontier</a></li>
+      <li>Simon Willison 的 llm CLI 更新至 0.31，接入 GPT-5.5 并新增 verbosity 控制 — <a href="https://simonwillison.net/2026/Apr/24/llm/#atom-everything">llm 0.31</a></li>
+      <li>DeepSeek 发布 V4 Pro/Flash 两款 MoE 模型，支持华为昇腾芯片运行 — <a href="https://www.latent.space/p/ainews-deepseek-v4-pro-16t-a49b-and">DeepSeek V4 Pro and Flash</a></li>
+      <li>OpenAI 确认 Codex 合入 GPT-5.5 主模型，不再有独立代码模型线 — <a href="https://simonwillison.net/2026/Apr/25/romain-huet/#atom-everything">Quoting Romain Huet</a></li>
+    </ul>
+
+    <!-- 蓝军 -->
+    <section class="critique-section">
+      <div class="critique-prompt">deepdive critique --target=brief/2026-04-26.md</div>
+      <h2 class="critique-title">蓝军反驳</h2>
+      <p class="critique-lede">读完上面的 brief，挑出值得反驳的具体观点或隐含假设——不造稻草人，只针对 brief 里**真的写过**的话。</p>
+
+      <div class="critique-card">
+        <div class="critique-card-head">
+          <span>REBUTTAL</span><span class="id">[01]</span>
+        </div>
+        <div class="critique-quote">现有 agent 架构中的编排层定位需要重新评估</div>
+        <div class="critique-body">模型能力增强 ≠ 编排层即将消失。每次 GPT 重大升级（GPT-3 → 4 → 4o → 5）都伴随相同的"编排层会被吃掉"叙事，但实测的反例是：<strong>(1)</strong> 跨长期任务的状态管理仍需应用层（model context 不是无限的）；<strong>(2)</strong> 工具链可观测性、人审、合规等需求与模型能力正交，不会因 model 升级而消失；<strong>(3)</strong> 真正被吸收的是 prompt orchestration 中较低阶的拼装，而高阶任务（角色分工、长流程）反而更依赖编排。说"重新评估"是对的，但不应隐含"编排层缩水"。</div>
+      </div>
+
+      <div class="critique-card">
+        <div class="critique-card-head">
+          <span>REBUTTAL</span><span class="id">[02]</span>
+        </div>
+        <div class="critique-quote">该文档大概率涵盖 agentic 场景下的 benchmark 数据</div>
+        <div class="critique-body">System Card 历史上对 agentic eval 覆盖严重不足。OpenAI 历版 System Card 对 SWE-bench / ToolBench / GAIA 等 agent benchmark 的报告深度，远不如 MMLU / MATH 这类传统能力 benchmark；红队测试也偏重 prompt injection 和有害内容，对长程任务的鲁棒性、self-correction 失败模式几乎不涉及。"大概率涵盖"是过度乐观——更可能的情况是有几个总分但缺细分维度。</div>
+      </div>
+
+      <div class="critique-card">
+        <div class="critique-card-head">
+          <span>REBUTTAL</span><span class="id">[03]</span>
+        </div>
+        <div class="critique-quote">API 开放节奏和接入策略对 agent 工程化落地有直接影响</div>
+        <div class="critique-body">表述太弱、没说清"直接影响"是什么方向。<strong>(1)</strong> 对 OpenAI 一方而言，限制 API 反而强化其 ChatGPT/Codex 端到端控制权，这是商业利好不是利空；<strong>(2)</strong> 对 agent 应用方而言，多模型抽象（如 LangChain、LiteLLM、本仓 Dong 的 llm/ 后端层）已经把"单一供应商接入策略"的影响降到很低；<strong>(3)</strong> 真正值得关注的不是 API 何时开，而是定价和 rate limit——那才是落地经济性的硬约束。</div>
+      </div>
+    </section>
+  </article>
+</div>
+
+<footer>
+  <span>// variant-b · 终端深 · jetbrains-mono + inter</span>
+  <span><a href="./variant-a.html">→ variant-a</a> · <a href="./index.html">/select</a></span>
+</footer>
+
+</body>
+</html>

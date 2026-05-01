@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>v2 · 终端深 + sidebar — DeepDive Boris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --bg-deeper: #0a0d12;
+    --border: #30363d;
+    --border-soft: #21262d;
+    --fg: #f0f6fc;
+    --fg-soft: #c9d1d9;
+    --fg-muted: #8b949e;
+    --fg-dim: #6e7681;
+    --accent: #39d353;
+    --accent-soft: rgba(57, 211, 83, 0.12);
+    --critique: #d29922;
+    --critique-soft: rgba(210, 153, 34, 0.08);
+    --critique-strong: #e3a72f;
+    --link: #58a6ff;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --sidebar-w: 196px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--fg-soft);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(57, 211, 83, 0.035), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  /* ── topbar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(13, 17, 23, 0.88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+    font-family: var(--mono); font-size: 13px;
+  }
+  .topbar-inner {
+    max-width: 1280px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { color: var(--fg); font-weight: 600; }
+  .brand .prompt { color: var(--accent); margin-right: 6px; }
+  .brand .path { color: var(--fg-muted); }
+  .brand .cursor { display: inline-block; width: 8px; height: 14px; background: var(--accent); margin-left: 4px; vertical-align: middle; animation: blink 1.1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .top-meta { display: flex; gap: 18px; color: var(--fg-dim); font-size: 11.5px; }
+  .top-meta .ok { color: var(--accent); }
+  .top-meta a { color: var(--fg-muted); text-decoration: none; border-bottom: 1px dotted transparent; }
+  .top-meta a:hover { color: var(--critique); border-bottom-color: var(--critique); }
+
+  /* ── 整体布局 ── */
+  .layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    gap: 0;
+    min-height: calc(100vh - 50px);
+  }
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static !important; max-height: 240px; overflow-y: auto; border-right: 0 !important; border-bottom: 1px solid var(--border); }
+  }
+
+  /* ── sidebar ── */
+  .sidebar {
+    position: sticky; top: 50px;
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    padding: 20px 10px 18px 14px;
+    font-family: var(--mono);
+    display: flex; flex-direction: column;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .sidebar-title {
+    font-size: 10.5px;
+    color: var(--fg-muted);
+    letter-spacing: 0.14em;
+    margin-bottom: 10px;
+    padding-left: 10px;
+  }
+  .sidebar-list { list-style: none; flex: 1; }
+  .sb-item {
+    display: flex; align-items: baseline; justify-content: space-between;
+    text-decoration: none;
+    color: var(--accent);
+    padding: 5px 10px;
+    border-left: 2px solid transparent;
+    font-size: 12px;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .sb-item:hover { background: var(--bg-soft); border-left-color: var(--border); }
+  .sb-item.active { background: var(--bg-soft); border-left-color: var(--accent); color: var(--fg); font-weight: 500; }
+  .sb-item .stats { font-size: 10px; color: var(--fg-dim); }
+  .sb-item.active .stats { color: var(--fg-muted); }
+  .sb-item.empty { color: var(--fg-dim); font-style: italic; }
+  .sb-item.empty .stats { color: var(--fg-dim); }
+  .sb-divider {
+    margin: 10px 10px 4px;
+    font-size: 10px; color: var(--fg-dim);
+    border-top: 1px dashed var(--border-soft);
+    padding-top: 8px;
+  }
+  .sb-divider::before { content: '// '; color: var(--accent); }
+  .sb-footer {
+    margin-top: 12px;
+    padding: 10px;
+    font-size: 10px; color: var(--fg-dim);
+    line-height: 1.6;
+    border-top: 1px dashed var(--border-soft);
+  }
+  .sb-footer .ok { color: var(--accent); }
+
+  /* ── content ── */
+  .content {
+    padding: 36px 36px 80px;
+    max-width: 920px;
+    width: 100%;
+  }
+  @media (max-width: 600px) { .content { padding: 28px 22px 60px; } }
+
+  /* ── article header ── */
+  .article-head {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px 26px;
+    margin-bottom: 36px;
+    position: relative;
+  }
+  .article-head::before {
+    content: '';
+    position: absolute; top: 0; left: 0; bottom: 0;
+    width: 3px; background: var(--accent); border-radius: 2px 0 0 2px;
+  }
+  .ah-eyebrow { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.05em; }
+  .article-head h1 { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; margin-bottom: 12px; line-height: 1.25; }
+  .ah-summary { color: var(--fg-soft); font-size: 14.5px; }
+  .ah-stats { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); margin-top: 10px; }
+  .ah-stats span { color: var(--accent); }
+
+  /* ── section ── */
+  .section { margin: 40px 0; }
+  .section-h {
+    font-family: var(--mono);
+    font-size: 18px; font-weight: 600;
+    color: var(--fg);
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+  .section-h .marker { color: var(--accent); margin-right: 10px; }
+  .section-body {
+    color: var(--fg-soft);
+    font-size: 14.8px;
+    margin-bottom: 18px;
+  }
+
+  /* ── primary source ── */
+  .primary-source {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    margin: 10px 0 12px;
+  }
+  .primary-source::before { content: '└─ 来源:  '; color: var(--fg-dim); }
+  .primary-source a { color: var(--link); text-decoration: none; border-bottom: 1px dotted var(--link); }
+  .primary-source a:hover { background: rgba(88, 166, 255, 0.1); }
+
+  /* ── related sources (collapsible) ── */
+  details.related {
+    background: var(--bg-deeper);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    transition: border-color 0.12s;
+  }
+  details.related:hover { border-color: var(--border); }
+  details.related[open] { padding-bottom: 12px; }
+  details.related summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 10px 16px;
+    color: var(--fg-muted);
+    user-select: none;
+    display: flex; align-items: center; gap: 10px;
+    transition: color 0.12s;
+  }
+  details.related summary::-webkit-details-marker { display: none; }
+  details.related summary::before {
+    content: '▸';
+    color: var(--accent);
+    font-size: 11px;
+    transition: transform 0.18s ease;
+    display: inline-block;
+    width: 12px;
+  }
+  details.related[open] summary::before { transform: rotate(90deg); }
+  details.related summary:hover { color: var(--fg-soft); }
+  details.related summary .count {
+    color: var(--accent);
+    font-weight: 500;
+    background: var(--accent-soft);
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+  details.related summary .label { color: var(--fg-dim); font-style: italic; margin-left: -2px; }
+  details.related ul { list-style: none; padding: 4px 16px 0 32px; }
+  details.related li {
+    padding: 5px 0;
+    color: var(--fg-muted);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  details.related li::before { content: '·'; color: var(--accent); }
+  details.related li .src { color: var(--fg-soft); white-space: nowrap; }
+  details.related li .sep { color: var(--fg-dim); }
+  details.related li a {
+    color: var(--link);
+    text-decoration: none;
+    flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    border-bottom: 1px dotted transparent;
+  }
+  details.related li a:hover { border-bottom-color: var(--link); }
+  details.related li .ext { color: var(--fg-dim); }
+
+  /* ── dashed divider ── */
+  .dashed-div {
+    margin: 10px 0 14px;
+    border-top: 1px dashed var(--border-soft);
+  }
+
+  /* ── critique ── */
+  .critique-block {
+    background: var(--critique-soft);
+    border-left: 3px solid var(--critique);
+    border-radius: 0 6px 6px 0;
+    padding: 16px 22px;
+    margin: 0 0 12px;
+  }
+  .critique-h {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--critique);
+    font-weight: 600;
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
+  .critique-h::before { content: '⚔  '; }
+
+  .quote-box {
+    background: var(--bg-deeper);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .quote-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--fg-dim);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .quote-text {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--fg-soft);
+    line-height: 1.6;
+  }
+
+  .analysis-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--critique);
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .analysis-body {
+    font-size: 14.5px;
+    color: var(--fg-soft);
+    line-height: 1.7;
+  }
+  .analysis-body strong { color: var(--critique); font-weight: 500; }
+
+  /* ── section hard divider ── */
+  .section-hr {
+    margin: 48px 0 36px;
+    height: 32px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .section-hr::before, .section-hr::after {
+    content: '';
+    position: absolute; top: 50%;
+    height: 0;
+    border-top: 2px solid var(--border);
+    width: calc(50% - 60px);
+  }
+  .section-hr::before { left: 0; }
+  .section-hr::after { right: 0; }
+  .section-hr-tag {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 18px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--fg);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    z-index: 1;
+    box-shadow: 0 0 0 4px var(--bg);
+  }
+  .section-hr-tag .marker { color: var(--accent); margin-right: 6px; }
+
+  /* ── secondary list (值得一看的事) ── */
+  .secondary-h {
+    font-family: var(--mono);
+    font-size: 17px;
+    color: var(--fg);
+    font-weight: 600;
+    margin: 64px 0 12px;
+  }
+  .secondary-h::before { content: '## '; color: var(--accent); }
+  .secondary-lede {
+    font-size: 13px; color: var(--fg-muted); margin-bottom: 18px;
+  }
+  .secondary { list-style: none; }
+  .secondary li {
+    padding: 10px 0 10px 16px;
+    border-bottom: 1px dashed var(--border-soft);
+    font-size: 14px;
+    position: relative;
+  }
+  .secondary li::before { content: '•'; color: var(--accent); position: absolute; left: 0; font-family: var(--mono); }
+  .secondary li:last-child { border-bottom: 0; }
+  .secondary a { color: var(--link); text-decoration: none; border-bottom: 1px dotted rgba(88, 166, 255, 0.4); }
+  .secondary a:hover { border-bottom-color: var(--link); background: rgba(88, 166, 255, 0.08); }
+
+  /* ── footer ── */
+  .footer {
+    margin-top: 64px; padding-top: 24px;
+    border-top: 1px dashed var(--border);
+    font-family: var(--mono);
+    font-size: 11px; color: var(--fg-dim);
+    display: flex; justify-content: space-between;
+  }
+  .footer a { color: var(--critique); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs/2026-04-26</span><span class="cursor"></span></div>
+    <div class="top-meta">
+      <span><span class="ok">●</span> 5 sources</span>
+      <span>last build 18m ago</span>
+      <a href="./index.html">← /select variant</a>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ═════ sidebar ═════ -->
+  <aside class="sidebar">
+    <div class="sidebar-title">DAILY BRIEFS</div>
+    <ul class="sidebar-list">
+      <li><a class="sb-item active" href="#">2026-04-26 <span class="stats">[8]</span></a></li>
+      <li><a class="sb-item" href="#">2026-04-25 <span class="stats">[6]</span></a></li>
+      <li><a class="sb-item" href="#">2026-04-24 <span class="stats">[5]</span></a></li>
+      <li><a class="sb-item empty" href="#">2026-04-23 <span class="stats">[0]</span></a></li>
+      <li><a class="sb-item" href="#">2026-04-22 <span class="stats">[4]</span></a></li>
+      <li><a class="sb-item" href="#">2026-04-21 <span class="stats">[7]</span></a></li>
+
+      <li class="sb-divider">older</li>
+
+      <li><a class="sb-item" href="#">2026-04-20 <span class="stats">[3]</span></a></li>
+      <li><a class="sb-item" href="#">2026-04-19 <span class="stats">[5]</span></a></li>
+      <li><a class="sb-item empty" href="#">2026-04-18 <span class="stats">[0]</span></a></li>
+      <li><a class="sb-item" href="#">2026-04-17 <span class="stats">[6]</span></a></li>
+      <li><a class="sb-item" href="#">2026-04-16 <span class="stats">[4]</span></a></li>
+    </ul>
+    <div class="sb-footer">
+      <span class="ok">●</span> auto-build via gh-actions<br />
+      next run: tomorrow 07:00 UTC+8
+    </div>
+  </aside>
+
+  <!-- ═════ 主内容 ═════ -->
+  <main class="content">
+
+    <!-- article header -->
+    <header class="article-head">
+      <div class="ah-eyebrow">brief/2026-04-26.md · agentic-software-engineering</div>
+      <h1>Daily Brief — 2026-04-26</h1>
+      <div class="ah-summary">
+        今天最值得关注的方向是 <strong style="color: var(--accent);">Introducing GPT-5.5</strong>。
+        <div class="ah-stats">sources=<span>5</span> · scanned=<span>1078</span> · selected=<span>8</span></div>
+      </div>
+    </header>
+
+    <!-- ═════ 章节 1 ═════ -->
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [01]</span>Introducing GPT-5.5</h2>
+
+      <p class="section-body">
+        OpenAI 发布 GPT-5.5，官方定位为其最强模型，重点提升 coding、研究和跨工具数据分析等复杂任务能力，同时强调速度改进。对 agent 工程化的直接含义：底座模型原生的跨工具协作能力增强，此前靠应用层 prompt 编排和工具链拼装补齐的部分 gap 可能被模型层吸收，现有 agent 架构中的编排层定位需要重新评估。
+      </p>
+
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://openai.com/index/introducing-gpt-5-5">openai.com/index/introducing-gpt-5-5</a>
+      </div>
+
+      <details class="related">
+        <summary><span class="count">+3</span> 相关来源 <span class="label">· 仅供参考</span></summary>
+        <ul>
+          <li><span class="src">TechCrunch</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://techcrunch.com/">GPT-5.5 launch deep-dive: what's actually new for builders</a><span class="ext">↗</span></li>
+          <li><span class="src">The Verge</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://www.theverge.com/">GPT-5.5: features for developers, with caveats</a><span class="ext">↗</span></li>
+          <li><span class="src">Hacker News</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://news.ycombinator.com/">GPT-5.5 release thread (228 comments)</a><span class="ext">↗</span></li>
+        </ul>
+      </details>
+
+      <div class="dashed-div"></div>
+
+      <div class="critique-block">
+        <div class="critique-h">蓝军</div>
+
+        <div class="quote-box">
+          <div class="quote-label">原文观点</div>
+          <div class="quote-text">现有 agent 架构中的编排层定位需要重新评估</div>
+        </div>
+
+        <div class="analysis-label">蓝军视角分析</div>
+        <div class="analysis-body">
+          模型能力增强 ≠ 编排层即将消失。每次 GPT 重大升级（GPT-3 → 4 → 4o → 5）都伴随相同的"编排层会被吃掉"叙事，但实测的反例是：<strong>(1)</strong> 跨长期任务的状态管理仍需应用层（model context 不是无限的）；<strong>(2)</strong> 工具链可观测性、人审、合规等需求与模型能力正交，不会因 model 升级而消失；<strong>(3)</strong> 真正被吸收的是 prompt orchestration 中较低阶的拼装，而高阶任务（角色分工、长流程）反而更依赖编排。说"重新评估"是对的，但不应隐含"编排层缩水"。
+        </div>
+      </div>
+    </section>
+
+    <div class="section-hr"><span class="section-hr-tag"><span class="marker">§</span>02</span></div>
+
+    <!-- ═════ 章节 2 ═════ -->
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [02]</span>GPT-5.5 System Card</h2>
+
+      <p class="section-body">
+        OpenAI 发布 GPT-5.5 的 System Card，按惯例包含模型能力基准、安全评估及红队测试结果。该文档大概率涵盖 agentic 场景下的 benchmark 数据，是了解 GPT-5.5 在 agent 任务中能力边界与已知风险的一手材料。作为模型发布后的补充文档，技术细节密度通常高于公告本身。
+      </p>
+
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://openai.com/index/gpt-5-5-system-card">openai.com/index/gpt-5-5-system-card</a>
+      </div>
+
+      <details class="related">
+        <summary><span class="count">+3</span> 相关来源 <span class="label">· 仅供参考</span></summary>
+        <ul>
+          <li><span class="src">Anthropic</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://www.anthropic.com/">model card 标准对照（前作）</a><span class="ext">↗</span></li>
+          <li><span class="src">arXiv</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://arxiv.org/">同期 evaluations 论文 · agent benchmark 章节</a><span class="ext">↗</span></li>
+          <li><span class="src">r/MachineLearning</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://reddit.com/r/MachineLearning">System Card 红队部分讨论</a><span class="ext">↗</span></li>
+        </ul>
+      </details>
+
+      <div class="dashed-div"></div>
+
+      <div class="critique-block">
+        <div class="critique-h">蓝军</div>
+
+        <div class="quote-box">
+          <div class="quote-label">原文观点</div>
+          <div class="quote-text">该文档大概率涵盖 agentic 场景下的 benchmark 数据</div>
+        </div>
+
+        <div class="analysis-label">蓝军视角分析</div>
+        <div class="analysis-body">
+          System Card 历史上对 agentic eval 覆盖严重不足。OpenAI 历版 System Card 对 SWE-bench / ToolBench / GAIA 等 agent benchmark 的报告深度，远不如 MMLU / MATH 这类传统能力 benchmark；红队测试也偏重 prompt injection 和有害内容，对长程任务的鲁棒性、self-correction 失败模式几乎不涉及。"大概率涵盖"是过度乐观——更可能的情况是有几个总分但缺细分维度。
+        </div>
+      </div>
+    </section>
+
+    <div class="section-hr"><span class="section-hr-tag"><span class="marker">§</span>03</span></div>
+
+    <!-- ═════ 章节 3 ═════ -->
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [03]</span>A pelican for GPT-5.5 via the semi-official Codex backdoor API</h2>
+
+      <p class="section-body">
+        OpenAI 发布 GPT-5.5，面向 Codex 和 ChatGPT 付费用户开放，但官方 API 尚未上线，称需额外安全审查。Simon Willison 通过 Codex 提供的半官方接口绕道实测，评价模型快速高效。文章同时指出 OpenClaw 等 agent 工具经订阅接口调用模型的做法正与平台方产生摩擦，API 开放节奏和接入策略对 agent 工程化落地有直接影响。
+      </p>
+
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/23/gpt-5-5/#atom-everything">simonwillison.net/2026/Apr/23/gpt-5-5</a>
+      </div>
+
+      <details class="related">
+        <summary><span class="count">+3</span> 相关来源 <span class="label">· 仅供参考</span></summary>
+        <ul>
+          <li><span class="src">OpenAI Forum</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://community.openai.com/">GPT-5.5 API timeline 官方答复贴</a><span class="ext">↗</span></li>
+          <li><span class="src">GitHub</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://github.com/">openclaw/openclaw · Codex 接入摩擦相关 issue</a><span class="ext">↗</span></li>
+          <li><span class="src">Latent Space</span><span class="sep">·</span><a target="_blank" rel="noopener" href="https://www.latent.space/">Simon Willison 访谈 · Codex 后门话题</a><span class="ext">↗</span></li>
+        </ul>
+      </details>
+
+      <div class="dashed-div"></div>
+
+      <div class="critique-block">
+        <div class="critique-h">蓝军</div>
+
+        <div class="quote-box">
+          <div class="quote-label">原文观点</div>
+          <div class="quote-text">API 开放节奏和接入策略对 agent 工程化落地有直接影响</div>
+        </div>
+
+        <div class="analysis-label">蓝军视角分析</div>
+        <div class="analysis-body">
+          表述太弱、没说清"直接影响"是什么方向。<strong>(1)</strong> 对 OpenAI 一方而言，限制 API 反而强化其 ChatGPT/Codex 端到端控制权，这是商业利好不是利空；<strong>(2)</strong> 对 agent 应用方而言，多模型抽象（如 LangChain、LiteLLM、本仓 Dong 的 llm/ 后端层）已经把"单一供应商接入策略"的影响降到很低；<strong>(3)</strong> 真正值得关注的不是 API 何时开，而是定价和 rate limit——那才是落地经济性的硬约束。
+        </div>
+      </div>
+    </section>
+
+    <!-- 值得一看的事 -->
+    <h2 class="secondary-h">值得一看的事</h2>
+    <p class="secondary-lede">没进章节但值得一瞥的条目，按重要性排。</p>
+    <ul class="secondary">
+      <li>Latent Space 复盘 AIE Europe，探讨 agent 创业方向 — <a target="_blank" rel="noopener" href="https://www.latent.space/p/unsupervised-learning-2026">AIE Europe Debrief + Agent Labs Thesis</a></li>
+      <li>DeepSeek 发布 V4 系列预览，1.6T 参数开源 MoE 刷新开放权重规模 — <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/24/deepseek-v4/#atom-everything">DeepSeek V4 — almost on the frontier</a></li>
+      <li>Simon Willison 的 llm CLI 更新至 0.31，接入 GPT-5.5 并新增 verbosity 控制 — <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/24/llm/#atom-everything">llm 0.31</a></li>
+      <li>DeepSeek 发布 V4 Pro/Flash 两款 MoE 模型，支持华为昇腾芯片运行 — <a target="_blank" rel="noopener" href="https://www.latent.space/p/ainews-deepseek-v4-pro-16t-a49b-and">DeepSeek V4 Pro and Flash</a></li>
+      <li>OpenAI 确认 Codex 合入 GPT-5.5 主模型，不再有独立代码模型线 — <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/25/romain-huet/#atom-everything">Quoting Romain Huet</a></li>
+    </ul>
+
+    <div class="footer">
+      <span>// variant-b-v2 · sidebar layout · 原文观点 + 蓝军视角分析</span>
+      <span><a href="./variant-b.html">v1 旧版</a> · <a href="./index.html">/select</a></span>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
