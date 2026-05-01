@@ -369,14 +369,18 @@ def parse_critiques(section):
 # ─── HTML Generator ──────────────────────────────────────────────────────────
 
 def get_sidebar_dates(report_dir, current_date):
-    """Get list of report dates for sidebar."""
+    """Get list of unique report dates for sidebar."""
     dates = []
+    seen = set()
     report_path = Path(report_dir)
     if report_path.exists():
         for f in sorted(report_path.glob('*.md'), reverse=True):
             m = re.match(r'^(\d{4}-\d{2}-\d{2})', f.stem)
             if m:
-                dates.append(m.group(1))
+                d = m.group(1)
+                if d not in seen:
+                    seen.add(d)
+                    dates.append(d)
     return dates
 
 
