@@ -1,30 +1,128 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Boris DeepDive — Daily Reports</title>
-<link rel="stylesheet" href="style.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Boris DeepDive — Agentic SE Daily Briefs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0d1117; --bg-soft: #161b22; --bg-deeper: #0a0d12;
+  --border: #30363d; --border-soft: #21262d;
+  --fg: #f0f6fc; --fg-soft: #c9d1d9; --fg-muted: #8b949e; --fg-dim: #6e7681;
+  --accent: #39d353; --accent-soft: rgba(57,211,83,0.12);
+  --link: #58a6ff;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans); background: var(--bg); color: var(--fg-soft);
+  line-height: 1.65; -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(57,211,83,0.035), transparent 70%);
+  background-attachment: fixed;
+}
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(13,17,23,0.88); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border); padding: 12px 0;
+  font-family: var(--mono); font-size: 13px;
+}
+.topbar-inner {
+  max-width: 860px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { color: var(--fg); font-weight: 600; }
+.brand .prompt { color: var(--accent); margin-right: 6px; }
+.brand .path { color: var(--fg-muted); }
+.brand .cursor { display: inline-block; width: 8px; height: 14px; background: var(--accent); margin-left: 4px; vertical-align: middle; animation: blink 1.1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.top-meta { color: var(--fg-dim); font-size: 11.5px; }
+.top-meta .ok { color: var(--accent); }
+.container { max-width: 860px; margin: 0 auto; padding: 36px 24px 80px; }
+.page-head {
+  background: var(--bg-soft); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px 26px; margin-bottom: 36px; position: relative;
+}
+.page-head::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px; background: var(--accent); border-radius: 2px 0 0 2px;
+}
+.page-head h1 { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--fg); margin-bottom: 10px; }
+.page-head p { color: var(--fg-muted); font-size: 14px; }
+.page-head .stats { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); margin-top: 8px; }
+.page-head .stats span { color: var(--accent); }
+.report-list { list-style: none; }
+.report-item {
+  padding: 18px 22px; margin-bottom: 10px;
+  background: var(--bg-soft); border: 1px solid var(--border-soft);
+  border-radius: 8px; transition: border-color 0.15s, background 0.15s;
+  display: block; text-decoration: none; color: inherit;
+}
+.report-item:hover { border-color: var(--accent); background: var(--bg-deeper); }
+.report-item .date {
+  font-family: var(--mono); font-size: 13px; color: var(--accent);
+  margin-bottom: 6px; letter-spacing: 0.03em;
+}
+.report-item .title { font-size: 15px; color: var(--fg); font-weight: 500; margin-bottom: 6px; }
+.report-item .summary { font-size: 13.5px; color: var(--fg-muted); line-height: 1.5; }
+.footer {
+  margin-top: 48px; padding-top: 20px;
+  border-top: 1px dashed var(--border);
+  font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+  display: flex; justify-content: space-between;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+</style>
 </head>
 <body>
-<h1>Boris DeepDive — Agentic SE 洞察日报</h1>
-<p style="color: var(--muted); margin-bottom: 2rem;">每日扫描 11 个信息源，筛选 agentic software engineering 领域最值得关注的事。</p>
-<div class="index-item">
-  <h3><a href="2026-04-26.html">Daily Brief — 2026-04-26</a></h3>
-  <div class="date">2026-04-26</div>
-  <div class="summary">一句话摘要：本周 OpenAI 凭 GPT-5.5 + Codex superapp 重塑 agentic coding 格局，同时 Anthropic 双线 stumble、GitHub Copilot 收紧入门 tier——agentic 算力账单开始浮现。</div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs</span><span class="cursor"></span></div>
+    <div class="top-meta"><span class="ok">&#9679;</span> 4 briefs</div>
+  </div>
 </div>
-<div class="index-item">
-  <h3><a href="2026-04-26-talk-walkthrough.html">Talk Report — "Full Walkthrough: Workflow for AI Coding from Planning to Production"</a></h3>
-  <div class="date">2026-04-26</div>
-  <div class="summary">Matt Pocock @ AI Engineer 大会 · 2026-04-24 · 96 min hands-on workshop</div>
+
+<div class="container">
+  <header class="page-head">
+    <h1>Agentic SE Daily Briefs</h1>
+    <p>每日扫描信息源，筛选 agentic software engineering 领域最值得关注的事。</p>
+    <div class="stats">total briefs: <span>4</span></div>
+  </header>
+
+  <ul class="report-list">
+    <li><a class="report-item" href="2026-05-01.html">
+      <div class="date">2026-05-01</div>
+      <div class="title">Daily Brief — 2026-05-01</div>
+      <div class="summary">Claude Code 遭遇计费路由 bug 和竞品关键词审查双重信任危机，Codex CLI 推出自主循环功能加剧 coding agent 竞争。</div>
+    </a></li>
+    <li><a class="report-item" href="2026-04-26.html">
+      <div class="date">2026-04-26</div>
+      <div class="title">Daily Brief — 2026-04-26</div>
+      <div class="summary">本周 OpenAI 凭 GPT-5.5 + Codex superapp 重塑 agentic coding 格局，同时 Anthropic 双线 stumble、GitHub Copilot 收紧入门 tier——agentic 算力账单开始浮现。</div>
+    </a></li>
+    <li><a class="report-item" href="2026-04-26-talk-walkthrough.html">
+      <div class="date">2026-04-26-talk-walkthrough</div>
+      <div class="title">Talk Report — "Full Walkthrough: Workflow for AI Coding from Planning to Production"</div>
+      <div class="summary">Matt Pocock @ AI Engineer 大会 · 2026-04-24 · 96 min hands-on workshop</div>
+    </a></li>
+    <li><a class="report-item" href="2026-04-26-talk-fundamentals.html">
+      <div class="date">2026-04-26-talk-fundamentals</div>
+      <div class="title">Talk Report — "Software Fundamentals Matter More Than Ever"</div>
+      <div class="summary">Matt Pocock @ AI Engineer 大会 · 2026-04-23 · 18 min keynote</div>
+    </a></li>
+  </ul>
+
+  <div class="footer">
+    <span>// DeepDive Boris &middot; agentic-se daily brief</span>
+    <span>auto-build via gh-actions</span>
+  </div>
 </div>
-<div class="index-item">
-  <h3><a href="2026-04-26-talk-fundamentals.html">Talk Report — "Software Fundamentals Matter More Than Ever"</a></h3>
-  <div class="date">2026-04-26</div>
-  <div class="summary">Matt Pocock @ AI Engineer 大会 · 2026-04-23 · 18 min keynote</div>
-</div>
+
 </body>
 </html>

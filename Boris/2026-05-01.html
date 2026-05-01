@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Daily Brief 2026-04-26 &mdash; DeepDive Boris</title>
+<title>Daily Brief 2026-05-01 &mdash; DeepDive Boris</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -220,10 +220,10 @@ details.related li a:hover { border-bottom-color: var(--link); }
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs/2026-04-26</span><span class="cursor"></span></div>
+    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs/2026-05-01</span><span class="cursor"></span></div>
     <div class="top-meta">
-      <span><span class="ok">&#9679;</span> 11 sources</span>
-      <span>scanned 120 items</span>
+      <span><span class="ok">&#9679;</span> 10 sources</span>
+      <span>scanned 28 items</span>
     </div>
   </div>
 </div>
@@ -233,10 +233,10 @@ details.related li a:hover { border-bottom-color: var(--link); }
   <aside class="sidebar">
     <div class="sidebar-title">DAILY BRIEFS</div>
     <ul class="sidebar-list">
-      <li><a class="sb-item" href="2026-05-01.html">2026-05-01</a></li>
-      <li><a class="sb-item active" href="#">2026-04-26</a></li>
-      <li><a class="sb-item active" href="#">2026-04-26</a></li>
-      <li><a class="sb-item active" href="#">2026-04-26</a></li>
+      <li><a class="sb-item active" href="#">2026-05-01</a></li>
+      <li><a class="sb-item" href="2026-04-26.html">2026-04-26</a></li>
+      <li><a class="sb-item" href="2026-04-26.html">2026-04-26</a></li>
+      <li><a class="sb-item" href="2026-04-26.html">2026-04-26</a></li>
     </ul>
     <div class="sb-footer">
       <span class="ok">&#9679;</span> auto-build via gh-actions
@@ -246,27 +246,25 @@ details.related li a:hover { border-bottom-color: var(--link); }
   <main class="content">
 
     <header class="article-head">
-      <div class="ah-eyebrow">brief/2026-04-26.md &middot; agentic-software-engineering</div>
-      <h1>Daily Brief &mdash; 2026-04-26</h1>
+      <div class="ah-eyebrow">brief/2026-05-01.md &middot; agentic-software-engineering</div>
+      <h1>Daily Brief &mdash; 2026-05-01</h1>
       <div class="ah-summary">
-        本周 OpenAI 凭 GPT-5.5 + Codex superapp 重塑 agentic coding 格局，同时 Anthropic 双线 stumble、GitHub Copilot 收紧入门 tier——agentic 算力账单开始浮现。
-        <div class="ah-stats">sources=<span>11</span> &middot; scanned=<span>120</span> &middot; selected=<span>8</span></div>
+        Claude Code 遭遇计费路由 bug 和竞品关键词审查双重信任危机，Codex CLI 推出自主循环功能加剧 coding agent 竞争。
+        <div class="ah-stats">sources=<span>10</span> &middot; scanned=<span>28</span> &middot; selected=<span>15</span></div>
       </div>
     </header>
 
     <section class="section">
-      <h2 class="section-h"><span class="marker">## [01]</span>GPT-5.5 + Codex 合体：OpenAI 把 agentic coding 卷成&quot;模型即产品&quot;</h2>
-      <p class="section-body">OpenAI 于 4 月 23 日发布 GPT-5.5，定位&quot;最强模型&quot;，重点强化 coding 与跨工具数据分析；同期把 Codex 与 ChatGPT 主线合并、推出 workspace agents、扩张到企业端 4M 周活——配套还有 Codex Automations、Plugins/Skills 体系、WebSockets-based Responses API 等多篇 academy 文档。Latent Space 跟进口号&quot;等同 Claude Opus 4.7 智能 / 1/4 成本&quot;。但 Simon Willison 实测发现 API 尚未公开开放、需绕 Codex 订阅接入——访问通路本身成为新的护城河。Romain Huet 同时透露 Codex 与主线模型已合并，不再有独立&quot;代码模型&quot;分支。对 agentic SE 的含义：底座原生 agentic 能力 + 平台 lock-in 一并升级，应用层&quot;模型选型&quot;的灵活度被压缩。</p>
+      <h2 class="section-h"><span class="marker">## [01]</span>Claude Code commit message 触发额外计费路由</h2>
+      <p class="section-body">有用户发现在 commit message 中包含 HERMES.md 字样时，Claude Code 的请求会被路由到额外用量计费通道。该 issue 在 GitHub 上获得 1237 点赞和 526 条评论，成为近期 Claude Code 最大的信任事件。这暴露了 agentic coding 工具在计费透明度方面的隐患——当工具自主生成 commit 时，用户可能在不知情的情况下触发不同的计费逻辑。Anthropic 尚未正式回应。</p>
       <div class="primary-source">
-        <a target="_blank" rel="noopener" href="https://openai.com/index/introducing-gpt-5-5">openai.com/index/introducing-gpt-5-5</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; OpenAI](https://openai.com/index/introducing-gpt-5-5)</span>
+        <a target="_blank" rel="noopener" href="https://github.com/anthropics/claude-code/issues/53262">github.com/anthropics/claude-code/issues/53262</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; Apr 29</span>
       </div>
 
       <details class="related">
-        <summary><span class="count">+3</span> 相关来源 <span class="label">&middot; 仅供参考</span></summary>
+        <summary><span class="count">+1</span> 相关来源 <span class="label">&middot; 仅供参考</span></summary>
         <ul>
-          <li><a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/23/gpt-5-5/">A pelican for GPT-5.5 via the semi-official Codex backdoor API · Simon Willison</a></li>
-          <li><a target="_blank" rel="noopener" href="https://www.latent.space/p/ainews-gpt-55-and-openai-codex-superapp">GPT-5.5 and OpenAI Codex Superapp Launch · Latent Space</a></li>
-          <li><a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/25/romain-huet/">Quoting Romain Huet（Codex 与主线合并）· Simon Willison</a></li>
+          <li><a target="_blank" rel="noopener" href="https://twitter.com/theo/status/2049645973350363168">Claude Code refuses requests or charges extra if your commits mention OpenClaw</a></li>
         </ul>
       </details>
       <div class="dashed-div"></div>
@@ -275,26 +273,26 @@ details.related li a:hover { border-bottom-color: var(--link); }
         <div class="critique-h">蓝军</div>
         <div class="quote-box">
           <div class="quote-label">原文观点</div>
-          <div class="quote-text">GPT-5.5&quot;等同 Claude Opus 4.7 智能、1/4 成本&quot;，重塑 agentic coding 经济学。</div>
+          <div class="quote-text">这暴露了 agentic coding 工具在计费透明度方面的隐患——当工具自主生成 commit 时，用户可能在不知情的情况下触发不同的计费逻辑。</div>
         </div>
         <div class="analysis-label">蓝军视角分析</div>
-        <div class="analysis-body">benchmark 智能不等于生产稳定。Anthropic 同周公布的 Claude Code postmortem 恰好说明 bench 分高 ≠ 部署稳——大规模 agent loop 里错误重试 5 次，&quot;1/4 成本&quot;就持平。况且每次大模型发布都喊一次&quot;重定义经济学&quot;（GPT-4o、Sonnet 4.6 同款话术），最后仍要靠 caching、batch、自托管组合才划算。</div>
+        <div class="analysis-body">从单个 bug 跳跃到「计费透明度隐患」是过度外推。路由异常可能是字符串匹配的工程 bug（如内部标记被误触发），而非有意的计费设计。摘要指出「Anthropic 尚未正式回应」，但将沉默解读为默认有问题是典型的证据缺失谬误——大公司通常需要内部调查后才会公开回应。此外，1237 点赞反映的是社区情绪强度，不等于技术事实的严重程度。</div>
       </div>
     </section>
 
     <div class="section-hr"><span class="section-hr-tag"><span class="marker">&sect;</span>02</span></div>
 
     <section class="section">
-      <h2 class="section-h"><span class="marker">## [02]</span>Anthropic 同周双 stumble：Claude Code 质量 postmortem + $100/月 试探</h2>
-      <p class="section-body">2026-04-24 Anthropic 发布 Claude Code 质量 postmortem，承认 4 月以来 harness 多处 bug——其中一个让 idle session 反复丢失上下文，导致用户体验明显下滑——并强调&quot;是 harness 不是模型缺陷&quot;。同周早些时候社区还在消化 Anthropic 一度尝试把 Claude Code 限制到 Max plan（$100+/月）后迅速撤回的 silent test，外界普遍读为定价试探。彭博 4-24 同步曝出 Google 拟向 Anthropic 投资 400 亿美元——三条线挤在 GPT-5.5 launch 同一窗口期，时机重合度异常高，叠加读出来更像产品线重组与资源紧张，而非各自独立的运营波动。</p>
+      <h2 class="section-h"><span class="marker">## [02]</span>Claude Code 对竞品关键词的异常行为</h2>
+      <p class="section-body">Theo 在 Twitter 上报告 Claude Code 在 commit message 中检测到 &#x27;OpenClaw&#x27; 等竞品相关关键词时，会拒绝执行请求或将请求路由到更高计费层级。该帖获得 1267 点赞和 694 条评论，与 HERMES.md 计费 bug 共同构成了本周 Claude Code 最大的争议事件。这对 agentic SE 工具的中立性和可信度提出了严峻质问——如果编码 agent 会根据代码内容选择性地拒绝服务，开发者如何信任它处理敏感项目？</p>
       <div class="primary-source">
-        <a target="_blank" rel="noopener" href="https://www.anthropic.com/engineering/april-23-postmortem">anthropic.com/engineering/april-23-postmortem</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; Anthropic Engineering](https://www.anthropic.com/engineering/april-23-postmortem)</span>
+        <a target="_blank" rel="noopener" href="https://twitter.com/theo/status/2049645973350363168">twitter.com/theo/status/2049645973350363168</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; Apr 30</span>
       </div>
 
       <details class="related">
         <summary><span class="count">+1</span> 相关来源 <span class="label">&middot; 仅供参考</span></summary>
         <ul>
-          <li><a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/22/claude-code-confusion/">Is Claude Code going to cost $100/month? Probably not · Simon Willison</a></li>
+          <li><a target="_blank" rel="noopener" href="https://github.com/anthropics/claude-code/issues/53262">HERMES.md in commit messages causes requests to route to extra usage billing</a></li>
         </ul>
       </details>
       <div class="dashed-div"></div>
@@ -303,38 +301,32 @@ details.related li a:hover { border-bottom-color: var(--link); }
         <div class="critique-h">蓝军</div>
         <div class="quote-box">
           <div class="quote-label">原文观点</div>
-          <div class="quote-text">Claude Code 质量下降是「harness bug 不是模型缺陷」。</div>
+          <div class="quote-text">如果编码 agent 会根据代码内容选择性地拒绝服务，开发者如何信任它处理敏感项目？</div>
         </div>
         <div class="analysis-label">蓝军视角分析</div>
-        <div class="analysis-body">把锅给 harness 是 Anthropic 的最优叙事，但回避了更大的问题——idle session 反复丢上下文这种 bug，为什么没在内部 dogfooding 里抓到？正好赶在 GPT-5.5 直接对标的窗口期暴发，说明内部测试覆盖度不足以保证 production-quality。&quot;模型没问题&quot;听起来像安抚，暴露的实际是工程文化问题，比 model bug 更难短期修复。</div>
+        <div class="analysis-body">这个结论建立在单一 Twitter 报告之上，缺乏独立复现。AI 工具的行为报告在社交媒体上极易被放大和误读——用户可能遇到的是 rate limit、内容安全过滤或随机拒绝，而非针对竞品名称的定向审查。摘要将此事与 HERMES.md bug 并列，暗示存在系统性模式，但两个未经证实的独立报告不构成模式。在没有可复现的 reproduction steps 之前，「选择性拒绝服务」仍是未经检验的假设。</div>
       </div>
     </section>
 
     <div class="section-hr"><span class="section-hr-tag"><span class="marker">&sect;</span>03</span></div>
 
     <section class="section">
-      <h2 class="section-h"><span class="marker">## [03]</span>GitHub Copilot Individual 计费收紧：agentic 算力账单浮出水面</h2>
-      <p class="section-body">2026-04-20 GitHub 公告调整 Copilot Individual 订阅：暂停新订、收紧用量上限、把 Claude Opus 4.7 限制到 premium tier。官方理由是 agentic workflows 算力消耗远超原计费模型预期。同期 GitHub 还在 Status Page 上新增 &quot;Copilot AI Model Provider&quot; 独立组件——等同把外部 LLM 故障显式承认为产品风险面。这是首个主流平台把&quot;agentic 比 chat 贵得多&quot;明示给消费者，agentic 不再被免费补贴掩盖。叠加 Anthropic 同周对 Claude Code 高用量 plan 的&quot;$100/月试探&quot;，agentic coding 行业的&quot;前期补贴-后期收割&quot;曲线在 2026Q2 同时进入收割期。</p>
+      <h2 class="section-h"><span class="marker">## [03]</span>Codex CLI 新增 /goal 自主循环功能</h2>
+      <p class="section-body">OpenAI 的 Codex CLI 0.128.0 版本新增了 /goal 功能，实现了类似 Ralph loop 的自主循环机制：设定目标后 agent 会持续执行直到自评目标完成或 token 预算耗尽。该功能通过 goals/continuation.md 和 goals/budget_limit.md 两个 prompt 模板实现，在每个 turn 结束时自动注入。这标志着 coding agent 从单轮交互向持续自主执行的重要演进，与 Claude Code 的 /loop 和 Cursor 的 background agent 形成竞争态势。</p>
       <div class="primary-source">
-        <a target="_blank" rel="noopener" href="https://github.blog/news-insights/company-news/changes-to-github-copilot-individual-plans/">github.blog/news-insights/company-news/changes-...</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; GitHub Blog](https://github.blog/news-insights/company-news/changes-to-github-copilot-individual-plans/)</span>
+        <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/30/codex-goals/#atom-everything">simonwillison.net/2026/Apr/30/codex-goals/#atom...</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; Apr 30</span>
       </div>
 
-      <details class="related">
-        <summary><span class="count">+1</span> 相关来源 <span class="label">&middot; 仅供参考</span></summary>
-        <ul>
-          <li><a target="_blank" rel="noopener" href="https://openai.com/index/speeding-up-agentic-workflows-with-websockets">Speeding up agentic workflows with WebSockets in the Responses API · OpenAI</a></li>
-        </ul>
-      </details>
       <div class="dashed-div"></div>
 
       <div class="critique-block">
         <div class="critique-h">蓝军</div>
         <div class="quote-box">
           <div class="quote-label">原文观点</div>
-          <div class="quote-text">agentic workflows 太贵，所以 GitHub 收紧 Individual 订阅。</div>
+          <div class="quote-text">这标志着 coding agent 从单轮交互向持续自主执行的重要演进。</div>
         </div>
         <div class="analysis-label">蓝军视角分析</div>
-        <div class="analysis-body">真正在烧 agentic 算力的是已在 enterprise tier 的人，Individual 不是开销大户。收紧入门 tier 没解决根本问题，反而把&quot;想试试&quot;的开发者推向 Cursor / Aider / Claude Code——典型反向激励。Copilot 装机量靠的就是周末 hacker 和初学者建立的搜索/教程生态，这部分用户被推走，&quot;AI 编程默认选项&quot;的心智份额会被快速侵蚀。</div>
+        <div class="analysis-body">自主循环并非新概念——AutoGPT（2023）、Claude Code /loop、Cursor background agent 都已实现类似机制。Codex CLI 的 /goal 是跟进而非开创。更关键的是，摘要提到 agent「自评目标完成」作为终止条件，但自评可靠性是 agentic 系统的已知弱点：agent 判断自己「完成了」不等于目标真正达成。将 token 预算耗尽作为兜底机制，本质上承认了自评不可靠，这恰恰削弱了「重要演进」的叙事。</div>
       </div>
     </section>
 
@@ -342,17 +334,24 @@ details.related li a:hover { border-bottom-color: var(--link); }
     <h2 class="secondary-h">值得一看的事</h2>
     <p class="secondary-lede">没进章节但值得一瞥的条目，按重要性排。</p>
     <ul class="secondary">
-      <li>DeepSeek V4 系列发布，V4-Pro（1.6T/49B active）与 V4-Flash（284B/13B active）支持 1M token context，号称&quot;前沿质量、零头价格&quot; &mdash; <a target="_blank" rel="noopener" href="https://www.latent.space/p/ainews-deepseek-v4-pro-16t-a49b-and">DeepSeek V4 Pro and Flash · Latent Space</a></li>
-      <li>Qwen3.6-27B 27B dense 模型在编码/SVG 生成上反超自家 397B MoE 旗舰，量化后 16.8GB 可本地跑 &mdash; <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/24/deepseek-v4/">DeepSeek V4 - almost on the frontier · Simon Willison</a></li>
-      <li>Mozilla 用 Claude Mythos Preview 在 Firefox 150 中找出 271 个安全漏洞，&quot;防守方第一次有了胜算&quot; &mdash; <a target="_blank" rel="noopener" href="https://blog.mozilla.org/en/privacy-security/ai-security-zero-day-vulnerabilities/">Quoting Bobby Holley · Simon Willison</a></li>
-      <li>`llm` CLI 0.31 发布，加 GPT-5.5 支持、verbosity 控制、image detail level &mdash; <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/24/llm/">llm 0.31 · Simon Willison</a></li>
-      <li>彭博：Google 拟向 Anthropic 投资 400 亿美元，行业资本节奏与 agentic 算力成本同步走高 &mdash; <a target="_blank" rel="noopener" href="https://www.bloomberg.com/news/articles/2026-04-24/google-plans-to-invest-up-to-40-billion-in-anthropic">Google plans to invest up to $40B in Anthropic · Bloomberg</a></li>
+      <li>Apple Support app 中意外泄露了 Claude.md 配置文件，证实 Apple 内部正在使用 Claude Code 进行开发。 &mdash; <a target="_blank" rel="noopener" href="https://x.com/aaronp613/status/2049986504617820551">Hacker News</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; May 01</span></li>
+      <li>xAI 发布 Grok 4.3 模型，HN 上获得 315 点赞和 405 条讨论。 &mdash; <a target="_blank" rel="noopener" href="https://docs.x.ai/developers/models/grok-4.3">Hacker News</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; May 01</span></li>
+      <li>Latent Space 分析 coding agent 正在 breaking containment，从纯编码扩展到知识工作和创意工作领域。 &mdash; <a target="_blank" rel="noopener" href="https://www.latent.space/p/ainews-agents-for-everything-else">Latent Space</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; May 01</span></li>
+      <li>Zig 项目严格禁止 LLM 辅助贡献，因为他们投资的是贡献者而非贡献本身；Bun 的 Zig fork 因此无法上游 4x 性能改进。 &mdash; <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/30/zig-anti-ai/#atom-everything">Simon Willison</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 30</span></li>
+      <li>OpenAI 发布 GPT-5 goblin 行为的根因分析：人格驱动的怪异输出如何在模型中传播及修复方案。 &mdash; <a target="_blank" rel="noopener" href="https://openai.com/index/where-the-goblins-came-from">OpenAI Blog</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 29</span></li>
+      <li>Semgrep 发现 PyTorch Lightning 中的恶意依赖，AI 训练供应链安全再次敲响警钟。 &mdash; <a target="_blank" rel="noopener" href="https://semgrep.dev/blog/2026/malicious-dependency-in-pytorch-lightning-used-for-ai-training/">Hacker News</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 30</span></li>
+      <li>UK AI Security Institute 评估 GPT-5.5 的漏洞发现能力，与 Claude Mythos 相当但已公开可用。 &mdash; <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/30/gpt-55-cyber-capabilities/#atom-everything">Simon Willison</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 30</span></li>
+      <li>Simon Willison 的 LLM 库 0.32 alpha 重构：支持 messages 序列、typed streaming parts、tool call 和响应序列化。 &mdash; <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/29/llm/#atom-everything">Simon Willison</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 29</span></li>
+      <li>GitHub 发布 Copilot CLI 入门教程，介绍交互式和非交互式两种模式的使用场景。 &mdash; <a target="_blank" rel="noopener" href="https://github.blog/ai-and-ml/github-copilot/github-copilot-cli-for-beginners-interactive-v-non-interactive-mode/">GitHub Blog</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 30</span></li>
+      <li>Hugging Face 指出 AI 评估正在成为新的算力瓶颈，eval 成本增长速度超过训练成本。 &mdash; <a target="_blank" rel="noopener" href="https://huggingface.co/blog/evaleval/eval-costs-bottleneck">Hugging Face</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 29</span></li>
+      <li>IBM Granite 4.1 开源模型系列发布，8B 参数模型性能匹配 32B MoE，对本地 coding agent 部署有意义。 &mdash; <a target="_blank" rel="noopener" href="https://huggingface.co/blog/ibm-granite/granite-4-1">Hugging Face</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 29</span></li>
+      <li>Mozilla 正式反对 Chrome 的 Prompt API 提案，浏览器内置 AI 能力的标准化路径出现分歧。 &mdash; <a target="_blank" rel="noopener" href="https://github.com/mozilla/standards-positions/issues/1213#issuecomment-4347988313">Hacker News</a> <span style="color:var(--fg-dim); font-size:12px;">&middot; Apr 30</span></li>
     </ul>
 
 
     <div class="observation">
       <div class="observation-h">// 今日观察小结</div>
-      <div class="observation-body">本周三件最关注 + 值得一看里的 Google 投资，连成一条线：**agentic coding 的硬件 / 算力 / 商业模式三个维度同时进入压力测试**。GPT-5.5 用底座侧 lock-in 应对，Anthropic 用质量+定价双向调整应对，GitHub 用 tier 升级应对——三家应对策略截然不同，下周看哪条最先反馈到开发者实际选择上。
+      <div class="observation-body">Claude Code 的信任危机与 Codex /goal 的自主循环能力，共同指向 agentic SE 工具正在面临的核心矛盾：自主性越强，透明度和可信度的要求就越高。
 
 ---</div>
     </div>
