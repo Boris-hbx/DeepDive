@@ -146,7 +146,7 @@
 
 {summary_long}
 
-来源：[{title}]({url})
+来源：[{title}]({url}) · {published}
 
 相关来源：
 - [{related_title}]({related_url})
@@ -157,7 +157,7 @@
 
 ## 值得一看的事
 
-- {summary_short} — [{source}]({url})
+- {summary_short} — [{source}]({url}) · {published}
 - ...
 
 ## 今日观察小结
@@ -191,7 +191,7 @@
 今日扫描的 {源数} 个源中，没有达到入选标准的事项。明天再来。
 ```
 
-### 写入
+### 写入 .md
 
 用 Write 工具写入 `experiments/Boris/daily-report/{YYYY-MM-DD}.md`
 

@@ -1,6 +1,6 @@
 # 部署 Boris 的 Daily Report 到 GitHub Pages
 #
-# 用 pandoc 把 daily-report/*.md 转成静态 HTML，推到 gh-pages 分支的 /Boris/ 子目录。
+# 用 md2html.py 把 daily-report/*.md 转成 variant-b-v2 风格的静态 HTML，推到 gh-pages 分支的 /Boris/ 子目录。
 # 使用 keep_files: true 不覆盖其他成员的子目录。
 #
 # 访问 URL：https://boris-hbx.github.io/DeepDive/Boris/
@@ -30,9 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install pandoc
-        run: sudo apt-get install -y pandoc
 
       - name: Build static site
         run: bash experiments/Boris/scripts/build-pages.sh

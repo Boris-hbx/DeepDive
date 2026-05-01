@@ -1,0 +1,167 @@
+[
+  {
+    "source": "Hacker News Best",
+    "title": "HERMES.md in commit messages causes requests to route to extra usage billing",
+    "url": "https://github.com/anthropics/claude-code/issues/53262",
+    "published": "Wed, 29 Apr 2026 18:54:31 +0000",
+    "score": 5,
+    "reason": "Claude Code 计费路由 bug 直接影响所有 agentic coding 用户，引发信任危机",
+    "summary_short": "Claude Code 被发现当 commit message 包含特定字符串时会触发额外计费路由，引发社区强烈反响。",
+    "summary_long": "有用户发现在 commit message 中包含 HERMES.md 字样时，Claude Code 的请求会被路由到额外用量计费通道。该 issue 在 GitHub 上获得 1237 点赞和 526 条评论，成为近期 Claude Code 最大的信任事件。这暴露了 agentic coding 工具在计费透明度方面的隐患——当工具自主生成 commit 时，用户可能在不知情的情况下触发不同的计费逻辑。Anthropic 尚未正式回应。",
+    "related_urls": ["https://twitter.com/theo/status/2049645973350363168"]
+  },
+  {
+    "source": "Hacker News Best",
+    "title": "Claude Code refuses requests or charges extra if your commits mention OpenClaw",
+    "url": "https://twitter.com/theo/status/2049645973350363168",
+    "published": "Thu, 30 Apr 2026 14:36:58 +0000",
+    "score": 5,
+    "reason": "Claude Code 对竞品关键词的异常行为，直接关系 agentic SE 工具的中立性",
+    "summary_short": "有报告称 Claude Code 在检测到 commit 中提及竞品名称时会拒绝请求或触发额外收费。",
+    "summary_long": "Theo 在 Twitter 上报告 Claude Code 在 commit message 中检测到 'OpenClaw' 等竞品相关关键词时，会拒绝执行请求或将请求路由到更高计费层级。该帖获得 1267 点赞和 694 条评论，与 HERMES.md 计费 bug 共同构成了本周 Claude Code 最大的争议事件。这对 agentic SE 工具的中立性和可信度提出了严峻质问——如果编码 agent 会根据代码内容选择性地拒绝服务，开发者如何信任它处理敏感项目？",
+    "related_urls": ["https://github.com/anthropics/claude-code/issues/53262"]
+  },
+  {
+    "source": "Simon Willison",
+    "title": "Codex CLI 0.128.0 adds /goal",
+    "url": "https://simonwillison.net/2026/Apr/30/codex-goals/#atom-everything",
+    "published": "2026-04-30T23:23:17+00:00",
+    "score": 5,
+    "reason": "Coding agent 新增自主循环能力，是 agentic SE 工具演进的标志性功能",
+    "summary_short": "OpenAI Codex CLI 新增 /goal 命令，agent 可自主循环执行直到目标完成或 token 预算耗尽。",
+    "summary_long": "OpenAI 的 Codex CLI 0.128.0 版本新增了 /goal 功能，实现了类似 Ralph loop 的自主循环机制：设定目标后 agent 会持续执行直到自评目标完成或 token 预算耗尽。该功能通过 goals/continuation.md 和 goals/budget_limit.md 两个 prompt 模板实现，在每个 turn 结束时自动注入。这标志着 coding agent 从单轮交互向持续自主执行的重要演进，与 Claude Code 的 /loop 和 Cursor 的 background agent 形成竞争态势。",
+    "related_urls": ["https://www.latent.space/p/ainews-agents-for-everything-else"]
+  },
+  {
+    "source": "Hacker News Best",
+    "title": "Apple accidentally left Claude.md files in Apple Support app",
+    "url": "https://x.com/aaronp613/status/2049986504617820551",
+    "published": "Fri, 01 May 2026 11:08:32 +0000",
+    "score": 4,
+    "reason": "Apple 内部使用 Claude Code 的直接证据，验证 agentic SE 在大厂的渗透",
+    "summary_short": "Apple Support app 中意外泄露了 Claude.md 配置文件，证实 Apple 内部正在使用 Claude Code 进行开发。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Hacker News Best",
+    "title": "Grok 4.3",
+    "url": "https://docs.x.ai/developers/models/grok-4.3",
+    "published": "Fri, 01 May 2026 08:29:31 +0000",
+    "score": 4,
+    "reason": "xAI 发布新模型，code LLM 竞争格局持续变化",
+    "summary_short": "xAI 发布 Grok 4.3 模型，HN 上获得 315 点赞和 405 条讨论。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Latent Space",
+    "title": "[AINews] Agents for Everything Else: Codex for Knowledge Work, Claude for Creative Work",
+    "url": "https://www.latent.space/p/ainews-agents-for-everything-else",
+    "published": "Fri, 01 May 2026 04:53:41 GMT",
+    "score": 4,
+    "reason": "对 coding agent 突破编码边界进入知识工作和创意工作的趋势分析",
+    "summary_short": "Latent Space 分析 coding agent 正在 breaking containment，从纯编码扩展到知识工作和创意工作领域。",
+    "summary_long": "",
+    "related_urls": ["https://simonwillison.net/2026/Apr/30/codex-goals/#atom-everything"]
+  },
+  {
+    "source": "Simon Willison",
+    "title": "The Zig project's rationale for their firm anti-AI contribution policy",
+    "url": "https://simonwillison.net/2026/Apr/30/zig-anti-ai/#atom-everything",
+    "published": "2026-04-30T01:24:23+00:00",
+    "score": 4,
+    "reason": "AI 辅助编程对开源社区治理模式的根本性冲击",
+    "summary_short": "Zig 项目严格禁止 LLM 辅助贡献，因为他们投资的是贡献者而非贡献本身；Bun 的 Zig fork 因此无法上游 4x 性能改进。",
+    "summary_long": "",
+    "related_urls": ["https://simonwillison.net/2026/Apr/30/andrew-kelley/#atom-everything"]
+  },
+  {
+    "source": "OpenAI Blog",
+    "title": "Where the goblins came from",
+    "url": "https://openai.com/index/where-the-goblins-came-from",
+    "published": "Wed, 29 Apr 2026 20:00:00 GMT",
+    "score": 4,
+    "reason": "GPT-5 行为异常的官方根因分析，对 agent 可靠性有直接启示",
+    "summary_short": "OpenAI 发布 GPT-5 goblin 行为的根因分析：人格驱动的怪异输出如何在模型中传播及修复方案。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Hacker News Best",
+    "title": "Shai-Hulud Themed Malware Found in the PyTorch Lightning AI Training Library",
+    "url": "https://semgrep.dev/blog/2026/malicious-dependency-in-pytorch-lightning-used-for-ai-training/",
+    "published": "Thu, 30 Apr 2026 16:09:26 +0000",
+    "score": 4,
+    "reason": "AI 训练库供应链攻击，对依赖 AI 工具链的 agentic SE 有安全警示",
+    "summary_short": "Semgrep 发现 PyTorch Lightning 中的恶意依赖，AI 训练供应链安全再次敲响警钟。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Simon Willison",
+    "title": "Our evaluation of OpenAI's GPT-5.5 cyber capabilities",
+    "url": "https://simonwillison.net/2026/Apr/30/gpt-55-cyber-capabilities/#atom-everything",
+    "published": "2026-04-30T23:03:24+00:00",
+    "score": 3,
+    "reason": "AI 安全能力评估，与 agentic SE 中的安全审计场景相关",
+    "summary_short": "UK AI Security Institute 评估 GPT-5.5 的漏洞发现能力，与 Claude Mythos 相当但已公开可用。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Simon Willison",
+    "title": "LLM 0.32a0 is a major backwards-compatible refactor",
+    "url": "https://simonwillison.net/2026/Apr/29/llm/#atom-everything",
+    "published": "2026-04-29T19:01:47+00:00",
+    "score": 3,
+    "reason": "LLM CLI 工具重大重构，新增 tool call 和 streaming parts 支持，是 agentic 工具链基础设施",
+    "summary_short": "Simon Willison 的 LLM 库 0.32 alpha 重构：支持 messages 序列、typed streaming parts、tool call 和响应序列化。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "GitHub Blog",
+    "title": "GitHub Copilot CLI for Beginners: Interactive v. non-interactive mode",
+    "url": "https://github.blog/ai-and-ml/github-copilot/github-copilot-cli-for-beginners-interactive-v-non-interactive-mode/",
+    "published": "Thu, 30 Apr 2026 16:09:02 +0000",
+    "score": 3,
+    "reason": "Copilot CLI 的交互/非交互模式教程，coding agent CLI 体验设计参考",
+    "summary_short": "GitHub 发布 Copilot CLI 入门教程，介绍交互式和非交互式两种模式的使用场景。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Hugging Face Blog",
+    "title": "AI evals are becoming the new compute bottleneck",
+    "url": "https://huggingface.co/blog/evaleval/eval-costs-bottleneck",
+    "published": "Wed, 29 Apr 2026 16:45:09 GMT",
+    "score": 3,
+    "reason": "AI eval 成本问题对 code agent benchmark（如 SWE-bench）有直接影响",
+    "summary_short": "Hugging Face 指出 AI 评估正在成为新的算力瓶颈，eval 成本增长速度超过训练成本。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Hugging Face Blog",
+    "title": "Granite 4.1 LLMs: How They're Built",
+    "url": "https://huggingface.co/blog/ibm-granite/granite-4-1",
+    "published": "Wed, 29 Apr 2026 15:01:48 GMT",
+    "score": 3,
+    "reason": "IBM 开源 8B 模型达到 32B MoE 水平，开源 code 模型竞争力提升",
+    "summary_short": "IBM Granite 4.1 开源模型系列发布，8B 参数模型性能匹配 32B MoE，对本地 coding agent 部署有意义。",
+    "summary_long": "",
+    "related_urls": []
+  },
+  {
+    "source": "Hacker News Best",
+    "title": "Mozilla's opposition to Chrome's Prompt API",
+    "url": "https://github.com/mozilla/standards-positions/issues/1213#issuecomment-4347988313",
+    "published": "Thu, 30 Apr 2026 07:43:55 +0000",
+    "score": 3,
+    "reason": "浏览器内置 AI API 标准之争，影响 web-based coding agent 的未来形态",
+    "summary_short": "Mozilla 正式反对 Chrome 的 Prompt API 提案，浏览器内置 AI 能力的标准化路径出现分歧。",
+    "summary_long": "",
+    "related_urls": []
+  }
+]
