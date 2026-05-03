@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Daily Brief  &mdash; DeepDive Boris</title>
+<title>Daily Brief 2026-05-02 &mdash; DeepDive Boris</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -220,10 +220,10 @@ details.related li a:hover { border-bottom-color: var(--link); }
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs/</span><span class="cursor"></span></div>
+    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs/2026-05-02</span><span class="cursor"></span></div>
     <div class="top-meta">
-      <span><span class="ok">&#9679;</span>  sources</span>
-      <span>scanned  items</span>
+      <span><span class="ok">&#9679;</span> 2 sources</span>
+      <span>scanned 4 items</span>
     </div>
   </div>
 </div>
@@ -233,7 +233,7 @@ details.related li a:hover { border-bottom-color: var(--link); }
   <aside class="sidebar">
     <div class="sidebar-title">DAILY BRIEFS</div>
     <ul class="sidebar-list">
-      <li><a class="sb-item" href="2026-05-02.html">2026-05-02</a></li>
+      <li><a class="sb-item active" href="#">2026-05-02</a></li>
       <li><a class="sb-item" href="2026-05-01.html">2026-05-01</a></li>
       <li><a class="sb-item" href="2026-04-26.html">2026-04-26</a></li>
     </ul>
@@ -245,20 +245,63 @@ details.related li a:hover { border-bottom-color: var(--link); }
   <main class="content">
 
     <header class="article-head">
-      <div class="ah-eyebrow">brief/.md &middot; agentic-software-engineering</div>
-      <h1>Daily Brief &mdash; </h1>
+      <div class="ah-eyebrow">brief/2026-05-02.md &middot; agentic-software-engineering</div>
+      <h1>Daily Brief &mdash; 2026-05-02</h1>
       <div class="ah-summary">
         
-        <div class="ah-stats">sources=<span></span> &middot; scanned=<span></span> &middot; selected=<span></span></div>
+        <div class="ah-stats">sources=<span>2</span> &middot; scanned=<span>4</span> &middot; selected=<span>4</span></div>
       </div>
     </header>
+
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [01]</span>结构化输出 Benchmark：衡量 agent 演化结果的确定性</h2>
+      <p class="section-body">对 self-evolve agent 来说，每一轮自我改进的输出必须是可解析、可执行的（比如生成新的 prompt、代码片段、配置）。如果输出格式不稳定，下游的自动化流程就会断裂。这个新 benchmark 专门测试 LLM 产出确定性结构化输出的能力，可以直接用来评估你的 agent 在&quot;自我修改&quot;环节的输出可靠性。 建议用法：在 agent 每次生成改进方案后，用该 benchmark 的评估方法检查输出是否严格符合预期 schema，作为演化质量的门控指标。</p>
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://interfaze.ai/blog/introducing-structured-output-benchmark">interfaze.ai/blog/introducing-structured-output...</a>
+      </div>
+
+      <div class="dashed-div"></div>
+
+    </section>
+
+    <div class="section-hr"><span class="section-hr-tag"><span class="marker">&sect;</span>02</span></div>
+
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [02]</span>Xmemory：结构化记忆 vs RAG，agent 的&quot;长期记忆&quot;该怎么选</h2>
+      <p class="section-body">Self-evolve agent 的核心能力之一是从历史迭代中学习。这篇论文对比了结构化 AI 记忆、纯 RAG 和混合 RAG 三种方案的表现。如果你的 agent 目前用的是简单的上下文拼接或向量检索，这个 benchmark 能帮你量化评估是否需要切换到结构化记忆方案。 建议 metrics：记忆命中率（历史经验被正确召回的比例）、遗忘率（关键信息在多轮后丢失的比例）。</p>
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2604.27906">arxiv.org/abs/2604.27906</a>
+      </div>
+
+      <div class="dashed-div"></div>
+
+    </section>
+
+    <div class="section-hr"><span class="section-hr-tag"><span class="marker">&sect;</span>03</span></div>
+
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [03]</span>创造力 Benchmark：agent 的&quot;进化&quot;不只是拟合，还要有新意</h2>
+      <p class="section-body">Self-evolve 的终极目标不是收敛到局部最优，而是能探索出人类未预见的改进路径。这个 Human Creativity Benchmark 提供了一套评估生成式 AI 创造力的框架，可以借鉴其中的评估维度（新颖性、实用性、意外性）来衡量 agent 每轮演化方案的质量。 建议用法：对 agent 产出的改进方案做&quot;创意评分&quot;，避免陷入重复微调的死循环。 ---</p>
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://contralabs.com/research/human-creativity-benchmark">contralabs.com/research/human-creativity-benchmark</a>
+      </div>
+
+      <div class="dashed-div"></div>
+
+    </section>
 
 
     <h2 class="secondary-h">值得一看的事</h2>
     <p class="secondary-lede">没进章节但值得一瞥的条目，按重要性排。</p>
     <ul class="secondary">
+      <li>Claude Code 的 caveman 插件 vs 简单 prompt &quot;be brief&quot; 的效率对比测试——对 agent 的 prompt 演化策略有启发：有时候最简单的指令反而效果最好，复杂的 prompt 工程未必带来线性收益 &mdash; <a target="_blank" rel="noopener" href="https://www.maxtaylor.me/articles/i-benchmarked-caveman-against-two-words">I benchmarked Claude Code&#x27;s caveman plugin against &quot;be brief.&quot;</a></li>
     </ul>
 
+
+    <div class="observation">
+      <div class="observation-h">// 今日观察小结</div>
+      <div class="observation-body">今天采集到的信号虽然不多，但恰好覆盖了 self-evolve agent 的三个关键面：输出稳定性、记忆机制、创造力评估。建议优先引入结构化输出 benchmark 作为最基础的质量门控，再逐步把记忆评估和创意评分纳入演化循环。另外，caveman 测试提醒我们一个容易忽略的点：agent 的自我优化不应只做加法，&quot;做减法&quot;本身也是一种有效的演化方向。</div>
+    </div>
 
     <div class="footer">
       <span>// DeepDive Boris &middot; agentic-se daily brief</span>
