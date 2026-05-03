@@ -248,16 +248,56 @@ details.related li a:hover { border-bottom-color: var(--link); }
       <div class="ah-eyebrow">brief/.md &middot; agentic-software-engineering</div>
       <h1>Daily Brief &mdash; </h1>
       <div class="ah-summary">
-        
+        基于 2026-05-02 安全洞察，从 7 项核心发现中向上抽象出三个锚定在 coding agent harness 与安全范式层面的研究课题。
         <div class="ah-stats">sources=<span></span> &middot; scanned=<span></span> &middot; selected=<span></span></div>
       </div>
     </header>
 
-
-    <h2 class="secondary-h">值得一看的事</h2>
-    <p class="secondary-lede">没进章节但值得一瞥的条目，按重要性排。</p>
-    <ul class="secondary">
-    </ul>
+<blockquote style="border-left:3px solid var(--accent);padding:10px 18px;margin:12px 0;color:var(--fg-soft);font-size:14px;background:var(--accent-soft);border-radius:0 6px 6px 0;">
+<p style="margin:4px 0;">基于 2026-05-02 安全洞察，从 7 项核心发现中向上抽象出三个锚定在 coding agent harness 与安全范式层面的研究课题。</p>
+</blockquote>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">课题一：确定性策略引擎作为 Coding Agent 的外置安全仲裁层</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">Deterministic Policy Engines as External Safety Arbiters for Coding Agents</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>核心问题</strong></p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">如何用可审计、可测试的确定性策略引擎替代 LLM 自身的概率性安全判断，从根本上解决&quot;用非确定性系统判断自身行为是否安全&quot;的矛盾？</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>为什么值得做</strong></p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">当前安全模型的根本矛盾在于 LLM 既是执行者又是安全裁判——同一操作可能产生不同安全判定，规则不可审计，规模化后风险指数增长。Cedar 式&quot;策略即代码&quot;路径揭示了可行替代方案：将安全决策从 agent 内部剥离为独立的确定性引擎。Claude Code 回归问题（良性内容触发误拒绝）正是这一矛盾的直接后果——当安全判断内嵌于 LLM 时，误判与漏判同时存在且不可预测。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>可能的切入点</strong></p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>设计面向 coding agent 操作的策略语言（Policy DSL），覆盖文件操作、命令执行、secret 访问、数据库 DDL 等高危动作类别，参考 Cedar 的 permit/forbid 模型</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建&quot;策略引擎 vs LLM 内置判断&quot;的对比实验框架：在相同危险操作集上测量确定性引擎与 LLM 自判断的一致性、误判率和漏判率</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>研究策略规则的自动生成与演化：从项目的 .gitignore、CI 配置、权限文件中自动推导初始安全策略，降低开发者配置负担</li>
+</ul>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">课题二：Agent Harness 的架构隔离原则与沙箱外控制面设计</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">Architectural Isolation of Agent Harnesses: Out-of-Sandbox Control Plane Design</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>核心问题</strong></p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">如何设计一个 agent 无法篡改、独立于 agent 执行环境的约束层（harness），使其既能有效拦截危险行为，又不退化为&quot;人被困在回路里&quot;的审批瓶颈？</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>为什么值得做</strong></p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">Agent harness 必须置于沙箱之外，否则 agent 有能力修改自身约束规则——这是架构级的安全边界问题，非功能修补能解决。与此同时，当前&quot;人在回路&quot;模式的代价已经显现：开发者因无法信任 agent 而必须审查每一步操作，导致倦怠和效率丧失。Harness 设计必须同时解决安全隔离与信任自动化两个问题，否则 coding agent 在实际工程中无法规模化采用。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>可能的切入点</strong></p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>定义 agent harness 的最小架构要求：进程隔离、权限不可逆授予、操作日志不可篡改、约束规则变更需 harness 外部授权</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>设计分级自治模型（tiered autonomy）：根据操作风险等级（读文件→写文件→执行命令→修改基础设施）自动决定放行或人工确认，将&quot;人在回路&quot;从全量审查降级为异常审查</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建 harness 逃逸的威胁模型与红队测试集：系统性测试 agent 能否通过 prompt injection、工具链漏洞、文件系统操作等方式绕过或修改自身约束</li>
+</ul>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">课题三：Coding Agent 的非对抗性故障模式分类与防护体系</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">Taxonomy and Defense Framework for Non-Adversarial Failure Modes of Coding Agents</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>核心问题</strong></p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">如何系统性地识别、分类和防护 coding agent 在无攻击者介入情况下的自发故障——误删、覆盖、泄露、违反隐含假设——并建立可度量的安全基线？</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>为什么值得做</strong></p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">Coding agent 最大的安全威胁不是外部攻击，而是自身的非对抗性错误：误删文件、覆盖代码、泄露 secrets、引入漏洞、执行危险命令，这些都是日常使用中的真实故障模式。更隐蔽的一类故障是 agent 违反数据库设计的隐含假设（重复写、忽略锁、盲目执行 DDL），不触发显式报错却造成数据损坏。当前安全研究过度聚焦于对抗性攻击，对&quot;agent 自己就会出错&quot;的故障模式缺乏系统性分类框架和防护机制。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>可能的切入点</strong></p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>建立非对抗性故障分类学（taxonomy）：按操作类型（文件系统/数据库/命令行/API 调用）、故障机制（幻觉、上下文丢失、隐含假设违反、重复执行）、影响范围（可逆/不可逆、局部/全局）三维度构建分类矩阵</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建 benchmark 数据集：收集真实世界 coding agent 故障案例（数据库隐含假设违反、安全机制误拒绝等），形成可复现测试场景，评估不同防护策略有效性</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>设计&quot;隐含假设显式化&quot;机制：在 agent 执行数据库操作、文件批量操作等高风险动作前，自动提取目标系统约束条件（schema 约束、锁机制、文件权限），注入 agent 决策上下文或策略引擎规则集</li>
+</ul>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">三个课题的内在关联</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">课题三定义了&quot;什么会出错&quot;（故障分类），课题一回答&quot;用什么机制来判断和拦截&quot;（确定性策略引擎），课题二解决&quot;这个机制放在哪里才不会被绕过&quot;（架构隔离）。三者共同构成 coding agent 安全范式从&quot;LLM 自我约束&quot;向&quot;外置确定性治理&quot;演进的完整研究路线。</p>
 
 
     <div class="footer">

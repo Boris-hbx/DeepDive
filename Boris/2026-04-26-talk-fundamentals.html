@@ -248,16 +248,91 @@ details.related li a:hover { border-bottom-color: var(--link); }
       <div class="ah-eyebrow">brief/.md &middot; agentic-software-engineering</div>
       <h1>Daily Brief &mdash; </h1>
       <div class="ah-summary">
-        
+        Matt Pocock @ AI Engineer 大会 · 2026-04-23 · 18 min keynote
         <div class="ah-stats">sources=<span></span> &middot; scanned=<span></span> &middot; selected=<span></span></div>
       </div>
     </header>
 
-
-    <h2 class="secondary-h">值得一看的事</h2>
-    <p class="secondary-lede">没进章节但值得一瞥的条目，按重要性排。</p>
-    <ul class="secondary">
-    </ul>
+<blockquote style="border-left:3px solid var(--accent);padding:10px 18px;margin:12px 0;color:var(--fg-soft);font-size:14px;background:var(--accent-soft);border-radius:0 6px 6px 0;">
+<p style="margin:4px 0;">Matt Pocock @ AI Engineer 大会 · 2026-04-23 · 18 min keynote</p>
+<p style="margin:4px 0;">观看：<a target="_blank" rel="noopener" href="https://youtu.be/v4F1gFy-hqg" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">YouTube</a>（188K views · 8.9K likes）</p>
+</blockquote>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">TL;DR</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">针对火热的 <strong>specs-to-code</strong> 流派给出反命题：<strong>bad code is the most expensive it&#x27;s ever been</strong>。论证基础是软件熵——好 codebase 里 AI 表现极好，坏 codebase 里 AI 反而加速崩坏。给出 5 个常见失败模式 + 对应的 skill 化解，每个 skill 都引用 20+ 年的工程经典作为理论根（Ousterhout / Brooks / Pragmatic Programmer / DDD / Kent Beck）。</p>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">演讲背景</h2>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><strong>AI Engineer 大会</strong>：AI 工程师圈最有影响力的现场会议</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><strong>Matt Pocock</strong>：TypeScript 教育者出身（Total TypeScript），近 18 个月转向 AI coding 工程实战；新开课程叫 <em>Claude Code for Real Engineers</em></li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>同期还做了 96 分钟实操 workshop（详见姊妹报告 <code style="background:var(--bg-deeper);padding:2px 6px;border-radius:3px;font-size:0.9em;">2026-04-26-talk-walkthrough.md</code>）</li>
+</ul>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">核心反命题</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">驱动 specs-to-code movement 的口号 <strong>&quot;code is cheap&quot;</strong> 是错的。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">Matt 亲测的反例：反复改 spec、不看 code、反复让 LLM 重 compile——结果<strong>越改越烂</strong>。他用《Pragmatic Programmer》的&quot;软件熵&quot;概念解释：每次只看局部、不顾整体设计的 change，codebase 必然向无序漂移；AI 把这个过程加速到分钟级。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">主张：</p>
+<pre style="background:var(--bg-deeper);border:1px solid var(--border-soft);border-radius:6px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;margin:12px 0;"><code>
+good codebase is easy to change
+  → AI 在好 codebase 里能展现真本事
+  → 软件工程基础不是更不重要，是更重要
+</code></pre>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">5 个失败模式 → 5 个 skill</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">GitHub repo <code style="background:var(--bg-deeper);padding:2px 6px;border-radius:3px;font-size:0.9em;">mattpocockuk/skills</code>，13K+ stars。</p>
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">1. AI 没做我想要的</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>理论根</strong>：Brooks《Design of Design》的 <em>design concept</em>——多人共同设计时存在不可写到 markdown 的&quot;共享心智模型&quot;。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>Skill <code style="background:var(--bg-deeper);padding:2px 6px;border-radius:3px;font-size:0.9em;">grill-me</code></strong>：让 AI 反复盘问 40-100 个问题，walk down the design tree，直到达成 shared understanding 才产 PRD。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>Matt 直接评论 Claude Code plan mode</strong>：&quot;plan mode 太急于产出 asset，我更喜欢先建 shared design concept 再说。&quot;</p>
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">2. AI 啰嗦 / 跨频道</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>理论根</strong>：DDD 的 <em>ubiquitous language</em>——开发者、领域专家、代码三方共享的术语集。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>Skill <code style="background:var(--bg-deeper);padding:2px 6px;border-radius:3px;font-size:0.9em;">ubiquitous-language</code></strong>：自动扫 codebase 提炼术语 → 生成 markdown 术语表 → AI thinking trace 立刻收敛，implementation 也更对齐 plan。</p>
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">3. AI outrun headlights（写得比测得快）</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>理论根</strong>：Pragmatic Programmer 的 <em>&quot;rate of feedback is your speed limit&quot;</em>。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>对策</strong>：强制 TDD。LLM 默认会写一大块再回头补测试，TDD 倒逼小步走、每步验证。</p>
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">4. 测试本身难写 / codebase 不可测</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>理论根</strong>：Ousterhout《Philosophy of Software Design》的 <em>deep modules</em>——少而大、简单接口包大复杂度。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>Skill <code style="background:var(--bg-deeper);padding:2px 6px;border-radius:3px;font-size:0.9em;">improve-codebase-architecture</code></strong>：把 shallow modules（AI 默认产物）重构成 deep modules。Matt 直言：&quot;<strong>AI 自己生成的 codebase 形态正好是 AI 自己最难导航的形态</strong>。&quot;</p>
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">5. 你大脑跟不上 AI 速度</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>理论根</strong>：Kent Beck <em>&quot;invest in the design of the system every day&quot;</em>。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>对策</strong>：&quot;design the interface, delegate the implementation&quot;——把 deep module 当 gray box，你只设计接口，实现交给 AI。节约 cognitive load 是工程化大规模 agent 协作的可持续前提。</p>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">金句</h2>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><em>&quot;specs-to-code is divesting from design, not investing.&quot;</em></li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><em>&quot;AI is a great on-the-ground sergeant; you need someone strategic above—and that&#x27;s you.&quot;</em></li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><em>&quot;good code bases are easy to change. So if you can&#x27;t change a codebase without causing bugs, then it&#x27;s a bad codebase.&quot;</em></li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><em>&quot;Bad code is the most expensive it&#x27;s ever been.&quot;</em></li>
+</ul>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">与本周 daily brief 的关系</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">形成与 vendor 主线（GPT-5.5 / Anthropic stumble / Copilot 收紧，详见 <code style="background:var(--bg-deeper);padding:2px 6px;border-radius:3px;font-size:0.9em;">2026-04-26.md</code>）的<strong>对位</strong>：</p>
+<div style="overflow-x:auto;margin:16px 0;"><table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+<thead><tr>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">维度</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">vendor 那边</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">Matt 这边</th>
+</tr></thead><tbody>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">主战线</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">模型即产品、平台 lock-in 升级</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">工具变强不改变工程本质</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">算力账单</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">&quot;agentic 太贵 → 收紧 tier&quot;</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">bad codebase 让 agent 烧 token 失控；好 codebase 是省 token 的根本</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">抽象方向</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">平台往上吃</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">老书+老抽象（DDD/TDD/Ousterhout）回归</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">立场口号</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">&quot;spec → 自动化 → 用户&quot;</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">&quot;shared mental model → small steps → testable boundaries&quot;</td>
+</tr>
+</tbody></table></div>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">蓝军视角分析</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>原文观点</strong>：bad code is the most expensive it&#x27;s ever been；软件基础在 AI 时代更重要。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>蓝军视角分析</strong>：这个论点对资深工程师极具安慰性，但有几个值得反问的维度。其一是 <strong>selection bias</strong>——Matt 引用的&quot;老书&quot;（Ousterhout / Brooks / Pragmatic Programmer）都是经过时间筛选活下来的 winners，同期失败的方法论根本不会出现在他的书架上。其二是 <strong>sample size</strong>——specs-to-code 越改越烂是 Matt 一人的体验、他课程学生的反馈也是 self-selected。其三是 <strong>forward-looking 适用性</strong>：如果未来模型更擅长保持设计一致性（Opus 5+/GPT-7+），&quot;老基础回归&quot;的论点会被时间稀释——他实际论证的是&quot;今天 AI 的边界&quot;，不是&quot;AI 时代的永恒真理&quot;。最后是<strong>目标错位</strong>：真正写出 spaghetti 的开发者大概率不会因为这场 keynote 去 Amazon 买 Philosophy of Software Design——这场演讲是给已经看过的人的安慰，不是给真正需要它的人的指南。</p>
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">观看链接</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><a target="_blank" rel="noopener" href="https://youtu.be/v4F1gFy-hqg" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Software Fundamentals Matter More Than Ever — Matt Pocock · YouTube</a></p>
 
 
     <div class="footer">
