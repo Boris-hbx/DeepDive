@@ -80,4 +80,5 @@ Output ONLY the markdown, no extra explanation."""
         system=SYSTEM_PROMPT,
     )
 
-    return message.content[0].text
+    text_blocks = [b for b in message.content if b.type == "text"]
+    return text_blocks[0].text if text_blocks else ""
