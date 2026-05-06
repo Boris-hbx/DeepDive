@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek V3 vs V3.2 代码对比分析报告</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.8; color: #1a1a1a; }
+        h1 { border-bottom: 3px solid #2563eb; padding-bottom: 12px; }
+        h2 { color: #2563eb; margin-top: 40px; }
+        h3 { color: #374151; }
+        .meta { color: #6b7280; font-size: 0.9em; margin-bottom: 30px; }
+        .highlight { background: #fef3c7; padding: 2px 6px; border-radius: 3px; }
+        .new { background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
+        .removed { background: #fee2e2; padding: 2px 6px; border-radius: 3px; text-decoration: line-through; }
+        table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+        th, td { border: 1px solid #e5e7eb; padding: 10px 14px; text-align: left; }
+        th { background: #f3f4f6; }
+        code { background: #f3f4f6; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85em; }
+        .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 16px 0; }
+        .impact { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+        .impact-high { background: #fee2e2; color: #991b1b; }
+        .impact-medium { background: #fef3c7; color: #92400e; }
+        .impact-low { background: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+
+<h1>DeepSeek-V3 vs DeepSeek-V3.2 代码对比分析报告</h1>
+
+<div class="meta">
+    <p>分析日期：2026-05-06 | 仓库：<a href="https://github.com/deepseek-ai/DeepSeek-V3">deepseek-ai/DeepSeek-V3</a> vs <a href="https://github.com/deepseek-ai/DeepSeek-V3.2-Exp">deepseek-ai/DeepSeek-V3.2-Exp</a></p>
+    <p>对比文件：<code>inference/model.py</code>（V3: 808行 → V3.2: 922行，+14%）、<code>inference/kernel.py</code>（V3: 8.4KB → V3.2: 10KB，+18%）</p>
+</div>
+
+<h2>一、核心发现摘要</h2>
+
+<div class="section-box">
+    <p><strong>V3.2 的最大变化是引入了 <span class="new">Indexer（稀疏注意力索引机制）</span></strong>——这是一个全新的模块，通过 top-k 选择机制让注意力只关注最相关的 token，而非全部历史 token。这是对长序列推理效率的根本性优化。</p>
+    <p>其他关键变化：全面 FP8 量化（含 KV cache）、残差连接重构、MoE 精度提升。</p>
+</div>
+
+<h2>二、架构变化</h2>
+
+<h3>2.1 新增模块：Indexer（稀疏注意力）</h3>
+<span class="impact impact-high">影响：高</span>
+
+<p>V3.2 新增了一个完整的 <code>Indexer</code> 类（约 70 行），这是 V3 中完全不存在的：</p>
+
+<table>
+    <tr><th>维度</th><th>V3</th><th>V3.2</th></tr>
+    <tr><td>注意力范围</td><td>全序列（O(n²)）</td><td>Top-2048 token（稀疏）</td></tr>
+    <tr><td>索引头数</td><td>无</td><td>64 heads, dim=128</td></tr>
+    <tr><td>索引方式</td><td>无</td><td>Hadamard 旋转 + FP8 量化 + top-k</td></tr>
+</table>
+
+<p><strong>工作原理：</strong></p>
+<ol>
+    <li>用独立的 Q/K 投影计算索引分数（复用 q_lora_rank）</li>
+    <li>对 Q 和 K 做 Hadamard 变换（<code>rotate_activation</code>），量化为 FP8</li>
+    <li>通过新的 <code>fp8_index</code> kernel 高效计算索引分数</li>
+    <li>选出 top-2048 个 token 的索引，生成稀疏 mask</li>
+    <li>注意力计算只在这 2048 个位置上进行</li>
+</ol>
+
+<p><strong>意义：</strong>将长序列推理的注意力复杂度从 O(n) 降为 O(2048)（固定常数），对超长上下文场景（如 128K+ token）的推理速度有质的提升。</p>
+
+<h3>2.2 残差连接重构</h3>
+<span class="impact impact-medium">影响：中</span>
+
+<table>
+    <tr><th>V3</th><th>V3.2</th></tr>
+    <tr><td><code>x = x + self.attn(self.attn_norm(x), ...)</code><br><code>x = x + self.ffn(self.ffn_norm(x))</code></td>
+    <td><code>x, residual = self.attn_norm(x, residual)</code><br><code>x = self.attn(x, ...)</code><br><code>x, residual = self.ffn_norm(x, residual)</code><br><code>x = self.ffn(x)</code></td></tr>
+</table>
+
+<p>V3.2 将残差加法融入 RMSNorm 内部，residual 作为独立张量在层间传递。好处：</p>
+<ul>
+    <li>避免 FP8 精度下残差累积误差</li>
+    <li>RMSNorm 内部在 float32 下做加法，精度更高</li>
+    <li>减少一次显式加法操作的显存读写</li>
+</ul>
+
+<h3>2.3 移除 naive attention 路径</h3>
+<span class="impact impact-low">影响：低</span>
+
+<p>V3 保留了 <code>attn_impl: "naive" | "absorb"</code> 两种实现。V3.2 移除了 naive 路径，只保留 absorb（MLA 吸收式注意力），说明 absorb 已经是唯一的生产路径。</p>
+
+<h3>2.4 配置对比</h3>
+
+<table>
+    <tr><th>参数</th><th>V3</th><th>V3.2</th><th>变化</th></tr>
+    <tr><td>总参数量</td><td>671B</td><td>671B</td><td>不变</td></tr>
+    <tr><td>激活参数</td><td>37B/token</td><td>37B/token</td><td>不变</td></tr>
+    <tr><td>层数</td><td>61</td><td>61</td><td>不变</td></tr>
+    <tr><td>专家数</td><td>256</td><td>256</td><td>不变</td></tr>
+    <tr><td>激活专家数</td><td>8</td><td>8</td><td>不变</td></tr>
+    <tr><td>数据类型</td><td>bf16/fp8 可选</td><td>fp8 only</td><td>强制 FP8</td></tr>
+    <tr><td>scale_fmt</td><td>无</td><td>ue8m0</td><td><span class="new">新增</span></td></tr>
+    <tr><td>index_n_heads</td><td>无</td><td>64</td><td><span class="new">新增</span></td></tr>
+    <tr><td>index_head_dim</td><td>无</td><td>128</td><td><span class="new">新增</span></td></tr>
+    <tr><td>index_topk</td><td>无</td><td>2048</td><td><span class="new">新增</span></td></tr>
+</table>
+
+<h2>三、推理效率变化</h2>
+
+<h3>3.1 FP8 全面化</h3>
+<span class="impact impact-high">影响：高</span>
+
+<table>
+    <tr><th>组件</th><th>V3</th><th>V3.2</th></tr>
+    <tr><td>权重存储</td><td>FP8（可选 bf16 dequant）</td><td>FP8 only</td></tr>
+    <tr><td>KV Cache</td><td>bf16/fp16</td><td><span class="new">FP8 量化</span></td></tr>
+    <tr><td>Indexer Cache</td><td>无</td><td><span class="new">FP8</span></td></tr>
+    <tr><td>GEMM 实现</td><td>bf16 或 fp8 可选</td><td>fp8 only（移除 bf16 路径）</td></tr>
+    <tr><td>激活量化</td><td>推理时量化</td><td>推理时量化 + scale_fmt=ue8m0</td></tr>
+</table>
+
+<p><strong>KV Cache FP8 量化</strong>是关键优化：</p>
+<pre>
+# V3.2 新增：KV cache 存储前先量化为 FP8，读取时反量化
+kv_fp8, kv_scale = act_quant(kv, block_size, self.scale_fmt)
+kv = (kv_fp8.view(-1, block_size).float() * kv_scale.view(-1, 1)).to(kv.dtype).view_as(kv)
+self.kv_cache[:bsz, start_pos:end_pos] = kv
+</pre>
+
+<p>效果：KV cache 显存占用减半（bf16 → fp8），直接提升可服务的最大序列长度和批量大小。</p>
+
+<h3>3.2 稀疏注意力的效率收益</h3>
+
+<p>Indexer 的 top-2048 机制意味着：</p>
+<ul>
+    <li><strong>Prefill 阶段</strong>：注意力从 O(n²) 降为 O(n × 2048)，对 128K 序列约 <strong>62x</strong> 加速</li>
+    <li><strong>Decode 阶段</strong>：每步只需关注 2048 个历史 token，而非全部</li>
+    <li><strong>代价</strong>：额外的 Indexer 前向计算（64 heads × 128 dim），但远小于全注意力开销</li>
+</ul>
+
+<h3>3.3 计算精度优化</h3>
+
+<p>V3.2 在多处将中间计算提升到 float32：</p>
+<ul>
+    <li>MLP 激活：<code>F.silu(self.w1(x).float()) * self.w3(x).float()</code>（V3 在 bf16 下计算）</li>
+    <li>MoE 路由分数：<code>linear(x.float(), self.weight.float())</code></li>
+    <li>MoE 累加：<code>y = torch.zeros_like(x, dtype=torch.float32)</code></li>
+    <li>LM head：<code>self.head(h[:, -1].float())</code></li>
+</ul>
+
+<p>这看似矛盾（FP8 存储 + FP32 计算），实际是精心设计：<strong>存储用低精度省显存，计算用高精度保质量</strong>。</p>
+
+<h3>3.4 权重反量化缓存</h3>
+
+<pre>
+# V3: 每次 decode 都重新反量化
+wkv_b = weight_dequant(self.wkv_b.weight, self.wkv_b.scale, block_size)
+
+# V3.2: 首次反量化后缓存，后续复用
+if self.dequant_wkv_b is None and self.wkv_b.scale is not None:
+    self.dequant_wkv_b = weight_dequant(self.wkv_b.weight, self.wkv_b.scale)
+wkv_b = self.wkv_b.weight if self.dequant_wkv_b is None else self.dequant_wkv_b
+</pre>
+
+<p>Decode 阶段每步都要用 wkv_b，缓存反量化结果避免重复计算。</p>
+
+<h2>四、代码实现变化</h2>
+
+<h3>4.1 新增 Kernel：fp8_index</h3>
+
+<p>V3 的 kernel.py 只有 <code>act_quant</code>、<code>weight_dequant</code>、<code>fp8_gemm</code>。V3.2 新增 <code>fp8_index</code>——专门为 Indexer 设计的 FP8 索引计算 kernel，用于高效计算稀疏注意力分数。</p>
+
+<h3>4.2 RoPE 支持 non-interleaved 模式</h3>
+
+<pre>
+# V3: 只有 interleaved
+def apply_rotary_emb(x, freqs_cis):
+
+# V3.2: 支持两种模式
+def apply_rotary_emb(x, freqs_cis, interleaved=True):
+</pre>
+
+<p>Indexer 使用 non-interleaved RoPE（<code>apply_rotary_emb(q_pe, freqs_cis, False)</code>），与主注意力的 interleaved 模式区分开。</p>
+
+<h3>4.3 新增 LayerNorm（带 bias）</h3>
+
+<p>V3 只有 RMSNorm。V3.2 新增标准 LayerNorm（带 weight + bias），专门用于 Indexer 的 K 归一化（<code>self.k_norm = LayerNorm(self.head_dim)</code>）。</p>
+
+<h3>4.4 MoE 共享专家的 reduce 行为变化</h3>
+
+<pre>
+# V3: shared_experts 独立计算，最后加到 routed 结果上
+z = self.shared_experts(x)
+return (y + z).view(shape)
+
+# V3.2: shared_experts 不做 all-reduce，直接累加到 float32 结果中
+self.shared_experts = MLP(args.dim, ..., reduce_output=False)
+y += self.shared_experts(x)
+return y.type_as(x).view(shape)
+</pre>
+
+<p>减少一次 all-reduce 通信，将共享专家的输出直接在本地累加。</p>
+
+<h2>五、总结对比表</h2>
+
+<table>
+    <tr><th>维度</th><th>DeepSeek-V3</th><th>DeepSeek-V3.2</th><th>影响</th></tr>
+    <tr><td>注意力机制</td><td>MLA（全序列）</td><td>MLA + Indexer（稀疏 top-2048）</td><td>长序列推理大幅加速</td></tr>
+    <tr><td>KV Cache 精度</td><td>bf16</td><td>FP8</td><td>显存减半</td></tr>
+    <tr><td>计算路径</td><td>bf16/fp8 可选</td><td>FP8 only + FP32 关键计算</td><td>更高效 + 更精确</td></tr>
+    <tr><td>残差连接</td><td>显式加法</td><td>融入 Norm 层</td><td>精度提升 + 减少显存读写</td></tr>
+    <tr><td>MoE 通信</td><td>shared expert 独立 reduce</td><td>shared expert 本地累加</td><td>减少通信开销</td></tr>
+    <tr><td>权重反量化</td><td>每步重新计算</td><td>首次计算后缓存</td><td>decode 加速</td></tr>
+    <tr><td>新增 kernel</td><td>—</td><td>fp8_index</td><td>支撑 Indexer 高效计算</td></tr>
+    <tr><td>代码行数</td><td>808 行</td><td>922 行</td><td>+14%（主要是 Indexer）</td></tr>
+</table>
+
+<h2>六、关键洞察</h2>
+
+<div class="section-box">
+<ol>
+    <li><strong>Indexer 是 V3.2 的核心创新</strong>——它本质上是一个"注意力路由器"，用轻量级计算决定哪些 token 值得关注，类似 MoE 对 FFN 做的事情（选择性激活），Indexer 对注意力做了同样的事。</li>
+    <li><strong>FP8 从"可选"变为"唯一"</strong>——V3 还保留 bf16 回退路径，V3.2 完全移除。说明 FP8 推理已经成熟到可以作为默认方案。</li>
+    <li><strong>"低精度存储 + 高精度计算"的设计哲学</strong>——存储（权重、KV cache）用 FP8 省显存，但关键计算路径（MLP 激活、路由分数、logits）提升到 FP32。这是工程上的精细权衡。</li>
+    <li><strong>模型规模不变，效率大幅提升</strong>——671B/37B 的参数配置完全不变，所有优化都在推理效率层面，说明 V3.2 是一次纯工程优化迭代。</li>
+</ol>
+</div>
+
+<p class="meta">报告生成时间：2026-05-06 | 数据来源：GitHub API 直接读取仓库代码</p>
+
+</body>
+</html>
