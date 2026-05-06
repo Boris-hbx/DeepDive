@@ -27,6 +27,12 @@ SOURCES = [
         "type": "rss",
         "url": "https://github.blog/feed/",
     },
+    {
+        "name": "GitHub Trending",
+        "type": "github_trending",
+        "url": "https://api.github.com/search/repositories",
+        "max_items": 20,
+    },
 ]
 
 TOPIC_KEYWORDS = [

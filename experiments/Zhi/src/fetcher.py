@@ -2,6 +2,7 @@
 
 import requests
 import feedparser
+from datetime import datetime, timedelta
 from .config import SOURCES, TOPIC_KEYWORDS
 
 
@@ -34,6 +35,41 @@ def fetch_rss(source):
     return articles
 
 
+def fetch_github_trending(source):
+    """Fetch trending repos from GitHub search API (created in last 7 days, sorted by stars)."""
+    since = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    queries = ["agent", "AI coding", "LLM tool", "copilot", "MCP"]
+    articles = []
+    seen_repos = set()
+
+    for q in queries:
+        params = {
+            "q": f"{q} created:>{since}",
+            "sort": "stars",
+            "order": "desc",
+            "per_page": source.get("max_items", 20) // len(queries),
+        }
+        try:
+            resp = requests.get(source["url"], params=params, timeout=15)
+            if resp.status_code == 200:
+                for repo in resp.json().get("items", []):
+                    name = repo["full_name"]
+                    if name in seen_repos:
+                        continue
+                    seen_repos.add(name)
+                    desc = repo.get("description") or ""
+                    title = f"{name}: {desc[:80]}" if desc else name
+                    articles.append({
+                        "title": title,
+                        "url": repo["html_url"],
+                        "source": source["name"],
+                    })
+        except requests.RequestException:
+            continue
+
+    return articles
+
+
 def is_relevant(article):
     """Check if an article title is relevant to our topic."""
     title_lower = article["title"].lower()
@@ -49,6 +85,8 @@ def fetch_all():
                 articles = fetch_hn_stories(source)
             elif source["type"] == "rss":
                 articles = fetch_rss(source)
+            elif source["type"] == "github_trending":
+                articles = fetch_github_trending(source)
             else:
                 continue
             all_articles.extend(articles)
