@@ -53,6 +53,35 @@ fetch（并行抓取 5 个源）
 2. **差**：模型 ID 踩坑——`claude-opus-4-20250514` 和 `claude-opus-4-6` 是不同的，API key 权限和模型 ID 的对应关系不直观
 3. **好**：抓取 + 关键词过滤的简单方案效果不错，79 篇中筛出 21 篇相关，最终 brief 质量可读
 
+## 踩坑记录
+
+### Write 工具大文件写入失败（2026-05-06）
+
+**现象：** 用 Write 工具写入 286 行 HTML 文件时，连续 3 次报错 `InputValidationError: required parameter file_path/content is missing`。
+
+**原因：** HTML 内容过长（含大量 `<`、`>`、引号等特殊字符），导致工具调用的参数序列化/解析失败，参数未能正确传递。
+
+**解决方案：** 改用 Bash 工具通过 heredoc 方式写入：
+```bash
+cat > /path/to/file.html << 'HTMLEOF'
+...内容...
+HTMLEOF
+```
+
+**规则：** 超过 100 行或含大量 HTML/特殊字符的文件，优先使用 Bash heredoc 写入，不要用 Write 工具。
+
+### Opus 4.6 ThinkingBlock 问题（2026-05-06）
+
+**现象：** 调用 Claude API 后 `message.content[0].text` 报错 `'ThinkingBlock' object has no attribute 'text'`。
+
+**原因：** Opus 4.6 默认启用 extended thinking，返回的第一个 content block 是 ThinkingBlock 而非 TextBlock。
+
+**解决方案：** 过滤出 text block：
+```python
+text_blocks = [b for b in message.content if b.type == "text"]
+response = text_blocks[0].text if text_blocks else ""
+```
+
 ## 如果再来一次
 
 - HN 抓取改成批量请求（当前逐条太慢）
