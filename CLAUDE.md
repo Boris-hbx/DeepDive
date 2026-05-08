@@ -69,3 +69,22 @@ DeepDive 是一个洞察探索（Insight Exploration）应用。前期 Web，后
 - 用中文与团队沟通；代码、commit message、标识符用英文
 - 长回复前先想：用户是不是只需要一个简短答案？
 - 完成任务后简要说"做了什么、下一步是什么"，不要复述 diff
+
+## 工具使用约束（踩坑经验）
+
+### 文件写入
+
+- **超过 150 行或含大量 HTML/特殊字符的文件**：使用 `Bash` + heredoc 写入（`cat > file << 'EOF'`），不要用 Write 工具
+- Write 工具适合中小文件（<150 行）和纯文本/代码文件
+- 如果 Write 工具失败一次，立即切换到 heredoc 方式，不要重试
+
+### Claude API 调用
+
+- Opus 4.6 默认启用 extended thinking，返回的第一个 content block 是 ThinkingBlock 而非 TextBlock
+- 必须过滤 content blocks：`text_blocks = [b for b in message.content if b.type == "text"]`
+- 不要直接访问 `message.content[0].text`
+
+### 通用
+
+- 同一方法失败两次，换方法，不要继续重试
+- 网络请求（git push、API 调用）失败一次可以重试，失败两次要排查原因
