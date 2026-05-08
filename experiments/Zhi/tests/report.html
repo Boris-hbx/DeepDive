@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek Test Report & Bug Analysis</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; color: #333; max-width: 1000px; margin: 0 auto; padding: 40px 20px; background: #f8f9fa; }
+        h1 { font-size: 1.8em; margin-bottom: 4px; color: #1a1a2e; }
+        h2 { font-size: 1.3em; margin: 32px 0 16px 0; color: #2c3e50; border-bottom: 2px solid #4361ee; padding-bottom: 6px; }
+        h3 { font-size: 1.05em; margin: 20px 0 10px 0; color: #34495e; }
+        .subtitle { color: #666; margin-bottom: 32px; font-size: 0.95em; }
+
+        /* Summary cards */
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 140px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; }
+        .stat-number { font-size: 2em; font-weight: 700; }
+        .stat-number.green { color: #27ae60; }
+        .stat-number.red { color: #e74c3c; }
+        .stat-number.orange { color: #f39c12; }
+        .stat-number.blue { color: #4361ee; }
+        .stat-label { font-size: 0.85em; color: #777; margin-top: 4px; }
+
+        /* Test results table */
+        .results-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin: 16px 0; }
+        .results-table th { background: #2c3e50; color: #fff; padding: 10px 14px; text-align: left; font-size: 0.85em; font-weight: 500; }
+        .results-table td { padding: 8px 14px; border-bottom: 1px solid #f0f0f0; font-size: 0.88em; }
+        .results-table tr:last-child td { border-bottom: none; }
+        .results-table tr:hover { background: #f8f9ff; }
+        .pass { color: #27ae60; font-weight: 600; }
+        .fail { color: #e74c3c; font-weight: 600; }
+        .file-group { background: #f1f3f5; font-weight: 600; color: #2c3e50; }
+        .file-group td { padding: 10px 14px; }
+
+        /* Bug section */
+        .bug-card { background: #fff; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden; }
+        .bug-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+        .bug-header.doc-bug { background: #fdecea; border-bottom: 1px solid #f5c6cb; }
+        .bug-header.test-bug { background: #fff8e1; border-bottom: 1px solid #ffe082; }
+        .bug-number { background: #e74c3c; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8em; flex-shrink: 0; }
+        .bug-number.test { background: #f39c12; }
+        .bug-title { font-size: 1em; font-weight: 600; color: #1a1a2e; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; font-weight: 600; margin-left: auto; }
+        .tag-report { background: #ffe0e0; color: #c0392b; }
+        .tag-test { background: #fff3cd; color: #856404; }
+        .bug-body { padding: 18px 20px; }
+        .section-label { font-weight: 600; color: #555; margin-top: 14px; margin-bottom: 4px; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.5px; }
+        .section-label:first-child { margin-top: 0; }
+        pre { background: #1e1e2e; color: #cdd6f4; padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 0.82em; line-height: 1.6; margin: 6px 0 12px 0; }
+        .diff-del { color: #f38ba8; }
+        .diff-add { color: #a6e3a1; }
+        .comment { color: #6c7086; }
+        .highlight { color: #f9e2af; }
+        .explanation { background: #f0f7ff; border-radius: 6px; padding: 12px 14px; margin: 6px 0 12px 0; font-size: 0.9em; border: 1px solid #d0e3f7; }
+        .verdict { margin-top: 12px; padding: 10px 14px; border-radius: 6px; font-size: 0.9em; }
+        .verdict-report { background: #fdecea; border: 1px solid #f5c6cb; color: #721c24; }
+        .verdict-test { background: #fff3cd; border: 1px solid #ffe082; color: #856404; }
+        .final-summary { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 18px 20px; margin-top: 24px; }
+        .final-summary h3 { color: #2e7d32; margin: 0 0 10px 0; }
+        code { background: #eef; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
+        hr { border: none; border-top: 1px solid #e0e0e0; margin: 32px 0; }
+    </style>
+</head>
+<body>
+
+<h1>DeepSeek Evolution Analysis — Test Report</h1>
+<p class="subtitle">测试执行报告 & Bug 排查分析 | 50 Test Cases | Python 3.9.6 + PyTorch + pytest</p>
+
+<!-- ==================== SECTION 1: Overview ==================== -->
+<h2>一、执行概览</h2>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-number blue">50</div>
+        <div class="stat-label">Total Tests</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number green">50</div>
+        <div class="stat-label">Passed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number red">0</div>
+        <div class="stat-label">Failed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number orange">3</div>
+        <div class="stat-label">Bugs Fixed</div>
+    </div>
+</div>
+
+<!-- ==================== SECTION 2: Test Results ==================== -->
+<h2>二、测试结果明细</h2>
+
+<table class="results-table">
+    <thead>
+        <tr><th style="width:50%">Test Case</th><th style="width:35%">验证内容</th><th style="width:15%">结果</th></tr>
+    </thead>
+    <tbody>
+        <!-- test_architecture_consistency.py -->
+        <tr class="file-group"><td colspan="3">test_architecture_consistency.py (19 tests)</td></tr>
+        <tr><td>TestV3LayerConfiguration::test_layer_count</td><td>V3 共 61 层</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV3LayerConfiguration::test_dense_layers_first</td><td>前 3 层为 Dense</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV3LayerConfiguration::test_hidden_dim</td><td>hidden_dim = 7168</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV32IndexerConsistency::test_indexer_heads_half_of_main</td><td>Indexer heads = 主模型一半</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV32IndexerConsistency::test_indexer_head_dim</td><td>Indexer head_dim 一致性</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV32IndexerConsistency::test_indexer_topk</td><td>Indexer top-k 选择</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV32IndexerConsistency::test_hadamard_preserves_norm</td><td>Hadamard 变换保范性</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_mla_cache_dim</td><td>MLA cache 维度 = 576</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_swa_cache_size</td><td>SWA cache 大小</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_csa_compression</td><td>CSA 压缩比</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_csa_cache_size</td><td>CSA cache 大小</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_hca_compression</td><td>HCA 压缩比</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_hca_cache_size</td><td>HCA cache 大小</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_total_v4_cache_per_layer</td><td>V4 每层总 cache</td><td class="pass">PASS</td></tr>
+        <tr><td>TestV4AttentionCacheCalculations::test_csa_topk_selection</td><td>CSA top-k 选择逻辑</td><td class="pass">PASS</td></tr>
+        <tr><td>TestVersionEvolution::test_mla_preserved_across_versions</td><td>MLA 跨版本保持</td><td class="pass">PASS</td></tr>
+        <tr><td>TestVersionEvolution::test_moe_preserved_across_versions</td><td>MoE 跨版本保持</td><td class="pass">PASS</td></tr>
+        <tr><td>TestVersionEvolution::test_v32_adds_indexer</td><td>V3.2 新增 Indexer</td><td class="pass">PASS</td></tr>
+        <tr><td>TestVersionEvolution::test_v4_adds_multi_level_attention</td><td>V4 新增多级注意力</td><td class="pass">PASS</td></tr>
+
+        <!-- test_fp8_quantization.py -->
+        <tr class="file-group"><td colspan="3">test_fp8_quantization.py (9 tests)</td></tr>
+        <tr><td>TestBlockWiseQuantization::test_block_size</td><td>block_size = 128</td><td class="pass">PASS</td></tr>
+        <tr><td>TestBlockWiseQuantization::test_e4m3_max_value</td><td>E4M3 max = 448</td><td class="pass">PASS</td></tr>
+        <tr><td>TestBlockWiseQuantization::test_scale_computation</td><td>scale = abs_max / 448</td><td class="pass">PASS</td></tr>
+        <tr><td>TestBlockWiseQuantization::test_weight_scale_dimensions</td><td>weight scale 2D 形状</td><td class="pass">PASS</td></tr>
+        <tr><td>TestUE8M0Format::test_ue8m0_is_power_of_two</td><td>UE8M0 为 2 的幂</td><td class="pass">PASS</td></tr>
+        <tr><td>TestUE8M0Format::test_ue8m0_compression_ratio</td><td>UE8M0 压缩比</td><td class="pass">PASS</td></tr>
+        <tr><td>TestUE8M0Format::test_ue8m0_dequant_is_bitshift</td><td>UE8M0 反量化 = 位移</td><td class="pass">PASS</td></tr>
+        <tr><td>TestFP8PrecisionAllocation::test_residual_precision_hierarchy</td><td>残差精度层级</td><td class="pass">PASS</td></tr>
+        <tr><td>TestFP8PrecisionAllocation::test_gemm_uses_fp8_activation_format</td><td>GEMM 使用 FP8 激活</td><td class="pass">PASS</td></tr>
+
+        <!-- test_mla_math.py -->
+        <tr class="file-group"><td colspan="3">test_mla_math.py (13 tests)</td></tr>
+        <tr><td>TestKVCacheCalculations::test_mha_kv_cache_per_token</td><td>MHA KV cache 大小</td><td class="pass">PASS</td></tr>
+        <tr><td>TestKVCacheCalculations::test_mla_kv_cache_per_token</td><td>MLA KV cache = 35,136</td><td class="pass">PASS</td></tr>
+        <tr><td>TestKVCacheCalculations::test_compression_ratio</td><td>压缩比 ~57x</td><td class="pass">PASS</td></tr>
+        <tr><td>TestKVCacheCalculations::test_mha_total_dim_per_token_per_layer</td><td>MHA 每层 32,768 维</td><td class="pass">PASS</td></tr>
+        <tr><td>TestKVCacheCalculations::test_mla_total_dim_per_token_per_layer</td><td>MLA 每层 576 维</td><td class="pass">PASS</td></tr>
+        <tr><td>TestDimensionChains::test_query_path_compression</td><td>Q 压缩: 7168 → 1536</td><td class="pass">PASS</td></tr>
+        <tr><td>TestDimensionChains::test_query_path_expansion</td><td>Q 展开: 1536 → 128×192</td><td class="pass">PASS</td></tr>
+        <tr><td>TestDimensionChains::test_kv_path_compression</td><td>KV 压缩: 7168 → 576</td><td class="pass">PASS</td></tr>
+        <tr><td>TestDimensionChains::test_kv_split_dimensions</td><td>KV split: [512, 64]</td><td class="pass">PASS</td></tr>
+        <tr><td>TestDimensionChains::test_wkv_b_expansion</td><td>wkv_b 展开: 512 → 32768</td><td class="pass">PASS</td></tr>
+        <tr><td>TestAbsorbOptimization::test_absorb_avoids_kv_expansion</td><td>Absorb 在压缩空间计算</td><td class="pass">PASS</td></tr>
+        <tr><td>TestAbsorbOptimization::test_attention_in_compressed_space</td><td>注意力在 512 维计算</td><td class="pass">PASS</td></tr>
+        <tr><td>TestAbsorbOptimization::test_rope_separate_computation</td><td>RoPE 独立计算后相加</td><td class="pass">PASS</td></tr>
+
+        <!-- test_moe_routing.py -->
+        <tr class="file-group"><td colspan="3">test_moe_routing.py (9 tests)</td></tr>
+        <tr><td>TestMoEConfiguration::test_expert_grouping</td><td>256 专家 / 8 组 = 32</td><td class="pass">PASS</td></tr>
+        <tr><td>TestMoEConfiguration::test_routing_selection_counts</td><td>top-8 选择逻辑</td><td class="pass">PASS</td></tr>
+        <tr><td>TestBiasDecoupling::test_bias_affects_selection_not_weights</td><td>bias 影响选择不影响权重</td><td class="pass">PASS</td></tr>
+        <tr><td>TestBiasDecoupling::test_weights_use_original_scores</td><td>权重使用原始分数</td><td class="pass">PASS</td></tr>
+        <tr><td>TestSigmoidScoring::test_sigmoid_not_softmax</td><td>sigmoid 非归一化打分</td><td class="pass">PASS</td></tr>
+        <tr><td>TestSigmoidScoring::test_route_scale_application</td><td>route_scale = 2.5</td><td class="pass">PASS</td></tr>
+        <tr><td>TestGroupRouting::test_group_score_computation</td><td>组分数 = top-2 均值</td><td class="pass">PASS</td></tr>
+        <tr><td>TestGroupRouting::test_selected_experts_from_limited_groups</td><td>从 4 组中选专家</td><td class="pass">PASS</td></tr>
+        <tr><td>TestGroupRouting::test_mask_eliminates_unselected_groups</td><td>mask 屏蔽未选组</td><td class="pass">PASS</td></tr>
+    </tbody>
+</table>
+
+<!-- ==================== SECTION 3: Bug Analysis ==================== -->
+<h2>三、Bug 排查与修复</h2>
+
+<p style="margin-bottom: 16px; color: #555;">
+    测试首次运行时发现 3 个失败。经排查，<strong>2 个为 Test Case 编写错误</strong>，<strong>1 个为 Analysis 报告数据错误</strong>。以下为详细分析。
+</p>
+
+<div class="stats-row">
+    <div class="stat-card" style="border-left: 3px solid #f39c12;">
+        <div class="stat-number orange">2</div>
+        <div class="stat-label">Test Case Bug</div>
+    </div>
+    <div class="stat-card" style="border-left: 3px solid #e74c3c;">
+        <div class="stat-number red">1</div>
+        <div class="stat-label">Analysis 报告 Bug</div>
+    </div>
+</div>
+
+<!-- Bug #1 -->
+<div class="bug-card">
+    <div class="bug-header test-bug">
+        <div class="bug-number test">1</div>
+        <div class="bug-title">E4M3 最大值推导公式错误</div>
+        <span class="tag tag-test">Test Case Bug</span>
+    </div>
+    <div class="bug-body">
+        <p class="section-label">错误现象</p>
+        <pre><span class="comment"># test_fp8_quantization.py::TestBlockWiseQuantization::test_e4m3_max_value</span>
+<span class="diff-del">e4m3_max = 1.875 * (2 ** 8)  # = 480</span>
+<span class="diff-del">assert e4m3_max == 448.0      # FAILED: 480.0 != 448.0</span></pre>
+
+        <p class="section-label">根因分析</p>
+        <div class="explanation">
+            <strong>Analysis 报告声明：</strong>"E4M3 最大值约 448" — 结论正确，但未给出推导过程。<br><br>
+            <strong>Test Case 错误原因：</strong>测试自行推导时，错误假设最大尾数为 1.875（二进制 1.111）。<br>
+            实际上 E4M3fn 格式中，位模式 <code>S_1111_111</code>（指数全1 + 尾数全1）被保留为 NaN，
+            因此最大指数下的最大尾数只能是 <code>1.110₂</code> = 1.75。<br><br>
+            <strong>正确推导：</strong><br>
+            &bull; E4M3fn: 1 sign + 4 exponent + 3 mantissa, bias = 7<br>
+            &bull; 最大存储指数 = 15 → 无偏指数 = 8<br>
+            &bull; 最大指数下最大尾数 = 1.110₂ = 1.75（∵ 尾数=111 + 指数=1111 → NaN）<br>
+            &bull; Max = 1.75 × 2⁸ = <strong>448</strong><br>
+            &bull; 验证: <code>torch.finfo(torch.float8_e4m3fn).max == 448.0</code> ✓
+        </div>
+
+        <p class="section-label">修复代码</p>
+        <pre><span class="comment"># Before (wrong):</span>
+<span class="diff-del">e4m3_max = 1.875 * (2 ** 8)  # = 480, NOT 448</span>
+
+<span class="comment"># After (correct):</span>
+<span class="diff-add">e4m3_max = 1.75 * (2 ** 8)   # = 448 ✓</span>
+<span class="diff-add">assert e4m3_max == 448.0</span>
+<span class="diff-add">assert torch.finfo(torch.float8_e4m3fn).max == 448.0</span></pre>
+
+        <div class="verdict verdict-test">结论：Test Case 推导错误。Analysis 报告的 "≈448" 结论正确。</div>
+    </div>
+</div>
+
+<!-- Bug #2 -->
+<div class="bug-card">
+    <div class="bug-header doc-bug">
+        <div class="bug-number">2</div>
+        <div class="bug-title">MHA KV Cache 算术计算错误 (2,002,944 vs 1,998,848)</div>
+        <span class="tag tag-report">Analysis 报告 Bug</span>
+    </div>
+    <div class="bug-body">
+        <p class="section-label">错误现象</p>
+        <pre><span class="comment"># test_mla_math.py::TestKVCacheCalculations::test_mha_kv_cache_per_token</span>
+kv_per_token = 2 * 128 * 128 * 61
+<span class="diff-del">assert kv_per_token == 2_002_944  # FAILED: 1,998,848 != 2,002,944</span></pre>
+
+        <p class="section-label">根因分析</p>
+        <div class="explanation">
+            <strong>Analysis 报告原文：</strong><br>
+            <code>KV_cache_MHA = 2 × 128 × 128 × seq_len × 61 = 2,002,944 × seq_len</code><br><br>
+            <strong>实际验算：</strong><br>
+            <code>2 × 128 × 128 × 61 = 32,768 × 61 = <strong>1,998,848</strong></code><br><br>
+            <strong>差异：</strong>2,002,944 − 1,998,848 = 4,096（恰好 = 2¹²）<br><br>
+            <strong>推测原因：</strong>报告作者手动计算时可能混入了额外维度（如 qk_rope_head_dim=64 的部分贡献），或单纯的计算笔误。<br><br>
+            <strong>对结论的影响：</strong><br>
+            &bull; 报告声称压缩比: 2,002,944 / 35,136 ≈ 57.01x<br>
+            &bull; 实际压缩比: 1,998,848 / 35,136 ≈ 56.89x<br>
+            &bull; "约 57x" 的定性结论仍然成立，影响可忽略
+        </div>
+
+        <p class="section-label">修复代码</p>
+        <pre><span class="comment"># Before (copied wrong number from report):</span>
+<span class="diff-del">kv_per_token = 2 * n_heads * head_dim * n_layers</span>
+<span class="diff-del">assert kv_per_token == 2_002_944</span>
+
+<span class="comment"># After (correct arithmetic, step by step):</span>
+<span class="diff-add">kv_per_token_per_layer = 2 * n_heads * head_dim</span>
+<span class="diff-add">assert kv_per_token_per_layer == 32_768   # 2 × 128 × 128</span>
+<span class="diff-add"></span>
+<span class="diff-add">kv_per_token = kv_per_token_per_layer * n_layers</span>
+<span class="diff-add">assert kv_per_token == 1_998_848           # 32,768 × 61</span></pre>
+
+        <div class="verdict verdict-report">结论：Analysis 报告算术错误。2 × 128 × 128 × 61 = 1,998,848，非 2,002,944。</div>
+    </div>
+</div>
+
+<!-- Bug #3 -->
+<div class="bug-card">
+    <div class="bug-header test-bug">
+        <div class="bug-number test">3</div>
+        <div class="bug-title">Sigmoid 测试因高维点积数值溢出失败</div>
+        <span class="tag tag-test">Test Case Bug</span>
+    </div>
+    <div class="bug-body">
+        <p class="section-label">错误现象</p>
+        <pre><span class="comment"># test_moe_routing.py::TestSigmoidScoring::test_sigmoid_not_softmax</span>
+x = torch.randn(B, 7168)           <span class="comment"># 7168 维随机向量</span>
+weight = torch.randn(256, 7168)     <span class="comment"># 256 个专家权重</span>
+logits = torch.matmul(x, weight.T)  <span class="comment"># 点积 std ≈ √7168 ≈ 84.7</span>
+scores = logits.sigmoid()
+
+<span class="diff-del">assert (scores > 0).all()  # FAILED: sigmoid(-90) → 0.0 in float32</span></pre>
+
+        <p class="section-label">根因分析</p>
+        <div class="explanation">
+            <strong>Analysis 报告声明：</strong><code>score_func = sigmoid</code> — 完全正确。<br><br>
+            <strong>Test Case 错误原因：</strong>测试用 7168 维标准正态随机向量做点积。<br>
+            两个 d 维标准正态向量的点积服从 N(0, d)，当 d=7168 时标准差 ≈ 84.7。<br>
+            这意味着 logit 值经常超过 ±80，而 <code>sigmoid(x)</code> 在 x &lt; −88 时 float32 精度下精确等于 0.0。<br><br>
+            <strong>关键点：</strong>这不是 sigmoid 函数本身的问题。实际模型中 gate 权重经过训练，logit 量级可控。
+            测试的目的是验证 "sigmoid 分数不归一化" 这一性质，不需要模拟真实维度。
+        </div>
+
+        <p class="section-label">修复代码</p>
+        <pre><span class="comment"># Before (high-dim dot product causes sigmoid saturation):</span>
+<span class="diff-del">x = torch.randn(B, 7168)</span>
+<span class="diff-del">weight = torch.randn(256, 7168)</span>
+<span class="diff-del">logits = torch.matmul(x, weight.T)  # |logits| can reach 200+</span>
+<span class="diff-del">scores = logits.sigmoid()</span>
+<span class="diff-del">assert (scores > 0).all()            # fails: saturated to 0.0</span>
+
+<span class="comment"># After (controlled magnitude, focused on the property being tested):</span>
+<span class="diff-add">logits = torch.randn(B, n_experts) * 2.0  # moderate range</span>
+<span class="diff-add">scores = logits.sigmoid()</span>
+<span class="diff-add">assert (scores >= 0).all()</span>
+<span class="diff-add">assert (scores <= 1).all()</span>
+<span class="diff-add"></span>
+<span class="diff-add"># Key: sigmoid scores are NOT normalized (unlike softmax)</span>
+<span class="diff-add">assert not scores.sum(dim=-1).allclose(torch.ones(B))</span>
+<span class="diff-add">softmax_scores = logits.softmax(dim=-1)</span>
+<span class="diff-add">assert softmax_scores.sum(dim=-1).allclose(torch.ones(B))</span></pre>
+
+        <div class="verdict verdict-test">结论：Test Case 输入构造不当（数值溢出）。Analysis 报告关于 sigmoid 的声明正确。</div>
+    </div>
+</div>
+
+<!-- ==================== SECTION 4: Final Summary ==================== -->
+<hr>
+
+<div class="final-summary">
+    <h3>四、最终结论</h3>
+    <table class="results-table" style="box-shadow: none; margin: 12px 0 0 0;">
+        <thead>
+            <tr><th>#</th><th>Bug</th><th>归属</th><th>影响</th><th>状态</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>E4M3 max 推导: 1.875×2⁸ 应为 1.75×2⁸</td>
+                <td><span class="tag tag-test">Test Case</span></td>
+                <td>公式推导错误，结论 448 不受影响</td>
+                <td class="pass">Fixed</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>MHA KV Cache: 2,002,944 应为 1,998,848</td>
+                <td><span class="tag tag-report">Analysis 报告</span></td>
+                <td>算术笔误，压缩比结论 (~57x) 不受影响</td>
+                <td class="pass">Fixed</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Sigmoid 测试: 高维点积导致数值饱和</td>
+                <td><span class="tag tag-test">Test Case</span></td>
+                <td>测试方法问题，sigmoid 声明本身正确</td>
+                <td class="pass">Fixed</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
