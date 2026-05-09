@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目回顾：洞察分析实践历程</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; color: #333; max-width: 1000px; margin: 0 auto; padding: 40px 20px; background: #f8f9fa; }
+        h1 { font-size: 1.8em; margin-bottom: 4px; color: #1a1a2e; }
+        h2 { font-size: 1.3em; margin: 36px 0 16px 0; color: #2c3e50; border-bottom: 2px solid #4361ee; padding-bottom: 6px; }
+        h3 { font-size: 1.05em; margin: 20px 0 10px 0; color: #34495e; }
+        .subtitle { color: #666; margin-bottom: 32px; font-size: 0.95em; }
+
+        /* Timeline */
+        .timeline { position: relative; padding-left: 28px; margin: 20px 0; }
+        .timeline::before { content: ''; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: #4361ee; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -24px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: #4361ee; border: 2px solid #fff; box-shadow: 0 0 0 2px #4361ee; }
+        .timeline-date { font-size: 0.8em; color: #4361ee; font-weight: 600; margin-bottom: 2px; }
+        .timeline-content { background: #fff; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .timeline-content p { margin-top: 6px; font-size: 0.9em; color: #555; }
+
+        /* Stats */
+        .stats-row { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 140px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; }
+        .stat-number { font-size: 2em; font-weight: 700; }
+        .stat-number.blue { color: #4361ee; }
+        .stat-number.green { color: #27ae60; }
+        .stat-number.orange { color: #f39c12; }
+        .stat-number.purple { color: #8e44ad; }
+        .stat-label { font-size: 0.85em; color: #777; margin-top: 4px; }
+
+        /* Cards */
+        .card { background: #fff; border-radius: 8px; padding: 18px 20px; margin: 14px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .card-title { font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
+        .card ul { padding-left: 20px; font-size: 0.9em; color: #555; }
+        .card li { margin-bottom: 6px; }
+
+        /* Lessons */
+        .lesson { background: #fff; border-left: 4px solid #4361ee; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .lesson.warn { border-left-color: #f39c12; }
+        .lesson.good { border-left-color: #27ae60; }
+        .lesson-tag { font-size: 0.75em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .lesson-tag.good { color: #27ae60; }
+        .lesson-tag.warn { color: #f39c12; }
+        .lesson-tag.info { color: #4361ee; }
+        .lesson p { font-size: 0.9em; color: #444; }
+
+        /* Architecture diagram */
+        .arch-box { background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82em; line-height: 1.8; overflow-x: auto; margin: 12px 0; }
+        .arch-box .dim { color: #6c7086; }
+        .arch-box .hl { color: #89b4fa; }
+        .arch-box .green { color: #a6e3a1; }
+        .arch-box .yellow { color: #f9e2af; }
+
+        /* Table */
+        .summary-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin: 16px 0; }
+        .summary-table th { background: #2c3e50; color: #fff; padding: 10px 14px; text-align: left; font-size: 0.85em; }
+        .summary-table td { padding: 8px 14px; border-bottom: 1px solid #f0f0f0; font-size: 0.88em; }
+        .summary-table tr:last-child td { border-bottom: none; }
+
+        code { background: #eef; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; font-weight: 600; }
+        .tag-done { background: #d4edda; color: #155724; }
+        .tag-next { background: #fff3cd; color: #856404; }
+        hr { border: none; border-top: 1px solid #e0e0e0; margin: 32px 0; }
+    </style>
+</head>
+<body>
+
+<h1>项目回顾：洞察分析实践历程</h1>
+<p class="subtitle">DeepDive / experiments / Zhi — 2026.05.06 ~ 2026.05.08 | 从零到可验证的 AI 洞察分析流水线</p>
+
+<!-- ==================== 项目概览 ==================== -->
+<h2>一、项目概览</h2>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-number blue">3</div>
+        <div class="stat-label">天完成周期</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number green">50</div>
+        <div class="stat-label">验证测试用例</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number orange">5</div>
+        <div class="stat-label">信息源接入</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number purple">4</div>
+        <div class="stat-label">深度分析报告</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">项目目标</div>
+    <p style="font-size: 0.9em; color: #555; margin-bottom: 8px;">
+        构建一个 AI/ML 领域的洞察分析系统，包含两个核心能力：
+    </p>
+    <ul>
+        <li><strong>Daily Brief</strong> — 每日自动抓取、过滤、摘要 AI 领域动态，生成可读的技术简报</li>
+        <li><strong>Deep Dive</strong> — 对特定技术主题（如 DeepSeek 架构演进）进行深度分析，产出结构化的技术报告，并通过可执行测试验证报告中的技术声明</li>
+    </ul>
+</div>
+
+<!-- ==================== 时间线 ==================== -->
+<h2>二、项目时间线</h2>
+
+<div class="timeline">
+    <div class="timeline-item">
+        <div class="timeline-date">Day 1 — 2026.05.06 上午</div>
+        <div class="timeline-content">
+            <strong>MVP 流水线搭建</strong>
+            <p>从零实现 Daily Brief 全流程：5 源抓取 → 关键词过滤 → Claude 摘要 → Markdown 输出 → HTML 站点生成。20 分钟内跑通第一版。</p>
+        </div>
+    </div>
+    <div class="timeline-item">
+        <div class="timeline-date">Day 1 — 2026.05.06 中午</div>
+        <div class="timeline-content">
+            <strong>LLM 相关性过滤 + Brief 校验器</strong>
+            <p>关键词过滤太粗糙，引入 LLM（Haiku 级别）做二次相关性判断。同时加入 brief 格式校验器，验证输出结构和链接有效性。</p>
+        </div>
+    </div>
+    <div class="timeline-item">
+        <div class="timeline-date">Day 1 — 2026.05.06 下午</div>
+        <div class="timeline-content">
+            <strong>DeepSeek 深度分析报告</strong>
+            <p>产出 3 份对比分析报告（V3 vs V3.2、V3 vs V4、综合演进分析），覆盖 MLA、MoE、FP8 量化等核心技术点。最终合并为一份 ~500 行的详细技术文档。</p>
+        </div>
+    </div>
+    <div class="timeline-item">
+        <div class="timeline-date">Day 2 — 2026.05.07</div>
+        <div class="timeline-content">
+            <strong>第二期 Daily Brief + 分析报告发布</strong>
+            <p>流水线稳定运行，产出第二期日报。DeepSeek 演进分析报告定稿发布。</p>
+        </div>
+    </div>
+    <div class="timeline-item">
+        <div class="timeline-date">Day 3 — 2026.05.08</div>
+        <div class="timeline-content">
+            <strong>测试验证体系 + 质量闭环</strong>
+            <p>为分析报告编写 50 个 pytest 测试用例，验证文档中每一个数学声明和代码逻辑。发现并修复 3 个 bug（2 个测试用例 bug + 1 个报告 bug），建立了"分析 → 验证 → 修复"的质量闭环。</p>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 技术架构 ==================== -->
+<h2>三、技术架构</h2>
+
+<div class="arch-box">
+<span class="dim">┌─────────────────────────────────────────────────────────────┐</span>
+<span class="dim">│</span> <span class="hl">Daily Brief Pipeline</span>                                        <span class="dim">│</span>
+<span class="dim">│                                                             │</span>
+<span class="dim">│</span>  <span class="green">fetch</span>(5 sources)  →  <span class="green">filter</span>(LLM relevance)  →  <span class="green">dedup</span>      <span class="dim">│</span>
+<span class="dim">│</span>       ↓                                                      <span class="dim">│</span>
+<span class="dim">│</span>  <span class="green">summarize</span>(Claude Opus)  →  <span class="green">validate</span>  →  <span class="green">render</span>(HTML)     <span class="dim">│</span>
+<span class="dim">│                                                             │</span>
+<span class="dim">├─────────────────────────────────────────────────────────────┤</span>
+<span class="dim">│</span> <span class="yellow">Deep Dive Analysis</span>                                          <span class="dim">│</span>
+<span class="dim">│                                                             │</span>
+<span class="dim">│</span>  <span class="green">research</span>(papers/code)  →  <span class="green">analyze</span>(structured report)      <span class="dim">│</span>
+<span class="dim">│</span>       ↓                                                      <span class="dim">│</span>
+<span class="dim">│</span>  <span class="green">verify</span>(pytest × 50)  →  <span class="green">fix</span>(bugs)  →  <span class="green">report</span>(HTML)       <span class="dim">│</span>
+<span class="dim">│                                                             │</span>
+<span class="dim">└─────────────────────────────────────────────────────────────┘</span>
+</div>
+
+<div class="card">
+    <div class="card-title">技术栈选择</div>
+    <table class="summary-table" style="box-shadow: none; margin: 8px 0 0 0;">
+        <tr><td style="width:30%"><strong>语言</strong></td><td>Python 3.9</td></tr>
+        <tr><td><strong>LLM</strong></td><td>Claude Opus 4.6（摘要/分析）+ Haiku（相关性过滤）</td></tr>
+        <tr><td><strong>抓取</strong></td><td>requests + feedparser（RSS/Atom/API）</td></tr>
+        <tr><td><strong>测试</strong></td><td>pytest + torch（张量逻辑验证）</td></tr>
+        <tr><td><strong>输出</strong></td><td>纯 Python 生成自包含 HTML（无前端框架）</td></tr>
+    </table>
+</div>
+
+<!-- ==================== 产出物 ==================== -->
+<h2>四、核心产出</h2>
+
+<table class="summary-table">
+    <thead>
+        <tr><th>产出</th><th>描述</th><th>状态</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Daily Brief × 3</strong></td>
+            <td>2026-05-06 / 07 / 08 三期日报，覆盖 Agentic SE 领域动态</td>
+            <td><span class="tag tag-done">Done</span></td>
+        </tr>
+        <tr>
+            <td><strong>DeepSeek 演进分析</strong></td>
+            <td>V3→V3.2→V4 架构演进详细报告，含 MLA/MoE/FP8/训练基础设施</td>
+            <td><span class="tag tag-done">Done</span></td>
+        </tr>
+        <tr>
+            <td><strong>验证测试套件</strong></td>
+            <td>50 个 pytest 用例，验证报告中的数学声明和代码逻辑</td>
+            <td><span class="tag tag-done">Done</span></td>
+        </tr>
+        <tr>
+            <td><strong>测试报告 + 模板</strong></td>
+            <td>综合 HTML 报告（含 bug 根因分析）+ 可复用模板</td>
+            <td><span class="tag tag-done">Done</span></td>
+        </tr>
+        <tr>
+            <td><strong>流水线代码</strong></td>
+            <td>完整的 fetch → filter → summarize → validate → render 流水线</td>
+            <td><span class="tag tag-done">Done</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ==================== Bug 发现与修复 ==================== -->
+<h2>五、质量验证：Bug 发现与修复</h2>
+
+<p style="margin-bottom: 16px; color: #555; font-size: 0.9em;">
+    50 个测试用例中发现 3 个 bug，全部修复。这个过程本身验证了"用测试验证分析报告"方法论的有效性。
+</p>
+
+<table class="summary-table">
+    <thead>
+        <tr><th>#</th><th>Bug</th><th>归属</th><th>根因</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>E4M3 最大值计算错误（480 vs 448）</td>
+            <td><span class="tag" style="background:#fff3cd;color:#856404;">Test Bug</span></td>
+            <td>未考虑 E4M3fn 的 NaN 编码保留位，max mantissa 是 1.75 而非 1.875</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>MHA KV Cache 计算偏差（2,002,944 vs 1,998,848）</td>
+            <td><span class="tag" style="background:#ffe0e0;color:#c0392b;">Report Bug</span></td>
+            <td>报告中 2×128×128×61 的乘法结果写错，差值 = 4096 = 2¹²</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Sigmoid 饱和导致测试误判</td>
+            <td><span class="tag" style="background:#fff3cd;color:#856404;">Test Bug</span></td>
+            <td>7168 维随机向量点积 std≈84.7，sigmoid 饱和到 0.0/1.0</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="lesson good">
+    <div class="lesson-tag good">关键洞察</div>
+    <p>Bug #2 证明了这套方法论的价值：分析报告中一个看似无害的算术错误（影响压缩比从 57.0x 变为 56.9x），被测试精确捕获。如果没有可执行验证，这类错误会一直留在文档中误导读者。</p>
+</div>
+
+<!-- ==================== 经验教训 ==================== -->
+<h2>六、经验与教训</h2>
+
+<h3>做得好的</h3>
+
+<div class="lesson good">
+    <div class="lesson-tag good">高效</div>
+    <p><strong>AI 辅助开发速度惊人</strong> — 从零到完整流水线跑通只用了 20 分钟。关键是先想清楚架构（即使只是 5 行描述），再让 AI 实现。</p>
+</div>
+
+<div class="lesson good">
+    <div class="lesson-tag good">方法论</div>
+    <p><strong>"分析 → 验证 → 修复"闭环有效</strong> — 用 pytest 验证技术文档的声明，把主观的"这个分析对不对"变成客观的"50 个测试全绿"。这个方法可以复用到任何技术分析场景。</p>
+</div>
+
+<div class="lesson good">
+    <div class="lesson-tag good">简洁</div>
+    <p><strong>不过度设计</strong> — 没有引入 agent 框架、没有用前端框架、没有搭数据库。纯 Python + 函数调用串联，够用就行。当前规模（5 源、日更）不需要更复杂的架构。</p>
+</div>
+
+<h3>踩过的坑</h3>
+
+<div class="lesson warn">
+    <div class="lesson-tag warn">工具链</div>
+    <p><strong>Claude API 的 ThinkingBlock 陷阱</strong> — Opus 4.6 默认启用 extended thinking，返回的第一个 content block 不是 TextBlock。必须过滤 <code>[b for b in content if b.type == "text"]</code>。</p>
+</div>
+
+<div class="lesson warn">
+    <div class="lesson-tag warn">工具链</div>
+    <p><strong>大文件写入不稳定</strong> — 超过 150 行或含大量 HTML 特殊字符的文件，Write 工具会序列化失败。解决方案：改用 Bash heredoc 写入。</p>
+</div>
+
+<div class="lesson warn">
+    <div class="lesson-tag warn">测试设计</div>
+    <p><strong>测试数据的量级要匹配真实场景</strong> — Bug #3 就是因为测试用了 7168 维随机向量（匹配真实模型维度），但没考虑高维点积的统计特性会导致 sigmoid 饱和。测试数据需要同时考虑"维度正确"和"数值合理"。</p>
+</div>
+
+<h3>方法论沉淀</h3>
+
+<div class="lesson">
+    <div class="lesson-tag info">方法论</div>
+    <p><strong>技术分析报告的可验证性标准</strong> — 一份好的技术分析报告，其中的每个数学声明、参数值、代码逻辑都应该能被独立验证。如果一个声明无法写成测试，要么是声明太模糊，要么是理解不够深。</p>
+</div>
+
+<div class="lesson">
+    <div class="lesson-tag info">方法论</div>
+    <p><strong>Bug 归属分析的价值</strong> — 区分"测试写错了"和"报告写错了"很重要。前者说明验证者对技术细节理解不够，后者说明分析本身有误。两种情况的修复路径完全不同。</p>
+</div>
+
+<!-- ==================== 下一步 ==================== -->
+<h2>七、下一步方向</h2>
+
+<table class="summary-table">
+    <thead>
+        <tr><th>方向</th><th>具体动作</th><th>优先级</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>过滤升级</strong></td>
+            <td>关键词 → LLM 相关性判断已完成，下一步加跨天去重（history.json）</td>
+            <td><span class="tag tag-next">本周</span></td>
+        </tr>
+        <tr>
+            <td><strong>深度分析扩展</strong></td>
+            <td>选择下一个主题做 Deep Dive（候选：Mamba/SSM、RLHF 演进、推理优化）</td>
+            <td><span class="tag tag-next">本周</span></td>
+        </tr>
+        <tr>
+            <td><strong>自动化</strong></td>
+            <td>Daily Brief 接入 cron 定时执行，减少手动操作</td>
+            <td><span class="tag tag-next">下周</span></td>
+        </tr>
+        <tr>
+            <td><strong>多模型策略</strong></td>
+            <td>过滤用 Haiku（快/便宜），分析用 Opus（深/准），优化成本结构</td>
+            <td><span class="tag tag-next">下周</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ==================== 总结 ==================== -->
+<hr>
+
+<div class="card" style="background: #e8f5e9; border: 1px solid #a5d6a7;">
+    <div class="card-title" style="color: #2e7d32;">总结</div>
+    <p style="font-size: 0.9em; color: #333;">
+        3 天时间，从零构建了一个完整的 AI 洞察分析系统：日报流水线稳定运行 3 期，深度分析报告经过 50 个测试用例验证，发现并修复了 3 个 bug。
+    </p>
+    <p style="font-size: 0.9em; color: #333; margin-top: 8px;">
+        最大的收获不是代码本身，而是验证了一套方法论：<strong>技术分析的质量可以用可执行测试来度量</strong>。这把"我觉得分析得对"变成了"50 个测试证明分析是对的"，是从主观判断到客观验证的跨越。
+    </p>
+</div>
+
+</body>
+</html>
