@@ -1,0 +1,582 @@
+[
+  {
+    "source": "simonwillison",
+    "title": "Live blog: Code w/ Claude 2026",
+    "url": "https://simonwillison.net/2026/May/6/code-w-claude-2026/#atom-everything",
+    "published": "2026-05-06T15:58:27+00:00",
+    "published_iso": "2026-05-06T15:58:27+00:00",
+    "summary": "<p>I'm at Anthropic's Code w/ Claude event today. Here's my live blog of the morning keynote sessions.</p>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/anthropic\">anthropic</a>, <a href=\"https://simonwillison.net/tags/claude\">claude</a>, <a href=\"https://simonwillison.net/tags/claude-code\">claude-code</a>, <a href=\"https://simonwillison.net/tags/live-blog\">live-blog</a></p>",
+    "score": 5,
+    "reason": "Anthropic Code w/ Claude 大会直播，Claude Code 重大产品/能力发布一手信息"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Behind the Scenes Hardening Firefox with Claude Mythos Preview",
+    "url": "https://simonwillison.net/2026/May/7/firefox-claude-mythos/#atom-everything",
+    "published": "2026-05-07T17:56:25+00:00",
+    "published_iso": "2026-05-07T17:56:25+00:00",
+    "summary": "<p><strong><a href=\"https://hacks.mozilla.org/2026/05/behind-the-scenes-hardening-firefox/\">Behind the Scenes Hardening Firefox with Claude Mythos Preview</a></strong></p>\nFascinating, in-depth details on how Mozilla used their access to the Claude Mythos preview to locate and then fix hundreds of vulnerabilities in Firefox:</p>\n<blockquote>\n<p><strong>Suddenly, the bugs are very good</strong></p>\n<p>Just a few months ago, AI-generated security bug reports to open source projects were mostly known for being unwanted slop. Dealing with reports that look plausibly correct but are wrong imposes an asymmetric cost on project maintainers: it’s cheap and easy to prompt an LLM to find a “problem” in code, but slow and expensive to respond to it.</p>\n<p>It is difficult to overstate how much this dynamic changed for us over a few short months. This was due to a combination of two main factors. First, the models got a lot more capable. Second, we dramatically improved our techniques for <em>harnessing</em> these models — steering them, scaling them, and stacking them to generate large amounts of signal and filter out the noise.</p>\n</blockquote>\n<p>They include some detailed bug descriptions too, including a 20-year old XSLT bug and a 15-year-old bug in the <code>&lt;legend&gt;</code> element.</p>\n<p>A lot of the attempts made by the harness were blocked by Firefox's existing defense-in-depth measures, which is reassuring.</p>\n<p>Mozilla were fixing around 20-30 security bugs in Firefox per month through 2025. That jumped to 423 in April.</p>\n<p><img alt=\"Bar chart titled &quot;Firefox Security Bug Fixes by Month&quot; with subtitle &quot;All Sources • All Severities&quot; on a dark purple background, showing monthly counts: Jan 2025: 21, Feb 2025: 20, Mar 2025: 26, Apr 2025: 31, May 2025: 17, Jun 2025: 21, Jul 2025: 22, Aug 2025: 17, Sep 2025: 18, Oct 2025: 26, Nov 2025: 19, Dec 2025: 20, Jan 2026: 25, Feb 2026: 61, Mar 2026: 76, Apr 2026: 423 — a dramatic spike in the final month.\" src=\"https://static.simonwillison.net/static/2026/firefox-security.webp\" />\n\n    <p><small></small>Via <a href=\"https://lobste.rs/s/7zppv1/behind_scenes_hardening_firefox_with\">Lobste.rs</a></small></p>\n\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/firefox\">firefox</a>, <a href=\"https://simonwillison.net/tags/mozilla\">mozilla</a>, <a href=\"https://simonwillison.net/tags/security\">security</a>, <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/anthropic\">anthropic</a>, <a href=\"https://simonwillison.net/tags/claude\">claude</a>, <a href=\"https://simonwillison.net/tags/ai-security-research\">ai-security-research</a></p>",
+    "score": 5,
+    "reason": "Mozilla 用 Claude Mythos 修复数百个 Firefox 漏洞，agent 安全审计实战复盘，数据有力"
+  },
+  {
+    "source": "openai",
+    "title": "Running Codex safely at OpenAI",
+    "url": "https://openai.com/index/running-codex-safely",
+    "published": "Fri, 08 May 2026 12:30:00 GMT",
+    "published_iso": "2026-05-08T12:30:00+00:00",
+    "summary": "How OpenAI runs Codex securely with sandboxing, approvals, network policies, and agent-native telemetry to support safe and compliant coding agent adoption.",
+    "score": 5,
+    "reason": "OpenAI 官方披露 Codex 安全运行架构：沙箱、审批、网络策略、agent 遥测，agent 工程化基础设施一手复盘"
+  },
+  {
+    "source": "deepmind",
+    "title": "AlphaEvolve: How our Gemini-powered coding agent is scaling impact across fields",
+    "url": "https://deepmind.google/blog/alphaevolve-impact/",
+    "published": "Wed, 06 May 2026 10:43:49 +0000",
+    "published_iso": "2026-05-06T10:43:49+00:00",
+    "summary": "Explore how AlphaEvolve's Gemini-powered algorithms are driving impact across business, infrastructure, and science.",
+    "score": 4,
+    "reason": "DeepMind发布Gemini驱动的coding agent AlphaEvolve跨领域应用案例，agent工程化实践参考价值高"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Vibe coding and agentic engineering are getting closer than I'd like",
+    "url": "https://simonwillison.net/2026/May/6/vibe-coding-and-agentic-engineering/#atom-everything",
+    "published": "2026-05-06T14:24:08+00:00",
+    "published_iso": "2026-05-06T14:24:08+00:00",
+    "summary": "<p>I recently talked with Joseph Ruscio about AI coding tools for Heavybit's High Leverage podcast: <a href=\"https://www.heavybit.com/library/podcasts/high-leverage/ep-9-the-ai-coding-paradigm-shift-with-simon-willison\">Ep. #9, The AI Coding Paradigm Shift with Simon Willison</a>. Here are some of my highlights, including my disturbing realization that vibe coding and agentic engineering have started to converge in my own work.</p>\n<p>One thing I really enjoy about podcasts is that they sometimes push me to think out loud in a way that exposes an idea I've not previously been able to put into words.</p>\n<h4 id=\"vibe-coding-and-agentic-engineering-are-starting-to-overlap\">Vibe coding and agentic engineering are starting to overlap</h4>\n<p>A few weeks after vibe coding was first coined I published <a href=\"https://simonwillison.net/2025/Mar/19/vibe-coding/\">Not all AI-assisted programming is vibe coding (but vibe coding rocks)</a>, where I firmly staked out my belief that \"vibe coding\" is a very different beast from responsible use of AI to write code, which I've since started to call <a href=\"https://simonwillison.net/guides/agentic-engineering-patterns/what-is-agentic-engineering/\">agentic engineering</a>.</p>\n<p>When Joseph brought up the distinction between the two I had a sudden realization that they're not nearly as distinct for me as they used to be:</p>\n<blockquote>\n<p>Weirdly though, those things have started to blur for me already, which is quite upsetting.</p>\n<p>I thought we had a very clear delineation where vibe coding is the thing where you're not looking at the code at all. You might not even know how to program. You might be a non-programmer who asks for a thing, and gets a thing, and if the thing works, then great! And if it doesn't, you tell it that it doesn't work and cross your fingers.</p>\n<p>But at no point are you really caring about the code quality or any of those additional constraints. And my take on vibe coding was that it's fantastic, provided you understand when it can be used and when it can't.</p>\n<p>A personal tool for you, where if there's a bug it hurts only you, go ahead!</p>\n<p>If you're building software for other people, vibe coding is grossly irresponsible because it's other people's information. Other people get hurt by your stupid bugs. You need to have a higher level than that.</p>\n<p>This contrasts with agentic engineering where you are a professional software engineer. You understand security and maintainability and operations and performance and so forth. You're using these tools to the highest of your own ability. I'm finding the scope of challenges I can take on has gone up by a significant amount because I've got the support of these tools.</p>\n<p>But I'm still leaning on my 25 years of experience as a software engineer.</p>\n<p>The goal is to build high quality production systems: if you're building lower quality stuff faster, I think that's bad. I want to build <em>higher</em> quality stuff faster. I want everything I'm building to be better in every way than it was before.</p>\n<p>The problem is that as the coding agents get more reliable, I'm not reviewing every line of code that they write anymore, even for my production level stuff.</p>\n<p>I know full well that if you ask Claude Code to build a JSON API endpoint that runs a SQL query and outputs the results as JSON, it's just going to do it right. It's not going to mess that up. You have it add automated tests, you have it add documentation, you know it's going to be good.</p>\n<p>But I'm not reviewing that code. And now I've got that feeling of guilt: if I haven't reviewed the code, is it really responsible for me to use this in production?</p>\n<p>The thing that really helps me is thinking back to when I've worked at larger organizations where I've been an engineering manager. Other teams are building software that my team depends on.</p>\n<p>If another team hands over something and says, \"hey, this is the image resize service, here's how to use it to resize your images\"... I'm not going to go and read every line of code that they wrote.</p>\n<p>I'm going to look at their documentation and I'm going to use it to resize some images. And then I'm going to start shipping my own features. And if I start running into problems where the image resizer thing appears to have bugs or the performance isn't good, that's when I might dig into their Git repositories and see what's going on. But for the most part I treat that as a semi-black box that I don't look at until I need to.</p>\n<p>I'm starting to treat the agents in the same way. And it still feels uncomfortable, because human beings are accountable for what they do. A team can build a reputation. I can say \"I trust that team over there. They built good software in the past. They're not going to build something rubbish because that affects their professional reputations.\"</p>\n<p>Claude Code does not have a professional reputation! It can't take accountability for what it's done. But it's been proving itself anyway - time and time again it's churning out straightforward things and doing them right in the style that I like.</p>\n</blockquote>\n<p>There's an element of <a href=\"https://simonwillison.net/2025/Dec/10/normalization-of-deviance/\">the normalization of deviance</a> here - every time a model turns out to have written the right code without me monitoring it closely there's a risk that I'll trust it at the wrong moment in the future and get burned.</p>\n<h4 id=\"the-new-challenge-of-evaluating-software\">The new challenge of evaluating software</h4>\n<blockquote>\n<p>It used to be if you found a GitHub repository with a hundred commits and a good readme and automated tests and stuff, you could be pretty sure that the person writing that had put a lot of care and attention into that project.</p>\n<p>And now I can knock out a git repository with a hundred commits and a beautiful readme and comprehensive tests of every line of code in half an hour! It looks identical to those projects that have had a great deal of care and attention. Maybe it is as good as them. I don't know. I can't tell from looking at it. Even for my <em>own</em> projects, I can't tell.</p>\n<p>So I realized what I value more than the quality of the tests and documentation is that I want somebody to have <em>used</em> the thing. If you've got a vibe coded thing which you have used every day for the past two weeks, that's much more valuable to me than something that you've just spat out and hardly even exercised.</p>\n</blockquote>\n<h4 id=\"the-bottlenecks-have-shifted\">The bottlenecks have shifted</h4>\n<blockquote>\n<p>If you can go from producing 200 lines of code a day to 2,000 lines of code a day, what else breaks? The entire software development lifecycle was, it turns out, designed around the idea that it takes a day to produce a few hundred lines of code. And now it doesn't.</p>\n<p>It's not just the downstream stuff, it's the upstream stuff as well. I saw <a href=\"https://simonwillison.net/2026/Jan/24/dont-trust-the-process/\">a great talk by Jenny Wen</a>, who's the design leader at Anthropic, where she said we have all of these design processes that are based around the idea that you need to get the design <em>right</em> - because if you hand it off to the engineers and they spend three months building the wrong thing, that's catastrophic.</p>\n<p>There's this whole very extensive design process that you put in place because that design results in expensive work. But if it doesn't take three months to build, maybe the design process can be a whole lot riskier because cost, if you get something wrong, has been reduced so much.</p>\n</blockquote>\n<h4 id=\"why-i-m-still-not-afraid-for-my-career\">Why I'm still not afraid for my career</h4>\n<blockquote>\n<p>When I look at my conversations with the agents, it's very clear to me that this is moon language for the vast majority of human beings.</p>\n<p>There are a whole bunch of reasons I'm not scared that my career as a software engineer is over now that computers can write their own code, partly because these things are amplifiers of existing experience. If you know what you're doing, you can run so much faster with them. [...]</p>\n<p>I'm constantly reminded as I work with these tools how hard the thing that we do is. Producing software is a <em>ferociously</em> difficult thing to do. And you could give me all of the AI tools in the world and what we're trying to achieve here is still really difficult. [...]</p>\n<p>Matthew Yglesias, who's a political commentator, yesterday <a href=\"https://twitter.com/mattyglesias/status/2049105745132585161\">tweeted</a>, \"Five months in, I think I've decided that I don't want to vibecode — I want professionally managed software companies to use AI coding assistance to make more/better/cheaper software products that they sell to me for money.\" And that feels about right to me. I can plumb my house if I watch enough YouTube videos on plumbing. I would rather hire a plumber.</p>\n</blockquote>\n<p>On the threat to SaaS providers of companies rolling their own solutions instead:</p>\n<blockquote>\n<p>I just realized it's the thing I said earlier about how I only want to use your side project if you've used it for a few weeks. The enterprise version of that is I don't want a CRM unless at least two other giant enterprises have successfully used that CRM for six months. [...] You want solutions that are proven to work before you take a risk on them.</p>\n</blockquote>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/podcast-appearances\">podcast-appearances</a>, <a href=\"https://simonwillison.net/tags/vibe-coding\">vibe-coding</a>, <a href=\"https://simonwillison.net/tags/coding-agents\">coding-agents</a>, <a href=\"https://simonwillison.net/tags/agentic-engineering\">agentic-engineering</a></p>",
+    "score": 4,
+    "reason": "Simon 深度反思 vibe coding 与 agentic 工程趋同，有实践洞察，对人机协作范式有参考价值"
+  },
+  {
+    "source": "github",
+    "title": "Validating agentic behavior when “correct” isn’t deterministic",
+    "url": "https://github.blog/ai-and-ml/generative-ai/validating-agentic-behavior-when-correct-isnt-deterministic/",
+    "published": "Wed, 06 May 2026 21:16:31 +0000",
+    "published_iso": "2026-05-06T21:16:31+00:00",
+    "summary": "<p>How to build the “Trust Layer” for Github Copilot Coding Agents without brittle scripts or black-box judgements by using dominatory analysis.</p>\n<p>The post <a href=\"https://github.blog/ai-and-ml/generative-ai/validating-agentic-behavior-when-correct-isnt-deterministic/\">Validating agentic behavior when “correct” isn’t deterministic</a> appeared first on <a href=\"https://github.blog\">The GitHub Blog</a>.</p>",
+    "score": 4,
+    "reason": "GitHub 官方分享 Copilot Coding Agent 验证层工程方法，agent 评测实践直接相关且有具体方法论"
+  },
+  {
+    "source": "pragmatic-engineer",
+    "title": "The Pulse: Did capacity shortages turn Anthropic hostile to devs?",
+    "url": "https://newsletter.pragmaticengineer.com/p/the-pulse-did-capacity-shortages",
+    "published": "Thu, 07 May 2026 16:45:31 GMT",
+    "published_iso": "2026-05-07T16:45:31+00:00",
+    "summary": "Also: Amazon finally allows engineers to use Claude Code and Codex, Meta forcefully assigns engineers to data labelling work ahead of layoffs, more small &#8220;AI-forward&#8221; teams, and more",
+    "score": 4,
+    "reason": "Anthropic 容量限制影响开发者体验+Amazon 开放 Claude Code/Codex，agent 工具实践信号强"
+  },
+  {
+    "source": "github",
+    "title": "Agent pull requests are everywhere. Here’s how to review them.",
+    "url": "https://github.blog/ai-and-ml/generative-ai/agent-pull-requests-are-everywhere-heres-how-to-review-them/",
+    "published": "Thu, 07 May 2026 19:00:00 +0000",
+    "published_iso": "2026-05-07T19:00:00+00:00",
+    "summary": "<p>A practical guide to reviewing agent-generated pull requests: what to look for, where issues hide, and how to catch technical debt before it ships.</p>\n<p>The post <a href=\"https://github.blog/ai-and-ml/generative-ai/agent-pull-requests-are-everywhere-heres-how-to-review-them/\">Agent pull requests are everywhere. Here&#8217;s how to review them.</a> appeared first on <a href=\"https://github.blog\">The GitHub Blog</a>.</p>",
+    "score": 4,
+    "reason": "GitHub 官方出品 agent PR review 实践指南，直接服务人+agent协作流程"
+  },
+  {
+    "source": "github",
+    "title": "Improving token efficiency in GitHub Agentic Workflows",
+    "url": "https://github.blog/ai-and-ml/github-copilot/improving-token-efficiency-in-github-agentic-workflows/",
+    "published": "Thu, 07 May 2026 23:00:00 +0000",
+    "published_iso": "2026-05-07T23:00:00+00:00",
+    "summary": "<p>Agentic workflows that run on every pull request can quietly accumulate large API bills. Here's how we instrumented our own production workflows, found the inefficiencies, and built agents to fix them.</p>\n<p>The post <a href=\"https://github.blog/ai-and-ml/github-copilot/improving-token-efficiency-in-github-agentic-workflows/\">Improving token efficiency in GitHub Agentic Workflows</a> appeared first on <a href=\"https://github.blog\">The GitHub Blog</a>.</p>",
+    "score": 4,
+    "reason": "GitHub 官方复盘 agentic workflow token 效率优化，带生产数据和具体方法，工程化参考价值高"
+  },
+  {
+    "source": "hackernews",
+    "title": "Teaching Claude Why",
+    "url": "https://www.anthropic.com/research/teaching-claude-why",
+    "published": "Fri, 08 May 2026 17:59:41 +0000",
+    "published_iso": "2026-05-08T17:59:41+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48066592\">Comments</a>",
+    "score": 4,
+    "reason": "Anthropic 研究如何让 Claude 理解意图，直接关联 agent planning 与指令跟随能力提升"
+  },
+  {
+    "source": "latent-space",
+    "title": "[AINews] Silicon Valley gets Serious about Services",
+    "url": "https://www.latent.space/p/ainews-silicon-valley-gets-serious",
+    "published": "Wed, 06 May 2026 05:40:41 GMT",
+    "published_iso": "2026-05-06T05:40:41+00:00",
+    "summary": "A series of announcements line up to a big theme: Services are the next big opportunity.",
+    "score": 3,
+    "reason": "AI行业趋势讨论偏宏观商业方向，与agentic SE间接相关，信息密度待确认"
+  },
+  {
+    "source": "openai",
+    "title": "Simplex rethinks software development with Codex",
+    "url": "https://openai.com/index/simplex",
+    "published": "Thu, 07 May 2026 00:00:00 GMT",
+    "published_iso": "2026-05-07T00:00:00+00:00",
+    "summary": "Simplex boosts software development with ChatGPT Enterprise and Codex, reducing design, build, and testing time while scaling AI-driven workflows.",
+    "score": 3,
+    "reason": "企业用 Codex 的案例宣传稿，缺具体数据和工程复盘，信息密度偏低"
+  },
+  {
+    "source": "simonwillison",
+    "title": "llm-gemini 0.31",
+    "url": "https://simonwillison.net/2026/May/7/llm-gemini/#atom-everything",
+    "published": "2026-05-07T19:57:06+00:00",
+    "published_iso": "2026-05-07T19:57:06+00:00",
+    "summary": "<p><strong>Release:</strong> <a href=\"https://github.com/simonw/llm-gemini/releases/tag/0.31\">llm-gemini 0.31</a></p>\n        <blockquote>\n<ul>\n<li><code>gemini-3.1-flash-lite</code> is <a href=\"https://cloud.google.com/blog/products/ai-machine-learning/gemini-3-1-flash-lite-is-now-generally-available\">no longer a preview</a>. </li>\n</ul>\n</blockquote>\n<p>Here's my write-up of the <a href=\"https://simonwillison.net/2026/Mar/3/gemini-31-flash-lite/\">Gemini 3.1 Flash-Lite Preview model</a> back in March. I don't believe this new non-preview model has changed since then.</p>\n    \n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/llm-release\">llm-release</a>, <a href=\"https://simonwillison.net/tags/gemini\">gemini</a>, <a href=\"https://simonwillison.net/tags/llm\">llm</a>, <a href=\"https://simonwillison.net/tags/google\">google</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a></p>",
+    "score": 3,
+    "reason": "LLM 工具渐进更新，仅标记 Gemini 模型 GA，无新 agentic 能力"
+  },
+  {
+    "source": "hackernews",
+    "title": "Can LLMs model real-world systems in TLA+?",
+    "url": "https://www.sigops.org/2026/can-llms-model-real-world-systems-in-tla/",
+    "published": "Fri, 08 May 2026 16:21:56 +0000",
+    "published_iso": "2026-05-08T16:21:56+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48065254\">Comments</a>",
+    "score": 3,
+    "reason": "LLM+TLA+形式化验证属AI辅助软工边缘，学术向，非直接agent工具进展"
+  },
+  {
+    "source": "hackernews",
+    "title": "The React2Shell Story",
+    "url": "https://lachlan.nz/blog/the-react2shell-story/",
+    "published": "Fri, 08 May 2026 16:39:48 +0000",
+    "published_iso": "2026-05-08T16:39:48+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48065511\">Comments</a>",
+    "score": 3,
+    "reason": "React2Shell 疑似安全漏洞/供应链攻击案例，与 agent 安全沙箱边缘相关，但缺摘要难判断信息密度"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Using Claude Code: The Unreasonable Effectiveness of HTML",
+    "url": "https://simonwillison.net/2026/May/8/unreasonable-effectiveness-of-html/#atom-everything",
+    "published": "2026-05-08T21:00:11+00:00",
+    "published_iso": "2026-05-08T21:00:11+00:00",
+    "summary": "<p><strong><a href=\"https://twitter.com/trq212/status/2052809885763747935\">Using Claude Code: The Unreasonable Effectiveness of HTML</a></strong></p>\nThought-provoking piece by Thariq Shihipar (on the Claude Code team at Anthropic) advocating for HTML over Markdown as an output format to request from Claude.</p>\n<p>The article is crammed with interesting examples (collected on <a href=\"https://thariqs.github.io/html-effectiveness/\">this site</a>) and prompt suggestions like this one:</p>\n<blockquote>\n<p><code>Help me review this PR by creating an HTML artifact that describes it. I'm not very familiar with the streaming/backpressure logic so focus on that. Render the actual diff with inline margin annotations, color-code findings by severity and whatever else might be needed to convey the concept well.</code></p>\n</blockquote>\n<p>I've been defaulting to asking for most things in Markdown since the GPT-4 days, when the 8,192 token limit meant that Markdown's token-efficiency over HTML was extremely worthwhile.</p>\n<p>Thariq's piece here has caused me to reconsider that, especially for output. Asking Claude for an explanation in HTML means it can drop in SVG diagrams, interactive widgets, in-page navigation and all sorts of other neat ways of making the information more pleasant to navigate.</p>\n<p>I wrote about <a href=\"https://simonwillison.net/2025/Dec/10/html-tools/\">Useful patterns for building HTML tools</a> last December, but that was focused very much on interactive utilities like the ones on my <a href=\"https://tools.simonwillison.net/\">tools.simonwillison.net</a> site. I'm excited to start experimenting more with rich HTML explanations in response to ad-hoc prompts.</p>\n<h4 id=\"trying-this-out\">Trying this out on copy.fail</h4>\n\n<p><a href=\"https://copy.fail/\">copy.fail</a> describes a recently discovered Linux security exploit, including a proof of concept distributed as obfuscated Python.</p>\n<p>I tried having GPT-5.5 create an HTML explanation of the exploit like this:</p>\n<blockquote>\n<p><code>curl https://copy.fail/exp | llm -m gpt-5.5 -s 'Explain this code in detail. Reformat it, expand out any confusing bits and go deep into what it does and how it works. Output HTML, neatly styled and using capabilities of HTML and CSS and JavaScript to make the explanation rich and interactive and as clear as possible'</code></p>\n</blockquote>\n<p>Here's <a href=\"https://gisthost.github.io/?ae53e3461ffdbfd0826156aacf025c7e\">the resulting HTML page</a>. It's pretty good, though I should have emphasized explaining the exploit over the Python harness around it.</p>\n<p><img alt=\"Screenshot of a dark-themed technical document titled &quot;What this Python script does&quot;. Body text: &quot;This is a compact, deliberately obfuscated Linux-specific local privilege-escalation proof-of-concept. Its apparent goal is to tamper with the in-memory image/page cache of /usr/bin/su, then execute su to obtain elevated privileges.&quot; A yellow-bordered callout reads: &quot;Safety note: This explanation is for code understanding, reverse engineering, and defensive analysis. Do not run this on systems you do not own or administer. On a vulnerable kernel, code like this can alter the behavior of a privileged executable.&quot; Left column heading &quot;High-level summary&quot;: &quot;The script opens /usr/bin/su read-only, decompresses an embedded binary payload, and then processes that payload in 4-byte chunks. For each chunk, it performs a carefully arranged sequence involving Linux's kernel crypto socket interface, AF_ALG, pipes, and splice(). The important point is that this is not ordinary file writing. It never calls write() on /usr/bin/su. Instead, it appears to rely on a kernel bug/primitive involving spliced file pages and the crypto API to get controlled bytes placed into the page-cache representation of a privileged executable.&quot; Numbered steps follow: &quot;1. Open target executable — /usr/bin/su is opened read-only. 2. Decode hidden payload — A zlib-compressed hex blob is decompressed into bytes. 3. Patch in 4-byte chunks — The helper function is called repeatedly with offsets 0, 4, 8, ...&quot;. Right column heading &quot;Why it looks strange&quot; contains a table with Pattern and Purpose columns: &quot;import os as g — Short aliasing to make the script compact and harder to read. socket(38, 5, 0) — Uses raw numeric Linux constants instead of readable names. Compressed hex blob — Hides binary payload bytes and keeps the script small. splice() — Moves file-backed pages through pipes without normal user-space copying. try: recv(...) except: 0 — Triggers the kernel operation and ignores expected errors.&quot;\" src=\"https://static.simonwillison.net/static/2026/python-script-explainer.jpg\" />\n\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/html\">html</a>, <a href=\"https://simonwillison.net/tags/security\">security</a>, <a href=\"https://simonwillison.net/tags/markdown\">markdown</a>, <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/prompt-engineering\">prompt-engineering</a>, <a href=\"https://simonwillison.net/tags/generative-ai\">generative-ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/llm\">llm</a>, <a href=\"https://simonwillison.net/tags/claude-code\">claude-code</a></p>",
+    "score": 3,
+    "reason": "Claude Code 团队成员分享 HTML 输出技巧，实用但属渐进经验而非重大变化"
+  },
+  {
+    "source": "hackernews",
+    "title": "Boosting multimodal inference performance by >10% with a single Python dict",
+    "url": "https://modal.com/blog/boosting-multimodal-inference-performance-by-greater-than-10-with-a-single-python-dictionary",
+    "published": "Wed, 06 May 2026 17:45:00 +0000",
+    "published_iso": "2026-05-06T17:45:00+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48039150\">Comments</a>",
+    "score": 2,
+    "reason": "多模态推理性能优化技巧，属通用 AI infra，与 agentic SE 无直接关联"
+  },
+  {
+    "source": "openai",
+    "title": "Parloa builds service agents customers want to talk to",
+    "url": "https://openai.com/index/parloa",
+    "published": "Thu, 07 May 2026 11:00:00 GMT",
+    "published_iso": "2026-05-07T11:00:00+00:00",
+    "summary": "Parloa leverages OpenAI models to power scalable, voice-driven AI customer service agents, enabling enterprises to design, simulate, and deploy reliable, real-time interactions.",
+    "score": 2,
+    "reason": "客户服务语音 agent 案例，非软件工程场景，且为 PR 稿缺乏技术深度"
+  },
+  {
+    "source": "openai",
+    "title": "Scaling Trusted Access for Cyber with GPT-5.5 and GPT-5.5-Cyber",
+    "url": "https://openai.com/index/gpt-5-5-with-trusted-access-for-cyber",
+    "published": "Thu, 07 May 2026 13:00:00 GMT",
+    "published_iso": "2026-05-07T13:00:00+00:00",
+    "summary": "OpenAI expands Trusted Access for Cyber with GPT-5.5 and GPT-5.5-Cyber, helping verified defenders accelerate vulnerability research and protect critical infrastructure.",
+    "score": 2,
+    "reason": "网络安全防御方向产品，非 agentic SE 核心主题，无 coding agent 相关信号"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Notes on the xAI/Anthropic data center deal",
+    "url": "https://simonwillison.net/2026/May/7/xai-anthropic/#atom-everything",
+    "published": "2026-05-07T17:09:28+00:00",
+    "published_iso": "2026-05-07T17:09:28+00:00",
+    "summary": "<p>There weren't a lot of big new announcements from Anthropic at yesterday's Code w/ Claude event, but the biggest by far was the deal they've struck with SpaceX/xAI to use \"all of the capacity of their Colossus data center\".</p>\n<p>As I mentioned in my <a href=\"https://simonwillison.net/2026/May/6/code-w-claude-2026/\">live blog of the keynote</a>, that's the one with the <a href=\"https://www.politico.com/news/2025/05/06/elon-musk-xai-memphis-gas-turbines-air-pollution-permits-00317582\">particularly bad environmental record</a>. The gas turbines installed to power the facility initially ran without Clean Air Act permits or pollution control devices, which they got away with by classifying them as \"temporary\". Credible reports link it to increases in hospital admissions relating to low air quality.</p>\n<p>Andy Masley, one of the most prolific voices pushing back against misleading rhetoric about data centers (see <a href=\"https://blog.andymasley.com/p/the-ai-water-issue-is-fake\">The AI water issue is fake</a> and <a href=\"https://blog.andymasley.com/p/data-center-land-use-issues-are-fake\">Data center land issues are fake</a>), had <a href=\"https://x.com/andymasley/status/2052070252930826384\">this to say</a> about Colossus:</p>\n<blockquote>\n<p>I would simply not run my computing out of this specific data center</p>\n</blockquote>\n<p>I get that Anthropic are severely compute-constrained, but in a world where the very existence of \"AI data centers\" is a red-hot political issue (see recent <a href=\"https://kutv.com/news/local/amid-boos-box-elder-county-commission-unanimously-approves-plan-for-massive-data-center\">news out of Utah</a> for a fresh example), signing up with this particular data center is a really bad look.</p>\n<p>There was a lot of initial chatter about how this meant xAI were clearly giving up on their own Grok models, since all of their capacity would be sold to Anthropic instead. That was a misconception - Anthropic are getting Colossus 1, but xAI are keeping their larger Colossus 2 data center for their own work.</p>\n<p>As an interesting side note, the night before the Anthropic announcement, xAI sent out a deprecation notice for Grok 4.1 Fast and several other models providing just two weeks' notice before shutdown, reported here <a href=\"https://twitter.com/xlr8harder/status/2051901091906834439\">by @xlr8harder</a> from SpeechMap:</p>\n<blockquote>\n<p><img alt=\"Effective May 15, 2026 at 12:00pm PT, the following models will be retired from the xAI API: grok-4-1-fast-reasoning, grok-4-1-fast-non-reasoning, grok-4-fast-reasoning, grok-4-fast-non-reasoning, grok-4-0709, grok-code-fast-1, grok-3, grok-imagine-image-pro. After May 15, 2026, requests to these models will no longer work.\" src=\"https://static.simonwillison.net/static/2026/grok-fast-shutdown.png\" /></p>\n<p>This is terrible @xai. I just spent time and money to migrate to grok 4.1 fast, and you're disabling it with less than two weeks notice, after releasing it in November, with no migration path to a fast/cheap alternative.</p>\n<p>I will never depend on one of your products again.</p>\n</blockquote>\n<p>Here's <a href=\"https://speechmap.substack.com/p/speechmap-update-xai-loses-top-spot\">SpeechMap's detailed explanation</a> of how they selected Grok 4.1 Fast for their project in March.</p>\n<p>Were xAI serving those models out of Colossus 1?</p>\n<p>xAI owner Elon Musk (who previously delighted in calling Anthropic <a href=\"https://twitter.com/search?q=from%3Aelonmusk+misanthropic&amp;src=typed_query&amp;f=live\">\"Misanthropic\"</a>) <a href=\"https://twitter.com/elonmusk/status/2052069691372478511\">tweeted</a> the following:</p>\n<blockquote>\n<p>By way of background for those who care, I spent a lot of time last week with senior members of the Anthropic team to understand what they do to ensure Claude is good for humanity and was impressed. [...]</p>\n<p>After that, I was ok leasing Colossus 1 to Anthropic, as SpaceXAI had already moved training to Colossus 2.</p>\n</blockquote>\n<p>And then <a href=\"https://twitter.com/elonmusk/status/2052076315306864756\">shortly afterwards</a>:</p>\n<blockquote>\n<p>Just as SpaceX launches hundreds of satellites for competitors with fair terms and pricing, we will provide compute to AI companies that are taking the right steps to ensure it is good for humanity.</p>\n<p>We reserve the right to reclaim the compute if their AI engages in actions that harm humanity.</p>\n</blockquote>\n<p>Presumably the criteria for \"harm humanity\" are decided by Elon himself. Sounds like a new form of supply chain risk for Anthropic to me!</p>\n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/ai\">ai</a>, <a href=\"https://simonwillison.net/tags/llms\">llms</a>, <a href=\"https://simonwillison.net/tags/anthropic\">anthropic</a>, <a href=\"https://simonwillison.net/tags/ai-ethics\">ai-ethics</a>, <a href=\"https://simonwillison.net/tags/ai-energy-usage\">ai-energy-usage</a>, <a href=\"https://simonwillison.net/tags/xai\">xai</a>, <a href=\"https://simonwillison.net/tags/andy-masley\">andy-masley</a></p>",
+    "score": 2,
+    "reason": "Anthropic 与 xAI 数据中心合作属商业/基础设施新闻，与 agentic SE 实践无直接关联"
+  },
+  {
+    "source": "hackernews",
+    "title": "OpenAI's WebRTC problem",
+    "url": "https://moq.dev/blog/webrtc-is-the-problem/",
+    "published": "Thu, 07 May 2026 17:11:59 +0000",
+    "published_iso": "2026-05-07T17:11:59+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48051951\">Comments</a>",
+    "score": 2,
+    "reason": "讨论 OpenAI 实时 API 的 WebRTC 技术选型问题，与 agentic SE 关联弱"
+  },
+  {
+    "source": "hackernews",
+    "title": "Mojo 1.0 Beta",
+    "url": "https://mojolang.org/",
+    "published": "Fri, 08 May 2026 02:49:01 +0000",
+    "published_iso": "2026-05-08T02:49:01+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48057901\">Comments</a>",
+    "score": 2,
+    "reason": "Mojo 1.0 Beta 是系统编程语言发布，与 agentic SE 无直接关联"
+  },
+  {
+    "source": "hackernews",
+    "title": "AWS North Virginia data center outage – recovery to take hours",
+    "url": "https://www.cnbc.com/2026/05/08/aws-outage-data-center-fanduel-coinbase.html",
+    "published": "Fri, 08 May 2026 03:31:58 +0000",
+    "published_iso": "2026-05-08T03:31:58+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48058197\">Comments</a>",
+    "score": 2,
+    "reason": "AWS 宕机是基础设施事件，非 agentic SE 直接信号，除非影响 agent 运行但此处无此信息"
+  },
+  {
+    "source": "latent-space",
+    "title": "[AINews] GPT-Realtime-2, -Translate, and -Whisper: new SOTA realtime voice APIs",
+    "url": "https://www.latent.space/p/ainews-gpt-realtime-2-translate-and",
+    "published": "Fri, 08 May 2026 07:11:24 GMT",
+    "published_iso": "2026-05-08T07:11:24+00:00",
+    "summary": "OpenAI continues deploying GPT-5 everywhere",
+    "score": 2,
+    "reason": "实时语音/翻译 API 更新，属多模态产品，与 agentic SE 无直接关联"
+  },
+  {
+    "source": "hackernews",
+    "title": "Human typing habits and token counts",
+    "url": "https://pankajpipada.com/posts/2026-05-08-human-habits-tokens/",
+    "published": "Fri, 08 May 2026 13:12:41 +0000",
+    "published_iso": "2026-05-08T13:12:41+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48062606\">Comments</a>",
+    "score": 2,
+    "reason": "人类打字习惯与token计数的分析，与agentic SE无直接关联，信息密度不明"
+  },
+  {
+    "source": "hackernews",
+    "title": "AI is breaking two vulnerability cultures",
+    "url": "https://www.jefftk.com/p/ai-is-breaking-two-vulnerability-cultures",
+    "published": "Fri, 08 May 2026 17:55:08 +0000",
+    "published_iso": "2026-05-08T17:55:08+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48066524\">Comments</a>",
+    "score": 2,
+    "reason": "讨论 AI 对漏洞披露文化的影响，属安全/政策讨论，与 agentic SE 无直接关联"
+  },
+  {
+    "source": "hackernews",
+    "title": "You gave me a u32. I gave you root. (io_uring ZCRX freelist LPE)",
+    "url": "https://ze3tar.github.io/post-zcrx.html",
+    "published": "Fri, 08 May 2026 19:40:39 +0000",
+    "published_iso": "2026-05-08T19:40:39+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48067734\">Comments</a>",
+    "score": 2,
+    "reason": "Linux 内核 io_uring 提权漏洞，安全研究向，与 agentic SE 无直接关联"
+  },
+  {
+    "source": "latent-space",
+    "title": "[AINews] Anthropic growing 10x/year while everyone else is laying off >10% of their workforce",
+    "url": "https://www.latent.space/p/ainews-anthropic-growing-10xyear",
+    "published": "Sat, 09 May 2026 01:08:28 GMT",
+    "published_iso": "2026-05-09T01:08:28+00:00",
+    "summary": "A quiet day lets us reflect on an interesting dichotomy in the economy.",
+    "score": 2,
+    "reason": "Anthropic增长与裁员对比，属商业/融资动态，与agentic SE工程实践无直接关联"
+  },
+  {
+    "source": "openai",
+    "title": "How ChatGPT learns about the world while protecting privacy",
+    "url": "https://openai.com/index/how-chatgpt-protects-privacy",
+    "published": "Wed, 06 May 2026 08:00:00 GMT",
+    "published_iso": "2026-05-06T08:00:00+00:00",
+    "summary": "Learn how ChatGPT safeguards your privacy, reduces personal data in training, and gives you control over whether your conversations improve AI models.",
+    "score": 1,
+    "reason": "ChatGPT 隐私政策说明，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Wi is Fi: Understanding Wi-Fi 4/5/6/6E/7/8 (802.11 n/AC/ax/be/bn)",
+    "url": "https://www.wiisfi.com/",
+    "published": "Wed, 06 May 2026 16:01:50 +0000",
+    "published_iso": "2026-05-06T16:01:50+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48037760\">Comments</a>",
+    "score": 1,
+    "reason": "Wi-Fi 标准科普，与 agentic software engineering 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Bitter Lessons from the ISSpresso",
+    "url": "https://mceglowski.substack.com/p/bitter-lessons-from-the-isspresso",
+    "published": "Wed, 06 May 2026 19:09:29 +0000",
+    "published_iso": "2026-05-06T19:09:29+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48040306\">Comments</a>",
+    "score": 1,
+    "reason": "关于国际空间站咖啡机的文章，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Light without electricity? Glowing algae could make it possible",
+    "url": "https://www.colorado.edu/today/2026/05/06/light-without-electricity-glowing-algae-could-make-it-possible",
+    "published": "Wed, 06 May 2026 19:21:34 +0000",
+    "published_iso": "2026-05-06T19:21:34+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48040470\">Comments</a>",
+    "score": 1,
+    "reason": "发光藻类照明研究，与 agentic SE 完全无关"
+  },
+  {
+    "source": "openai",
+    "title": "Testing ads in ChatGPT",
+    "url": "https://openai.com/index/testing-ads-in-chatgpt",
+    "published": "Thu, 07 May 2026 00:00:00 GMT",
+    "published_iso": "2026-05-07T00:00:00+00:00",
+    "summary": "OpenAI begins testing ads in ChatGPT to support free access, with clear labeling, answer independence, strong privacy protections, and user control.",
+    "score": 1,
+    "reason": "ChatGPT 广告商业化策略，与 agentic SE 无关"
+  },
+  {
+    "source": "openai",
+    "title": "Introducing Trusted Contact in ChatGPT",
+    "url": "https://openai.com/index/introducing-trusted-contact-in-chatgpt",
+    "published": "Thu, 07 May 2026 00:00:00 GMT",
+    "published_iso": "2026-05-07T00:00:00+00:00",
+    "summary": "Introducing Trusted Contact in ChatGPT, an optional safety feature that notifies someone you trust if serious self-harm concerns are detected.",
+    "score": 1,
+    "reason": "ChatGPT 安全功能，与 agentic software engineering 无关"
+  },
+  {
+    "source": "latent-space",
+    "title": "[AINews] Anthropic-SpaceXai's 300MW/$5B/yr deal for Colossus I, ARR growth is 8000% annualized",
+    "url": "https://www.latent.space/p/ainews-anthropic-spacexais-300mw5byr",
+    "published": "Thu, 07 May 2026 05:57:14 GMT",
+    "published_iso": "2026-05-07T05:57:14+00:00",
+    "summary": "And the kingmaker picks a side.",
+    "score": 1,
+    "reason": "AI 商业/基础设施投资新闻，与 agentic SE 实践无直接关联"
+  },
+  {
+    "source": "hackernews",
+    "title": "Mythical Man Month",
+    "url": "https://martinfowler.com/bliki/MythicalManMonth.html",
+    "published": "Thu, 07 May 2026 07:20:55 +0000",
+    "published_iso": "2026-05-07T07:20:55+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48046436\">Comments</a>",
+    "score": 1,
+    "reason": "经典软工书籍讨论，与 agentic SE 无直接关联"
+  },
+  {
+    "source": "simonwillison",
+    "title": "GitHub Repo Stats",
+    "url": "https://simonwillison.net/2026/May/7/github-repo-stats/#atom-everything",
+    "published": "2026-05-07T07:25:14+00:00",
+    "published_iso": "2026-05-07T07:25:14+00:00",
+    "summary": "<p><strong>Tool:</strong> <a href=\"https://tools.simonwillison.net/github-repo-stats\">GitHub Repo Stats</a></p>\n        <p>One of the things I always look for when evaluating a new GitHub repository is the number of commits it has... but that number isn't visible on GitHub's mobile site layout. I built this tool to fix that, using this prompt:</p>\n<blockquote>\n<p><code>Given a GitHub repo URL or foo/bar repo ID show information about that repo absorbed via wither REST or graphql CORS fetch() including the number of commits in the repo and other useful stats</code></p>\n</blockquote>\n<p>Example output for <a href=\"https://tools.simonwillison.net/github-repo-stats?repo=simonw%2Fdatasette\">simonw/datasette</a> and <a href=\"https://tools.simonwillison.net/github-repo-stats?repo=simonw%2Fllm\">simonw/llm</a>.</p>\n    \n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/github\">github</a></p>",
+    "score": 1,
+    "reason": "Simon 做的 GitHub 小工具，与 agentic SE 无关"
+  },
+  {
+    "source": "openai",
+    "title": "Advancing voice intelligence with new models in the API",
+    "url": "https://openai.com/index/advancing-voice-intelligence-with-new-models-in-the-api",
+    "published": "Thu, 07 May 2026 10:00:00 GMT",
+    "published_iso": "2026-05-07T10:00:00+00:00",
+    "summary": "Explore new realtime voice models in the OpenAI API that can reason, translate, and transcribe speech, enabling more natural and intelligent voice experiences.",
+    "score": 1,
+    "reason": "语音模型 API 更新，属多模态生成方向，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Looking at the data behind prediction markets",
+    "url": "https://asteriskmag.com/issues/14/are-prediction-markets-good-for-anything",
+    "published": "Thu, 07 May 2026 13:12:39 +0000",
+    "published_iso": "2026-05-07T13:12:39+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48049014\">Comments</a>",
+    "score": 1,
+    "reason": "预测市场数据分析，与 agentic software engineering 无关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Big Words",
+    "url": "https://simonwillison.net/2026/May/7/big-words/#atom-everything",
+    "published": "2026-05-07T18:47:09+00:00",
+    "published_iso": "2026-05-07T18:47:09+00:00",
+    "summary": "<p><strong>Tool:</strong> <a href=\"https://tools.simonwillison.net/big-words\">Big Words</a></p>\n        <p>I'm using my <a href=\"https://simonwillison.net/2026/Feb/25/present/\">vibe coded macOS presentations tool</a> to put together a talk, and I wanted to add a slide with some text on it. The tool only accepts URLs, so I <a href=\"https://github.com/simonw/tools/pull/279\">put together</a> a quick page that accepts query string arguments and turns them into a simple slide.</p>\n<p>Here's an example: <a href=\"https://tools.simonwillison.net/big-words?text=simonwillison.net&amp;gradient=1&amp;size=9.5\">https://tools.simonwillison.net/big-words?text=simonwillison.net&amp;gradient=1&amp;size=9.5</a></p>\n<p>Double click or double tap the page to access a form for modifying the different options.</p>\n<p><img alt=\"Screenshot of a slide editing tool showing a slide on the left with &quot;simonwillison.net&quot; in heavy white sans-serif text on a black-to-blue gradient background, and a &quot;Slide settings&quot; panel on the right with: TEXT field containing &quot;simonwillison.net&quot;, TEXT COLOR white, BACKGROUND black, &quot;Use gradient background&quot; checked, SECOND COLOR blue, ANGLE 135°, FONT &quot;System sans-seri&quot;, WEIGHT &quot;Heavy&quot;, SIZE 9.5vmin, unchecked Italic / Uppercase / Drop shadow checkboxes, and Reset and Save URL buttons.\" src=\"https://static.simonwillison.net/static/2026/big-words.jpg\" /></p>\n    \n    \n        <p>Tags: <a href=\"https://simonwillison.net/tags/vibe-coding\">vibe-coding</a>, <a href=\"https://simonwillison.net/tags/tools\">tools</a></p>",
+    "score": 1,
+    "reason": "Simon 个人小工具页面，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Ask HN: We just had an actual UUID v4 collision...",
+    "url": "https://news.ycombinator.com/item?id=48060054",
+    "published": "Fri, 08 May 2026 07:57:14 +0000",
+    "published_iso": "2026-05-08T07:57:14+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48060054\">Comments</a>",
+    "score": 1,
+    "reason": "UUID碰撞讨论属通用工程话题，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "An Introduction to Meshtastic",
+    "url": "https://meshtastic.org/docs/introduction/",
+    "published": "Fri, 08 May 2026 11:22:11 +0000",
+    "published_iso": "2026-05-08T11:22:11+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48061566\">Comments</a>",
+    "score": 1,
+    "reason": "Meshtastic 是 mesh 网络通信项目，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "David Attenborough's 100th Birthday",
+    "url": "https://www.bbc.com/news/articles/cp3pww9g0p5o",
+    "published": "Fri, 08 May 2026 12:03:26 +0000",
+    "published_iso": "2026-05-08T12:03:26+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48061884\">Comments</a>",
+    "score": 1,
+    "reason": "David Attenborough 百岁生日，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "US Government releases first batch of UAP documents and videos",
+    "url": "https://www.war.gov/UFO/",
+    "published": "Fri, 08 May 2026 12:10:25 +0000",
+    "published_iso": "2026-05-08T12:10:25+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48061938\">Comments</a>",
+    "score": 1,
+    "reason": "美国政府公布UAP文件，与agentic软件工程完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Poland is now among the 20 largest economies",
+    "url": "https://apnews.com/article/poland-economy-growth-g20-gdp-26fe06e120398410f8d773ba5661e7aa",
+    "published": "Fri, 08 May 2026 12:30:05 +0000",
+    "published_iso": "2026-05-08T12:30:05+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48062117\">Comments</a>",
+    "score": 1,
+    "reason": "波兰经济排名新闻，与 agentic SE 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "PC Engine CPU",
+    "url": "https://jsgroth.dev/blog/posts/pc-engine-cpu/",
+    "published": "Fri, 08 May 2026 14:14:31 +0000",
+    "published_iso": "2026-05-08T14:14:31+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48063521\">Comments</a>",
+    "score": 1,
+    "reason": "PC Engine CPU 技术文章，与 agentic SE 完全无关"
+  },
+  {
+    "source": "github",
+    "title": "How researchers are using GitHub Innovation Graph data to reveal the “digital complexity” of nations",
+    "url": "https://github.blog/news-insights/policy-news-and-insights/how-researchers-are-using-github-innovation-graph-data-to-reveal-the-digital-complexity-of-nations/",
+    "published": "Fri, 08 May 2026 15:00:00 +0000",
+    "published_iso": "2026-05-08T15:00:00+00:00",
+    "summary": "<p>Researchers share in an interview how they used GitHub data to predict GDP, inequality, and emissions in ways that traditional economic data misses, along with our Q4 2025 data release.</p>\n<p>The post <a href=\"https://github.blog/news-insights/policy-news-and-insights/how-researchers-are-using-github-innovation-graph-data-to-reveal-the-digital-complexity-of-nations/\">How researchers are using GitHub Innovation Graph data to reveal the “digital complexity” of nations</a> appeared first on <a href=\"https://github.blog\">The GitHub Blog</a>.</p>",
+    "score": 1,
+    "reason": "经济学研究用 GitHub 数据预测 GDP，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Serving a website on a Raspberry Pi Zero running in RAM",
+    "url": "https://btxx.org/posts/memory/",
+    "published": "Fri, 08 May 2026 15:10:35 +0000",
+    "published_iso": "2026-05-08T15:10:35+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48064312\">Comments</a>",
+    "score": 1,
+    "reason": "树莓派建站项目，与 agentic software engineering 完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Cartoon Network Flash Games",
+    "url": "https://www.webdesignmuseum.org/flash-game-exhibitions/cartoon-network-flash-games",
+    "published": "Fri, 08 May 2026 16:29:52 +0000",
+    "published_iso": "2026-05-08T16:29:52+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48065360\">Comments</a>",
+    "score": 1,
+    "reason": "Cartoon Network Flash 游戏怀旧展，与 agentic SE 完全无关"
+  },
+  {
+    "source": "github",
+    "title": "Why age assurance laws matter for developers",
+    "url": "https://github.blog/news-insights/policy-news-and-insights/why-age-assurance-laws-matter-for-developers/",
+    "published": "Fri, 08 May 2026 16:30:00 +0000",
+    "published_iso": "2026-05-08T16:30:00+00:00",
+    "summary": "<p>Youth safety requirements are moving down the tech stack to operating systems and app stores—raising new questions for open source developers. </p>\n<p>The post <a href=\"https://github.blog/news-insights/policy-news-and-insights/why-age-assurance-laws-matter-for-developers/\">Why age assurance laws matter for developers</a> appeared first on <a href=\"https://github.blog\">The GitHub Blog</a>.</p>",
+    "score": 1,
+    "reason": "AI 政策/青少年安全法规讨论，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "How do I deal with memory leaks? (2022)",
+    "url": "https://www.stroustrup.com/bs_faq2.html#memory-leaks",
+    "published": "Fri, 08 May 2026 17:06:59 +0000",
+    "published_iso": "2026-05-08T17:06:59+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48065916\">Comments</a>",
+    "score": 1,
+    "reason": "2022年C++内存泄漏FAQ，与agentic SE完全无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Google broke reCAPTCHA for de-googled Android users",
+    "url": "https://reclaimthenet.org/google-broke-recaptcha-for-de-googled-android-users",
+    "published": "Fri, 08 May 2026 18:45:58 +0000",
+    "published_iso": "2026-05-08T18:45:58+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48067119\">Comments</a>",
+    "score": 1,
+    "reason": "Google reCAPTCHA 与去 Google 化 Android 的兼容问题，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "My first in-prod corrupted hard drive problem",
+    "url": "https://blog.pavementlink.ch/2026/05/07/my-first-corrupted-hard-drive-problem/",
+    "published": "Fri, 08 May 2026 19:35:36 +0000",
+    "published_iso": "2026-05-08T19:35:36+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48067686\">Comments</a>",
+    "score": 1,
+    "reason": "硬盘损坏排障经历，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "When is your birthday? The math behind hash collisions",
+    "url": "https://0xkrt26.github.io/math_behind_security/2026/05/08/birthday-problem.html",
+    "published": "Fri, 08 May 2026 20:18:39 +0000",
+    "published_iso": "2026-05-08T20:18:39+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48068254\">Comments</a>",
+    "score": 1,
+    "reason": "密码学基础科普（生日悖论），与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Mux (YC W16) Is Hiring",
+    "url": "https://www.mux.com/jobs",
+    "published": "Fri, 08 May 2026 21:02:32 +0000",
+    "published_iso": "2026-05-08T21:02:32+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48068732\">Comments</a>",
+    "score": 1,
+    "reason": "招聘动态，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Non-determinism is an issue with patching CVEs",
+    "url": "https://flox.dev/blog/achieving-rapid-cve-remediation-in-an-era-of-escalating-vulnerabilities/",
+    "published": "Fri, 08 May 2026 21:23:07 +0000",
+    "published_iso": "2026-05-08T21:23:07+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48068947\">Comments</a>",
+    "score": 1,
+    "reason": "CVE 补丁的非确定性问题，属通用安全/包管理话题，与 agentic SE 无关"
+  },
+  {
+    "source": "hackernews",
+    "title": "Meta Shuts Down End-to-End Encryption for Instagram Messaging",
+    "url": "https://www.pcmag.com/news/meta-shuts-down-end-to-end-encryption-for-instagram-dms-messaging",
+    "published": "Fri, 08 May 2026 21:47:47 +0000",
+    "published_iso": "2026-05-08T21:47:47+00:00",
+    "summary": "<a href=\"https://news.ycombinator.com/item?id=48069192\">Comments</a>",
+    "score": 1,
+    "reason": "Meta 关闭 Instagram 端到端加密，与 agentic SE 无关"
+  },
+  {
+    "source": "simonwillison",
+    "title": "Quoting Luke Curley",
+    "url": "https://simonwillison.net/2026/May/9/luke-curley/#atom-everything",
+    "published": "2026-05-09T01:03:58+00:00",
+    "published_iso": "2026-05-09T01:03:58+00:00",
+    "summary": "<blockquote cite=\"https://moq.dev/blog/webrtc-is-the-problem/\"><p>WebRTC is designed to <strong>degrade and drop my prompt</strong> during poor network conditions.</p>\n<p>wtf my dude</p>\n<p>WebRTC aggressively drops audio packets to keep latency low. If you’ve ever heard distorted audio on a conference call, that’s WebRTC baybee. The idea is that conference calls depend on rapid back-and-forth, so pausing to wait for audio is unacceptable.</p>\n<p>…but as a user, I would much rather wait an extra 200ms for my slow/expensive prompt to be accurate. After all, I’m paying good money to boil the ocean, and a garbage prompt means a garbage response. It’s not like LLMs are particularly responsive anyway.</p>\n<p><strong>But I’m not allowed to wait</strong>. It’s <em>impossible</em> to even retransmit a WebRTC audio packet within a browser; we tried at Discord. The <em>implementation</em> is hard-coded for real-time latency <strong>or else</strong>.</p></blockquote>\n<p class=\"cite\">&mdash; <a href=\"https://moq.dev/blog/webrtc-is-the-problem/\">Luke Curley</a>, OpenAI’s WebRTC Problem, in response to <a href=\"https://openai.com/index/delivering-low-latency-voice-ai-at-scale/\">How OpenAI delivers low-latency voice AI at scale</a></p>\n\n    <p>Tags: <a href=\"https://simonwillison.net/tags/webrtc\">webrtc</a>, <a href=\"https://simonwillison.net/tags/openai\">openai</a></p>",
+    "score": 1,
+    "reason": "WebRTC 与语音延迟讨论，与 agentic SE 无关"
+  }
+]
