@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Brief 2026-05-02 &mdash; DeepDive Boris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0d1117;
+  --bg-soft: #161b22;
+  --bg-deeper: #0a0d12;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --fg: #f0f6fc;
+  --fg-soft: #c9d1d9;
+  --fg-muted: #8b949e;
+  --fg-dim: #6e7681;
+  --accent: #39d353;
+  --accent-soft: rgba(57, 211, 83, 0.12);
+  --critique: #d29922;
+  --critique-soft: rgba(210, 153, 34, 0.08);
+  --link: #58a6ff;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --sidebar-w: 196px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--fg-soft);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(57,211,83,0.035), transparent 70%);
+  background-attachment: fixed;
+}
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(13,17,23,0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  font-family: var(--mono); font-size: 13px;
+}
+.topbar-inner {
+  max-width: 1280px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { color: var(--fg); font-weight: 600; }
+.brand .prompt { color: var(--accent); margin-right: 6px; }
+.brand .path { color: var(--fg-muted); }
+.brand .cursor { display: inline-block; width: 8px; height: 14px; background: var(--accent); margin-left: 4px; vertical-align: middle; animation: blink 1.1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.top-meta { display: flex; gap: 18px; color: var(--fg-dim); font-size: 11.5px; }
+.top-meta .ok { color: var(--accent); }
+.layout {
+  max-width: 1280px; margin: 0 auto;
+  display: grid; grid-template-columns: var(--sidebar-w) 1fr;
+  gap: 0; min-height: calc(100vh - 50px);
+}
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static !important; max-height: 240px; overflow-y: auto; border-right: 0 !important; border-bottom: 1px solid var(--border); }
+}
+.sidebar {
+  position: sticky; top: 50px;
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  padding: 20px 10px 18px 14px;
+  font-family: var(--mono);
+  display: flex; flex-direction: column;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar-title { font-size: 10.5px; color: var(--fg-muted); letter-spacing: 0.14em; margin-bottom: 10px; padding-left: 10px; }
+.sidebar-list { list-style: none; flex: 1; }
+.sb-item {
+  display: flex; align-items: baseline; justify-content: space-between;
+  text-decoration: none; color: var(--accent);
+  padding: 5px 10px; border-left: 2px solid transparent;
+  font-size: 12px; transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.sb-item:hover { background: var(--bg-soft); border-left-color: var(--border); }
+.sb-item.active { background: var(--bg-soft); border-left-color: var(--accent); color: var(--fg); font-weight: 500; }
+.sb-item .stats { font-size: 10px; color: var(--fg-dim); }
+.sb-item.active .stats { color: var(--fg-muted); }
+.sb-footer {
+  margin-top: 12px; padding: 10px; font-size: 10px; color: var(--fg-dim); line-height: 1.6;
+  border-top: 1px dashed var(--border-soft);
+}
+.sb-footer .ok { color: var(--accent); }
+.content { padding: 36px 36px 80px; max-width: 920px; width: 100%; }
+@media (max-width: 600px) { .content { padding: 28px 22px 60px; } }
+.article-head {
+  background: var(--bg-soft); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px 26px; margin-bottom: 36px; position: relative;
+}
+.article-head::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px; background: var(--accent); border-radius: 2px 0 0 2px;
+}
+.ah-eyebrow { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.05em; }
+.article-head h1 { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; margin-bottom: 12px; line-height: 1.25; }
+.ah-summary { color: var(--fg-soft); font-size: 14.5px; }
+.ah-stats { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); margin-top: 10px; }
+.ah-stats span { color: var(--accent); }
+.section { margin: 40px 0; }
+.section-h {
+  font-family: var(--mono); font-size: 18px; font-weight: 600;
+  color: var(--fg); margin-bottom: 16px; line-height: 1.4;
+}
+.section-h .marker { color: var(--accent); margin-right: 10px; }
+.section-body { color: var(--fg-soft); font-size: 14.8px; margin-bottom: 18px; line-height: 1.7; }
+.primary-source { font-family: var(--mono); font-size: 12.5px; margin: 10px 0 12px; }
+.primary-source::before { content: '\2514\2500 \6765\6E90:  '; color: var(--fg-dim); }
+.primary-source a { color: var(--link); text-decoration: none; border-bottom: 1px dotted var(--link); }
+.primary-source a:hover { background: rgba(88,166,255,0.1); }
+details.related {
+  background: var(--bg-deeper); border: 1px solid var(--border-soft);
+  border-radius: 6px; margin-bottom: 12px; font-family: var(--mono); font-size: 12px;
+  transition: border-color 0.12s;
+}
+details.related:hover { border-color: var(--border); }
+details.related[open] { padding-bottom: 12px; }
+details.related summary {
+  cursor: pointer; list-style: none; padding: 10px 16px;
+  color: var(--fg-muted); user-select: none;
+  display: flex; align-items: center; gap: 10px; transition: color 0.12s;
+}
+details.related summary::-webkit-details-marker { display: none; }
+details.related summary::before {
+  content: '\25B8'; color: var(--accent); font-size: 11px;
+  transition: transform 0.18s ease; display: inline-block; width: 12px;
+}
+details.related[open] summary::before { transform: rotate(90deg); }
+details.related summary:hover { color: var(--fg-soft); }
+details.related summary .count {
+  color: var(--accent); font-weight: 500; background: var(--accent-soft);
+  padding: 1px 7px; border-radius: 3px; font-size: 11px;
+}
+details.related summary .label { color: var(--fg-dim); font-style: italic; margin-left: -2px; }
+details.related ul { list-style: none; padding: 4px 16px 0 32px; }
+details.related li { padding: 5px 0; color: var(--fg-muted); display: flex; align-items: baseline; gap: 8px; }
+details.related li::before { content: '\00B7'; color: var(--accent); }
+details.related li a {
+  color: var(--link); text-decoration: none; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-bottom: 1px dotted transparent;
+}
+details.related li a:hover { border-bottom-color: var(--link); }
+.dashed-div { margin: 10px 0 14px; border-top: 1px dashed var(--border-soft); }
+.critique-block {
+  background: var(--critique-soft); border-left: 3px solid var(--critique);
+  border-radius: 0 6px 6px 0; padding: 16px 22px; margin: 0 0 12px;
+}
+.critique-h {
+  font-family: var(--mono); font-size: 14px; color: var(--critique);
+  font-weight: 600; margin-bottom: 14px; letter-spacing: 0.02em;
+}
+.critique-h::before { content: '\2694  '; }
+.quote-box {
+  background: var(--bg-deeper); border: 1px solid var(--border-soft);
+  border-radius: 4px; padding: 12px 16px; margin-bottom: 14px;
+}
+.quote-label { font-family: var(--mono); font-size: 10.5px; color: var(--fg-dim); letter-spacing: 0.06em; margin-bottom: 6px; }
+.quote-text { font-family: var(--mono); font-size: 13.5px; color: var(--fg-soft); line-height: 1.6; }
+.analysis-label { font-family: var(--mono); font-size: 10.5px; color: var(--critique); letter-spacing: 0.06em; margin-bottom: 8px; }
+.analysis-body { font-size: 14.5px; color: var(--fg-soft); line-height: 1.7; }
+.section-hr {
+  margin: 48px 0 36px; height: 32px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.section-hr::before, .section-hr::after {
+  content: ''; position: absolute; top: 50%; height: 0;
+  border-top: 2px solid var(--border); width: calc(50% - 60px);
+}
+.section-hr::before { left: 0; }
+.section-hr::after { right: 0; }
+.section-hr-tag {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 6px 18px; font-family: var(--mono); font-size: 12.5px;
+  color: var(--fg); font-weight: 600; letter-spacing: 0.12em; z-index: 1;
+  box-shadow: 0 0 0 4px var(--bg);
+}
+.section-hr-tag .marker { color: var(--accent); margin-right: 6px; }
+.secondary-h {
+  font-family: var(--mono); font-size: 17px; color: var(--fg); font-weight: 600; margin: 64px 0 12px;
+}
+.secondary-h::before { content: '## '; color: var(--accent); }
+.secondary-lede { font-size: 13px; color: var(--fg-muted); margin-bottom: 18px; }
+.secondary { list-style: none; }
+.secondary li {
+  padding: 10px 0 10px 16px; border-bottom: 1px dashed var(--border-soft);
+  font-size: 14px; position: relative;
+}
+.secondary li::before { content: '\2022'; color: var(--accent); position: absolute; left: 0; font-family: var(--mono); }
+.secondary li:last-child { border-bottom: 0; }
+.secondary a { color: var(--link); text-decoration: none; border-bottom: 1px dotted rgba(88,166,255,0.4); }
+.secondary a:hover { border-bottom-color: var(--link); background: rgba(88,166,255,0.08); }
+.observation { margin: 48px 0 0; padding: 20px 24px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; }
+.observation-h { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 10px; letter-spacing: 0.05em; }
+.observation-body { font-size: 14.5px; color: var(--fg-soft); line-height: 1.7; }
+.footer {
+  margin-top: 64px; padding-top: 24px;
+  border-top: 1px dashed var(--border);
+  font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+  display: flex; justify-content: space-between;
+}
+.footer a { color: var(--critique); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs/2026-05-02</span><span class="cursor"></span></div>
+    <div class="top-meta">
+      <span><span class="ok">&#9679;</span>  sources</span>
+      <span>scanned  items</span>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-title">DAILY BRIEFS</div>
+    <ul class="sidebar-list">
+      <li><a class="sb-item active" href="#">2026-05-02</a></li>
+      <li><a class="sb-item" href="2026-05-01.html">2026-05-01</a></li>
+      <li><a class="sb-item" href="2026-04-26.html">2026-04-26</a></li>
+    </ul>
+    <div class="sb-footer">
+      <span class="ok">&#9679;</span> auto-build via gh-actions
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <header class="article-head">
+      <div class="ah-eyebrow">brief/2026-05-02.md &middot; agentic-software-engineering</div>
+      <h1>Daily Brief &mdash; 2026-05-02</h1>
+      <div class="ah-summary">
+        从 Agent Harness 层与范式层出发，梳理 Agentic AI 时代端到端安全可做的创新探索方向，为安全团队提供可落地的课题建议。
+        <div class="ah-stats">sources=<span></span> &middot; scanned=<span></span> &middot; selected=<span></span></div>
+      </div>
+    </header>
+
+<blockquote style="border-left:3px solid var(--accent);padding:10px 18px;margin:12px 0;color:var(--fg-soft);font-size:14px;background:var(--accent-soft);border-radius:0 6px 6px 0;">
+<p style="margin:4px 0;">从 Agent Harness 层与范式层出发，梳理 Agentic AI 时代端到端安全可做的创新探索方向，为安全团队提供可落地的课题建议。</p>
+<p style="margin:4px 0;">数据源：Hacker News / 已扫条目：15 / 入选条目：15</p>
+</blockquote>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">一、背景：为什么现在要在 Agent/Harness 层做安全</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">当前社区正在从&quot;人写代码、AI 辅助&quot;快速切换到&quot;Agent 自主执行、人做审查&quot;的范式。本次采集的 15 条信号中，至少涉及 <strong>Agent Harness 框架</strong>（Pu.sh、Dirac、Omar）、<strong>桌面/终端自动化</strong>（agent-desktop、Loopsy）、<strong>跨机器 Agent 通信</strong>、<strong>大规模 Agent 调度</strong>等多个层面。与此同时，安全问题已经在真实场景中暴露：</p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>Claude Code 的恶意软件提醒机制导致子 Agent 拒绝执行（251 分高热度），说明 <strong>Agent 内部信任链与策略传播</strong> 已经是生产级痛点。</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>Agent 自主发现 GKE WireGuard 网络 Bug，意味着 Agent 具备了探测基础设施漏洞的能力——这把双刃剑的安全面需要被认真对待。</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>400 行 Shell 就能搭出一个完整 coding-agent harness（Pu.sh，89 分），说明 <strong>harness 层的攻击面极低门槛、极易扩散</strong>。</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">这些信号共同指向一个结论：<strong>安全团队现在介入 Agent/Harness 层，时机恰好，且有大量未被系统性覆盖的课题空间。</strong></p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">二、端到端安全攻击面地图</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">基于采集数据，将 Agentic AI 的端到端链路拆解为五层，每层标注已观察到的安全风险信号：</p>
+<div style="overflow-x:auto;margin:16px 0;"><table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+<thead><tr>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">层次</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">典型组件</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">本次数据中的风险信号</th>
+</tr></thead><tbody>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);"><strong>范式/协议层</strong></td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">AGENTS.md、Agent 通信协议</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">Claude Code 不支持 AGENTS.md，协议碎片化导致策略无法统一下发</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);"><strong>Harness/编排层</strong></td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">Pu.sh、Dirac、Omar</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">400 行 Shell 即可构建 harness，缺乏沙箱与权限隔离</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);"><strong>执行/运行时层</strong></td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">桌面自动化、终端操作</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">agent-desktop 直接操作原生桌面 GUI，Loopsy 跨机器通信</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);"><strong>模型/推理层</strong></td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">LLM 本身的安全策略</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">恶意软件提醒导致子 Agent 级联拒绝（策略过杀与策略投毒）</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);"><strong>基础设施层</strong></td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">K8s、网络、存储</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">Agent 自主发现 GKE WireGuard Bug，大规模 Agent 服务的扩展性问题</td>
+</tr>
+</tbody></table></div>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">三、推荐探索课题（按优先级排序）</h2>
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">课题 1：Agent 信任链与策略传播安全</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>问题</strong>：当前 Agent 系统中，父 Agent 的安全策略如何传递给子 Agent 没有标准机制。Claude Code 的案例（恶意软件提醒在每次读取时触发，导致子 Agent 级联拒绝）暴露了策略传播的两个极端——过杀（合法操作被拒绝）和投毒（攻击者伪造策略让 Agent 放行恶意操作）。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>探索方向</strong>：</p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>设计 Agent 间策略传播的信任模型（类似 mTLS 但面向 Agent 语义层）</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>研究&quot;策略注入攻击&quot;：恶意文件内容能否篡改 Agent 的安全判断</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建策略一致性验证工具，确保子 Agent 不会因策略冲突而行为异常</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>关联信号</strong>：<a target="_blank" rel="noopener" href="https://github.com/anthropics/claude-code/issues/49363" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Regression: malware reminder on every read still causes subagent refusals</a>（251 分）、<a target="_blank" rel="noopener" href="https://github.com/anthropics/claude-code/issues/6235" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Claude Code still doesn&#x27;t support AGENTS.md</a></p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">课题 2：Harness 层沙箱与权限最小化</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>问题</strong>：Pu.sh 用 400 行 Shell 实现了完整的 coding-agent harness，Omar 可以同时管理 100 个 coding agent。这意味着 harness 层正在快速普及，但几乎没有内置的沙箱隔离和权限控制。一个被劫持的 Agent 可以通过 harness 获得宿主机的完整权限。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>探索方向</strong>：</p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>为主流 harness 框架设计轻量级沙箱方案（基于 seccomp/landlock/容器）</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>定义 Agent 操作的最小权限模型（文件系统、网络、进程）</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建 harness 层的安全基线检测工具（类似 CIS Benchmark 但面向 Agent harness）</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>关联信号</strong>：<a target="_blank" rel="noopener" href="https://pu.dev/" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Pu.sh – a full coding-agent harness in 400 lines of shell</a>（89 分）、<a target="_blank" rel="noopener" href="https://omar.tech" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Omar – A TUI for managing 100 coding agents</a>、<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2604.25850" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Agentic Harness Engineering</a></p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">课题 3：Agent 自主操作的审计与可观测性</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>问题</strong>：Agent 正在获得越来越强的自主操作能力——操作桌面 GUI、跨机器通信、自主调试基础设施。但目前缺乏统一的审计日志标准和实时可观测性方案，出了安全事件很难溯源。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>探索方向</strong>：</p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>设计 Agent 操作的结构化审计日志格式（who/what/when/why/with-what-permission）</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建 Agent 行为的异常检测系统（基于操作序列的偏离度）</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>研究&quot;Agent 操作回放&quot;能力，支持安全事件的事后取证</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>关联信号</strong>：<a target="_blank" rel="noopener" href="https://github.com/lahfir/agent-desktop" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Agent-desktop – Native desktop automation CLI for AI agents</a>（88 分）、<a target="_blank" rel="noopener" href="https://github.com/leox255/loopsy" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Loopsy, a way for terminals and AI agents on different machines to talk</a></p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">课题 4：Agent 间通信的认证与加密</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>问题</strong>：Loopsy 这类工具让不同机器上的 Agent 可以互相通信，但 Agent 间通信的认证和加密目前基本是空白。这打开了中间人攻击、Agent 冒充、指令注入等攻击面。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>探索方向</strong>：</p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>设计 Agent-to-Agent 的身份认证方案（Agent Identity）</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>研究 Agent 通信中的 Prompt Injection 风险（一个 Agent 通过通信内容操控另一个 Agent）</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建 Agent 通信的流量分析与入侵检测原型</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>关联信号</strong>：<a target="_blank" rel="noopener" href="https://github.com/leox255/loopsy" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Loopsy, a way for terminals and AI agents on different machines to talk</a>（53 分）</p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">课题 5：Agent 作为攻击工具的红蓝对抗</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>问题</strong>：Lovable 的 Agent 自主发现了 GKE 中 WireGuard 的网络 Bug。这证明 Agent 已经具备了自主漏洞发现能力。安全团队应该主动研究 Agent 作为攻击工具的能力边界，以便建立防御。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>探索方向</strong>：</p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建&quot;红队 Agent&quot;：让 Agent 自主对目标系统进行渗透测试</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>研究 Agent 在漏洞发现、利用链构造方面的能力上限</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>建立 Agent 攻击行为的特征库，用于蓝队检测</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>关联信号</strong>：<a target="_blank" rel="noopener" href="https://lovable.dev/blog/hunting-networking-bugs-in-kubernetes" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Our agent found a bug with WireGuard in Google Kubernetes Engine</a>（66 分）</p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h3 style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;">课题 6：大规模 Agent 服务的安全运维</h3>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>问题</strong>：智谱分享了 GLM-5 大规模 Agent 服务的扩展痛点。当 Agent 从单实例变成大规模集群服务时，安全运维面临新挑战：Agent 实例间的隔离、密钥管理、异常实例的快速熔断等。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>探索方向</strong>：</p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>研究大规模 Agent 集群的安全隔离架构</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>设计 Agent 实例级别的密钥轮转与最小权限凭证分发</li>
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>构建 Agent 集群的安全健康度监控面板</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;"><strong>关联信号</strong>：<a target="_blank" rel="noopener" href="https://z.ai/blog/scaling-pain" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Scaling Pain of Coding Agent Serving: Lessons from Debugging GLM-5 at Scale</a></p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">四、课题优先级矩阵</h2>
+<div style="overflow-x:auto;margin:16px 0;"><table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+<thead><tr>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">课题</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">紧迫性</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">创新空间</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">与现有工程的结合度</th>
+<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">建议启动时间</th>
+</tr></thead><tbody>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">1. 信任链与策略传播</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">立即</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">2. Harness 沙箱与权限</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">立即</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">3. 审计与可观测性</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">1-2 周内</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">4. Agent 间通信安全</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">1-2 周内</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">5. 红蓝对抗</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🔴 高</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">1 个月内</td>
+</tr>
+<tr>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">6. 大规模安全运维</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟢 低</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟡 中</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">🟢 低</td>
+<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">按需启动</td>
+</tr>
+</tbody></table></div>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">五、给安全团队的落地建议</h2>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">1. <strong>第一周</strong>：从课题 1 和课题 2 入手。让安全团队先复现 Claude Code 的子 Agent 策略拒绝问题，理解 Agent 信任链的现状；同时对你们现有工程中使用的 harness 做一次攻击面审计。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">2. <strong>第二周起</strong>：启动课题 3 和课题 4，为你们的 Agent 系统设计审计日志规范，并对 Agent 间通信做威胁建模。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">3. <strong>持续进行</strong>：课题 5 作为长期红蓝对抗能力建设，可以每个迭代投入固定时间。</p>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">4. <strong>一个关键原则</strong>：安全团队不应该只做&quot;防守&quot;，而应该深度参与 Agent/Harness 的架构设计。从这批数据看，安全问题往往是架构问题——策略传播是架构问题，权限隔离是架构问题，审计是架构问题。安全团队越早介入架构层，后续的修补成本越低。</p>
+<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">
+<h2 style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;">六、补充观察</h2>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><strong>Agentic 疲劳是真实的</strong>：社区已经出现&quot;Agentic coding is burning me out&quot;的声音，说明当前 Agent 工具链的人机交互设计还不成熟。安全团队在设计安全机制时要注意<strong>不要增加开发者的认知负担</strong>，否则安全机制会被绕过或关闭。</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">来源：<a target="_blank" rel="noopener" href="https://www.0xsid.com/blog/agentic-coding-fatigue" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Agentic coding is burning me out</a></p>
+<ul style="list-style:none;margin:10px 0;padding:0;">
+<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span><strong>Karpathy 提出的&quot;Agentic Engineering&quot;概念</strong>值得关注，它代表了从 vibe coding 到工程化的范式转变，安全应该是这个工程化过程中的一等公民。</li>
+</ul>
+<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">来源：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=96jN2OCOfLs" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">Andrej Karpathy: From Vibe Coding to Agentic Engineering</a></p>
+
+
+    <div class="footer">
+      <span>// DeepDive Boris &middot; agentic-se daily brief</span>
+      <span><a href="index.html">&larr; 全部报告</a></span>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

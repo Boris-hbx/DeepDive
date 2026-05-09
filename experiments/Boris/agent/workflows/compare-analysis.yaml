@@ -1,0 +1,29 @@
+name: compare-analysis
+description: 采集 A 和 B 的信息 → 结构化对比 → 综合结论
+match_hints:
+  - 对比
+  - 比较
+  - compare
+  - vs
+  - versus
+  - 区别
+  - 差异
+steps:
+  - name: plan
+    type: llm
+    description: 识别对比对象和对比维度
+  - name: fetch_a
+    type: tool
+    description: 采集对象 A 的数据
+  - name: fetch_b
+    type: tool
+    description: 采集对象 B 的数据
+  - name: compare
+    type: llm
+    description: 按维度结构化对比，输出矩阵
+  - name: blue_review
+    type: blue_agent
+    description: 蓝军挑战对比结论的公平性
+  - name: synthesize
+    type: llm
+    description: 综合结论 + 渲染报告

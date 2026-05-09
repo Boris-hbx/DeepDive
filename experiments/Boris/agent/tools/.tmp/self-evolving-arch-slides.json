@@ -1,0 +1,157 @@
+{
+  "title": "Self-Evolving Agent — 架构与系统流程",
+  "subtitle": "Boris · DeepDive Project · 2026-05-02 · 灵感来源：Live-SWE-agent 自进化思路",
+  "slides": [
+    {
+      "layout": "section",
+      "title": "01  Boris 工程总览",
+      "content": "DeepDive 洞察探索应用 · Boris 实验目录 · Agentic SE 每日信息采集与洞察生成"
+    },
+    {
+      "title": "Boris 工程总览 — 目录结构与数据",
+      "bullets": [
+        "agent/ — 自进化 Agent 核心代码（loop.py / reflect.py / tool_manager.py / prompts / tools）",
+        "config/ — 信息源配置 sources.yaml",
+        "daily-report/ — 洞察报告输出 (.md)",
+        "scripts/ — 构建脚本 md2html / build-pages",
+        "_site/ — 静态站点输出 GitHub Pages",
+        "当前状态：8 Tools · 3 Core Modules · 11 Reports · 1 Day Old"
+      ]
+    },
+    {
+      "layout": "section",
+      "title": "02  核心理念",
+      "content": "Agent 不只用工具，还能创造工具"
+    },
+    {
+      "title": "传统 Agent vs Self-Evolving Agent",
+      "bullets": [
+        "传统 Agent：固定工具集 → 遇到新任务类型时无能为力；人工编写每个工具 → 扩展慢",
+        "Self-Evolving Agent：动态工具库 → 遇到新模式自动生成工具；反思循环 → 识别可复用操作并沉淀",
+        "工具积累效应 → 越用越强",
+        "设计原则：单 Agent 单循环、轻量版本管理（archive/ 归档）、CLI 驱动 python -m agent \"任务\""
+      ]
+    },
+    {
+      "layout": "section",
+      "title": "03  分层架构",
+      "content": "从 LLM 到用户工程的 5 层架构"
+    },
+    {
+      "title": "分层架构图 — 5 层",
+      "bullets": [
+        "Layer 5 · USER PROJECT — DeepDive 应用 / experiments/Boris/ / daily-report / _site GitHub Pages",
+        "Layer 4 · SELF-EVOLVING AGENT — AgentLoop (loop.py) / Reflect (reflect.py) / ToolManager / Prompts",
+        "Layer 3 · DYNAMIC TOOL LIBRARY — fetch_hn / fetch_rss / search-web / search-arxiv / filter-by-date / +3 more",
+        "Layer 2 · LLM SERVICE — Claude Opus 4.6 / anthropic SDK / 4 种 LLM 调用模式",
+        "Layer 1 · EXTERNAL DATA SOURCES — Hacker News / RSS Feeds / DuckDuckGo / arXiv / Google News"
+      ]
+    },
+    {
+      "title": "模块关系图 — Agent 内部",
+      "bullets": [
+        "CLI Input (python -m agent) → AgentLoop (loop.py: plan → act → reflect)",
+        "AgentLoop → ToolManager (list/execute) + Reflect (assess + generate_tool)",
+        "Reflect → Tools Library (tools/ + registry.json, 8 tools, archive/)",
+        "AgentLoop + Reflect → Claude API (Opus 4.6, anthropic SDK)",
+        "AgentLoop → Daily Report (daily-report/*.md) + changelog.md"
+      ]
+    },
+    {
+      "layout": "section",
+      "title": "05  主循环流程",
+      "content": "Plan → Act → Reflect → Evolve → Report"
+    },
+    {
+      "title": "主循环：Plan → Act → Reflect → Evolve → Report",
+      "bullets": [
+        "1. Plan — LLM 分析任务，选择工具 + 生成步骤，输出 JSON {approach, steps}",
+        "2. Execute — 有匹配工具 → subprocess 调用；无匹配工具 → LLM 直接执行",
+        "3. Reflect — 评估执行结果，判断 need_new_tool?",
+        "4. Evolve — 生成/改进工具，写入 tools/ + 注册到 registry.json",
+        "5. Report — 生成洞察报告 .md → daily-report/",
+        "关键：新工具在下次循环自动可用（工具积累效应）"
+      ]
+    },
+    {
+      "title": "反思与自进化机制",
+      "bullets": [
+        "创建新工具条件：同样操作出现 2 次以上 / 当前步骤可复用 / 发现通用数据获取或处理模式",
+        "改进工具条件：现有工具暴露不足 / 新需求超出能力范围 / 旧版自动归档到 archive/",
+        "反思输出格式：{step_assessment, need_new_tool, tool_spec: {name, description, language, args}, reasoning}",
+        "工具生成流程：Reflect 判定 → Claude API (create_tool.md) → 语法校验 compile() 最多 3 次 → 写入 tools/ → 下次可用"
+      ]
+    },
+    {
+      "title": "工具生成流程 — 脚本约定与版本归档",
+      "bullets": [
+        "脚本约定：独立 Python 脚本 · CLI 参数 · stdout/stderr · 标准库优先 · if __name__ == '__main__'",
+        "版本归档：旧版 → archive/<name>/v{N}_{date}.py · 新版覆盖 · registry version +1",
+        "语法校验：compile() 验证 · 失败含错误信息重试 · 最多 3 次",
+        "自动发现：新工具写入 tools/ 并更新 registry.json 后，下次循环自动可用"
+      ]
+    },
+    {
+      "title": "当前工具库 — 8 个工具，1 天内自动演进",
+      "bullets": [
+        "fetch_hn (种子 v1, 20次) — HN 关键词搜索",
+        "fetch_rss (种子 v1, 1次) — RSS 订阅解析",
+        "filter-by-date (自动 v2, 5次) — 日期过滤含 Unix ts",
+        "fetch-url-text (自动 v1) — 网页正文抓取",
+        "search-web (自动 v1, 4次) — DuckDuckGo 搜索",
+        "search-web-news (自动 v1, 4次) — 多源新闻聚合",
+        "search-arxiv (自动 v1, 3次) — arXiv 论文搜索",
+        "batch-fetch-summarize (自动 v1, 1次) — 批量抓取+摘要",
+        "6/8 工具由 Agent 自动生成 (75%)"
+      ]
+    },
+    {
+      "title": "4 种 LLM 调用模式",
+      "bullets": [
+        "Plan — 任务 + 工具清单 → JSON 计划 (max_tokens: 1024)",
+        "Execute (LLM) — 无工具时 LLM 直接执行 (max_tokens: 4096, 输入: task + step + prev_output)",
+        "Reflect — 步骤结果 → 工具需求判断 (max_tokens: 1024, prompt: reflect.md)",
+        "Generate Tool — tool_spec → Python 脚本 (max_tokens: 4096, 3 retries, prompt: create_tool.md)",
+        "Report Generation — raw_data → 结构化中文洞察报告 (max_tokens: 4096)"
+      ]
+    },
+    {
+      "title": "演进时间线 — 2026-05-02 单日",
+      "bullets": [
+        "reflect: 复用 fetch_hn → 无需新工具，首次验证工具复用",
+        "create: filter-by-date → 识别\"日期过滤\"为通用模式",
+        "fix: filter-by-date v2 → 修复损坏实现 + 支持 Unix 时间戳",
+        "create: fetch-url-text → 需要读取原文正文写深度报告",
+        "create: search-web-news → HN 单一源覆盖不足",
+        "create: search-web → 通用搜索能力缺失",
+        "create: search-arxiv → 需要学术论文搜索",
+        "create: batch-fetch-summarize → 多源深度调研需求",
+        "reflect ×2: 工具链完备 → 无需新增，进入稳态"
+      ]
+    },
+    {
+      "layout": "section",
+      "title": "12  关键设计决策",
+      "content": "独立脚本 · JSON Registry · 反思执行分离 · 明确不做的事"
+    },
+    {
+      "title": "关键设计决策",
+      "bullets": [
+        "为什么用独立脚本？进程隔离（崩溃不影响 Agent）、语言无关、可独立测试、Unix 哲学 stdin/stdout/exit code",
+        "为什么用 JSON registry？人类可读 git 友好、无额外依赖、工具量级 O(10)、配合 changelog 完整审计",
+        "为什么反思和执行分离？执行关注\"做什么\"、反思关注\"学到什么\"、可独立调优 prompt、结果可追溯",
+        "明确不做：不做多 Agent 编排、不做工具沙箱隔离、不做自动部署、不做工具质量自动评估"
+      ]
+    },
+    {
+      "title": "Summary — Self-Evolving Agent = Plan + Act + Reflect + Evolve",
+      "bullets": [
+        "已验证：工具积累效应有效 · 1 天 2→8 工具 · 反思循环能识别可复用模式 · 端到端洞察报告可用",
+        "下一步：工具质量自动评估 · 多步反思（当前仅 1 轮）· 工具组合推荐 · Benchmark 对标",
+        "技术栈：Python 3.10+ · Claude Opus 4.6 · anthropic SDK · GitHub Pages",
+        "python -m agent \"你的任务\" — 就这么简单"
+      ],
+      "notes": "Self-Evolving Agent 架构总结。灵感来源：Live-SWE-agent 自进化思路。experiments/Boris/ · spec/003-self-evolving-agent.md"
+    }
+  ]
+}

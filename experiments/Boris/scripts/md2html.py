@@ -225,6 +225,135 @@ details.related li a:hover { border-bottom-color: var(--link); }
 """
 
 
+# ─── Generic Markdown → HTML fallback ─────────────────────────────────────────
+
+def md_to_html(text):
+    """Convert markdown to HTML using only stdlib. Handles headings, links,
+    bold, italic, lists, blockquotes, tables, horizontal rules, and code blocks."""
+    lines = text.split('\n')
+    out = []
+    in_code = False
+    in_ul = False
+    in_table = False
+    in_blockquote = False
+
+    def _inline(s):
+        s = escape(s)
+        s = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
+        s = re.sub(r'\*(.+?)\*', r'<em>\1</em>', s)
+        s = re.sub(r'`(.+?)`', r'<code style="background:var(--bg-deeper);padding:2px 6px;border-radius:3px;font-size:0.9em;">\1</code>', s)
+        s = re.sub(
+            r'\[([^\]]+)\]\(([^)]+)\)',
+            r'<a target="_blank" rel="noopener" href="\2" style="color:var(--link);text-decoration:none;border-bottom:1px dotted var(--link);">\1</a>',
+            s,
+        )
+        return s
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Code blocks
+        if stripped.startswith('```'):
+            if in_code:
+                out.append('</code></pre>')
+                in_code = False
+            else:
+                in_code = True
+                out.append('<pre style="background:var(--bg-deeper);border:1px solid var(--border-soft);border-radius:6px;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;margin:12px 0;"><code>')
+            continue
+        if in_code:
+            out.append(escape(line))
+            continue
+
+        # Close lists/tables/blockquotes if needed
+        if in_ul and not stripped.startswith('- '):
+            out.append('</ul>')
+            in_ul = False
+        if in_blockquote and not stripped.startswith('>'):
+            out.append('</blockquote>')
+            in_blockquote = False
+        if in_table and not stripped.startswith('|'):
+            out.append('</tbody></table></div>')
+            in_table = False
+
+        # Blank line
+        if not stripped:
+            continue
+
+        # Horizontal rule
+        if re.match(r'^-{3,}$', stripped):
+            out.append('<hr style="border:0;border-top:1px dashed var(--border-soft);margin:28px 0;">')
+            continue
+
+        # Headings
+        hm = re.match(r'^(#{1,4})\s+(.+)$', stripped)
+        if hm:
+            level = len(hm.group(1))
+            htxt = _inline(hm.group(2))
+            if level == 1:
+                continue  # skip h1, already in article-head
+            styles = {
+                2: 'font-family:var(--mono);font-size:18px;font-weight:600;color:var(--fg);margin:36px 0 14px;',
+                3: 'font-family:var(--mono);font-size:15px;font-weight:600;color:var(--fg);margin:24px 0 10px;',
+                4: 'font-family:var(--mono);font-size:13px;font-weight:600;color:var(--fg-soft);margin:18px 0 8px;',
+            }
+            out.append(f'<h{level} style="{styles.get(level, "")}">{htxt}</h{level}>')
+            continue
+
+        # Blockquote
+        if stripped.startswith('>'):
+            content = stripped.lstrip('>').strip()
+            if not in_blockquote:
+                out.append('<blockquote style="border-left:3px solid var(--accent);padding:10px 18px;margin:12px 0;color:var(--fg-soft);font-size:14px;background:var(--accent-soft);border-radius:0 6px 6px 0;">')
+                in_blockquote = True
+            if content:
+                out.append(f'<p style="margin:4px 0;">{_inline(content)}</p>')
+            continue
+
+        # Table
+        if stripped.startswith('|'):
+            cells = [c.strip() for c in stripped.split('|')[1:-1]]
+            if all(re.match(r'^[-:]+$', c) for c in cells):
+                continue  # separator row
+            if not in_table:
+                in_table = True
+                out.append('<div style="overflow-x:auto;margin:16px 0;"><table style="width:100%;border-collapse:collapse;font-size:13.5px;">')
+                out.append('<thead><tr>')
+                for c in cells:
+                    out.append(f'<th style="text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:12px;">{_inline(c)}</th>')
+                out.append('</tr></thead><tbody>')
+                continue
+            out.append('<tr>')
+            for c in cells:
+                out.append(f'<td style="padding:8px 14px;border-bottom:1px solid var(--border-soft);color:var(--fg-soft);">{_inline(c)}</td>')
+            out.append('</tr>')
+            continue
+
+        # Unordered list
+        if stripped.startswith('- '):
+            if not in_ul:
+                out.append('<ul style="list-style:none;margin:10px 0;padding:0;">')
+                in_ul = True
+            content = stripped[2:]
+            out.append(f'<li style="padding:6px 0 6px 16px;border-bottom:1px dashed var(--border-soft);font-size:14px;position:relative;"><span style="color:var(--accent);position:absolute;left:0;">•</span>{_inline(content)}</li>')
+            continue
+
+        # Regular paragraph
+        out.append(f'<p style="font-size:14.5px;color:var(--fg-soft);line-height:1.7;margin:10px 0;">{_inline(stripped)}</p>')
+
+    # Close any open blocks
+    if in_code:
+        out.append('</code></pre>')
+    if in_ul:
+        out.append('</ul>')
+    if in_blockquote:
+        out.append('</blockquote>')
+    if in_table:
+        out.append('</tbody></table></div>')
+
+    return '\n'.join(out)
+
+
 # ─── Parser ──────────────────────────────────────────────────────────────────
 
 def parse_report(text):
@@ -239,20 +368,25 @@ def parse_report(text):
         'secondary': [],
         'observation': '',
         'critiques': [],
+        'fallback_html': '',
     }
 
-    # Date
-    m = re.search(r'^# Daily Brief — (\d{4}-\d{2}-\d{2})', text, re.M)
+    # Date — try multiple heading patterns
+    m = re.search(r'^# .+?(\d{4}-\d{2}-\d{2})', text, re.M)
     if m:
         report['date'] = m.group(1)
 
-    # Summary line
-    m = re.search(r'^> 一句话摘要：(.+)$', text, re.M)
+    # Summary — try multiple patterns
+    m = re.search(r'^> 一句话摘要[：:](.+)$', text, re.M)
+    if not m:
+        m = re.search(r'^> (.+)$', text, re.M)
     if m:
         report['summary'] = m.group(1).strip()
 
-    # Stats line
-    m = re.search(r'数据源：(\d+)\s*个\s*/\s*已扫条目：(\d+)\s*/\s*入选条目：(\d+)', text)
+    # Stats line — try multiple patterns
+    m = re.search(r'数据源[：:]\s*(\d+)\s*个?\s*/\s*已扫条目[：:]\s*(\d+)\s*/\s*入选条目[：:]\s*(\d+)', text)
+    if not m:
+        m = re.search(r'[Ss]ources?[：:]\s*(\d+)\s*/\s*[Ss]canned[：:]\s*(\d+)\s*/\s*[Ss]elected[：:]\s*(\d+)', text)
     if m:
         report['sources_count'] = m.group(1)
         report['scanned_count'] = m.group(2)
@@ -272,6 +406,11 @@ def parse_report(text):
                 report['observation'] = lines[1].strip()
         elif section.startswith('蓝军反驳'):
             report['critiques'] = parse_critiques(section)
+
+    # Fallback: if structured parsing found nothing useful, render full markdown
+    has_content = report['top_stories'] or report['secondary'] or report['observation']
+    if not has_content:
+        report['fallback_html'] = md_to_html(text)
 
     return report
 
@@ -526,13 +665,13 @@ def render_html(report, report_dir):
       </div>
     </header>
 
-{stories_html}
-    <h2 class="secondary-h">值得一看的事</h2>
+{stories_html if not report["fallback_html"] else report["fallback_html"]}
+{f"""    <h2 class="secondary-h">值得一看的事</h2>
     <p class="secondary-lede">没进章节但值得一瞥的条目，按重要性排。</p>
     <ul class="secondary">
 {secondary_html}    </ul>
-
-{observation_html}
+""" if not report["fallback_html"] else ""}
+{observation_html if not report["fallback_html"] else ""}
     <div class="footer">
       <span>// DeepDive Boris &middot; agentic-se daily brief</span>
       <span><a href="index.html">&larr; 全部报告</a></span>

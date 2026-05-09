@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Brief 2026-04-26 &mdash; DeepDive Boris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0d1117;
+  --bg-soft: #161b22;
+  --bg-deeper: #0a0d12;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --fg: #f0f6fc;
+  --fg-soft: #c9d1d9;
+  --fg-muted: #8b949e;
+  --fg-dim: #6e7681;
+  --accent: #39d353;
+  --accent-soft: rgba(57, 211, 83, 0.12);
+  --critique: #d29922;
+  --critique-soft: rgba(210, 153, 34, 0.08);
+  --link: #58a6ff;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --sidebar-w: 196px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--fg-soft);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(57,211,83,0.035), transparent 70%);
+  background-attachment: fixed;
+}
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(13,17,23,0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  font-family: var(--mono); font-size: 13px;
+}
+.topbar-inner {
+  max-width: 1280px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { color: var(--fg); font-weight: 600; }
+.brand .prompt { color: var(--accent); margin-right: 6px; }
+.brand .path { color: var(--fg-muted); }
+.brand .cursor { display: inline-block; width: 8px; height: 14px; background: var(--accent); margin-left: 4px; vertical-align: middle; animation: blink 1.1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.top-meta { display: flex; gap: 18px; color: var(--fg-dim); font-size: 11.5px; }
+.top-meta .ok { color: var(--accent); }
+.layout {
+  max-width: 1280px; margin: 0 auto;
+  display: grid; grid-template-columns: var(--sidebar-w) 1fr;
+  gap: 0; min-height: calc(100vh - 50px);
+}
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static !important; max-height: 240px; overflow-y: auto; border-right: 0 !important; border-bottom: 1px solid var(--border); }
+}
+.sidebar {
+  position: sticky; top: 50px;
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  padding: 20px 10px 18px 14px;
+  font-family: var(--mono);
+  display: flex; flex-direction: column;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar-title { font-size: 10.5px; color: var(--fg-muted); letter-spacing: 0.14em; margin-bottom: 10px; padding-left: 10px; }
+.sidebar-list { list-style: none; flex: 1; }
+.sb-item {
+  display: flex; align-items: baseline; justify-content: space-between;
+  text-decoration: none; color: var(--accent);
+  padding: 5px 10px; border-left: 2px solid transparent;
+  font-size: 12px; transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.sb-item:hover { background: var(--bg-soft); border-left-color: var(--border); }
+.sb-item.active { background: var(--bg-soft); border-left-color: var(--accent); color: var(--fg); font-weight: 500; }
+.sb-item .stats { font-size: 10px; color: var(--fg-dim); }
+.sb-item.active .stats { color: var(--fg-muted); }
+.sb-footer {
+  margin-top: 12px; padding: 10px; font-size: 10px; color: var(--fg-dim); line-height: 1.6;
+  border-top: 1px dashed var(--border-soft);
+}
+.sb-footer .ok { color: var(--accent); }
+.content { padding: 36px 36px 80px; max-width: 920px; width: 100%; }
+@media (max-width: 600px) { .content { padding: 28px 22px 60px; } }
+.article-head {
+  background: var(--bg-soft); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px 26px; margin-bottom: 36px; position: relative;
+}
+.article-head::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px; background: var(--accent); border-radius: 2px 0 0 2px;
+}
+.ah-eyebrow { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.05em; }
+.article-head h1 { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; margin-bottom: 12px; line-height: 1.25; }
+.ah-summary { color: var(--fg-soft); font-size: 14.5px; }
+.ah-stats { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); margin-top: 10px; }
+.ah-stats span { color: var(--accent); }
+.section { margin: 40px 0; }
+.section-h {
+  font-family: var(--mono); font-size: 18px; font-weight: 600;
+  color: var(--fg); margin-bottom: 16px; line-height: 1.4;
+}
+.section-h .marker { color: var(--accent); margin-right: 10px; }
+.section-body { color: var(--fg-soft); font-size: 14.8px; margin-bottom: 18px; line-height: 1.7; }
+.primary-source { font-family: var(--mono); font-size: 12.5px; margin: 10px 0 12px; }
+.primary-source::before { content: '\2514\2500 \6765\6E90:  '; color: var(--fg-dim); }
+.primary-source a { color: var(--link); text-decoration: none; border-bottom: 1px dotted var(--link); }
+.primary-source a:hover { background: rgba(88,166,255,0.1); }
+details.related {
+  background: var(--bg-deeper); border: 1px solid var(--border-soft);
+  border-radius: 6px; margin-bottom: 12px; font-family: var(--mono); font-size: 12px;
+  transition: border-color 0.12s;
+}
+details.related:hover { border-color: var(--border); }
+details.related[open] { padding-bottom: 12px; }
+details.related summary {
+  cursor: pointer; list-style: none; padding: 10px 16px;
+  color: var(--fg-muted); user-select: none;
+  display: flex; align-items: center; gap: 10px; transition: color 0.12s;
+}
+details.related summary::-webkit-details-marker { display: none; }
+details.related summary::before {
+  content: '\25B8'; color: var(--accent); font-size: 11px;
+  transition: transform 0.18s ease; display: inline-block; width: 12px;
+}
+details.related[open] summary::before { transform: rotate(90deg); }
+details.related summary:hover { color: var(--fg-soft); }
+details.related summary .count {
+  color: var(--accent); font-weight: 500; background: var(--accent-soft);
+  padding: 1px 7px; border-radius: 3px; font-size: 11px;
+}
+details.related summary .label { color: var(--fg-dim); font-style: italic; margin-left: -2px; }
+details.related ul { list-style: none; padding: 4px 16px 0 32px; }
+details.related li { padding: 5px 0; color: var(--fg-muted); display: flex; align-items: baseline; gap: 8px; }
+details.related li::before { content: '\00B7'; color: var(--accent); }
+details.related li a {
+  color: var(--link); text-decoration: none; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-bottom: 1px dotted transparent;
+}
+details.related li a:hover { border-bottom-color: var(--link); }
+.dashed-div { margin: 10px 0 14px; border-top: 1px dashed var(--border-soft); }
+.critique-block {
+  background: var(--critique-soft); border-left: 3px solid var(--critique);
+  border-radius: 0 6px 6px 0; padding: 16px 22px; margin: 0 0 12px;
+}
+.critique-h {
+  font-family: var(--mono); font-size: 14px; color: var(--critique);
+  font-weight: 600; margin-bottom: 14px; letter-spacing: 0.02em;
+}
+.critique-h::before { content: '\2694  '; }
+.quote-box {
+  background: var(--bg-deeper); border: 1px solid var(--border-soft);
+  border-radius: 4px; padding: 12px 16px; margin-bottom: 14px;
+}
+.quote-label { font-family: var(--mono); font-size: 10.5px; color: var(--fg-dim); letter-spacing: 0.06em; margin-bottom: 6px; }
+.quote-text { font-family: var(--mono); font-size: 13.5px; color: var(--fg-soft); line-height: 1.6; }
+.analysis-label { font-family: var(--mono); font-size: 10.5px; color: var(--critique); letter-spacing: 0.06em; margin-bottom: 8px; }
+.analysis-body { font-size: 14.5px; color: var(--fg-soft); line-height: 1.7; }
+.section-hr {
+  margin: 48px 0 36px; height: 32px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.section-hr::before, .section-hr::after {
+  content: ''; position: absolute; top: 50%; height: 0;
+  border-top: 2px solid var(--border); width: calc(50% - 60px);
+}
+.section-hr::before { left: 0; }
+.section-hr::after { right: 0; }
+.section-hr-tag {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 6px 18px; font-family: var(--mono); font-size: 12.5px;
+  color: var(--fg); font-weight: 600; letter-spacing: 0.12em; z-index: 1;
+  box-shadow: 0 0 0 4px var(--bg);
+}
+.section-hr-tag .marker { color: var(--accent); margin-right: 6px; }
+.secondary-h {
+  font-family: var(--mono); font-size: 17px; color: var(--fg); font-weight: 600; margin: 64px 0 12px;
+}
+.secondary-h::before { content: '## '; color: var(--accent); }
+.secondary-lede { font-size: 13px; color: var(--fg-muted); margin-bottom: 18px; }
+.secondary { list-style: none; }
+.secondary li {
+  padding: 10px 0 10px 16px; border-bottom: 1px dashed var(--border-soft);
+  font-size: 14px; position: relative;
+}
+.secondary li::before { content: '\2022'; color: var(--accent); position: absolute; left: 0; font-family: var(--mono); }
+.secondary li:last-child { border-bottom: 0; }
+.secondary a { color: var(--link); text-decoration: none; border-bottom: 1px dotted rgba(88,166,255,0.4); }
+.secondary a:hover { border-bottom-color: var(--link); background: rgba(88,166,255,0.08); }
+.observation { margin: 48px 0 0; padding: 20px 24px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; }
+.observation-h { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 10px; letter-spacing: 0.05em; }
+.observation-body { font-size: 14.5px; color: var(--fg-soft); line-height: 1.7; }
+.footer {
+  margin-top: 64px; padding-top: 24px;
+  border-top: 1px dashed var(--border);
+  font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+  display: flex; justify-content: space-between;
+}
+.footer a { color: var(--critique); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="prompt">~</span><span>boris</span><span class="path">/deepdive/briefs/2026-04-26</span><span class="cursor"></span></div>
+    <div class="top-meta">
+      <span><span class="ok">&#9679;</span> 11 sources</span>
+      <span>scanned 120 items</span>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-title">DAILY BRIEFS</div>
+    <ul class="sidebar-list">
+      <li><a class="sb-item" href="2026-05-02.html">2026-05-02</a></li>
+      <li><a class="sb-item" href="2026-05-01.html">2026-05-01</a></li>
+      <li><a class="sb-item active" href="#">2026-04-26</a></li>
+    </ul>
+    <div class="sb-footer">
+      <span class="ok">&#9679;</span> auto-build via gh-actions
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <header class="article-head">
+      <div class="ah-eyebrow">brief/2026-04-26.md &middot; agentic-software-engineering</div>
+      <h1>Daily Brief &mdash; 2026-04-26</h1>
+      <div class="ah-summary">
+        本周 OpenAI 凭 GPT-5.5 + Codex superapp 重塑 agentic coding 格局，同时 Anthropic 双线 stumble、GitHub Copilot 收紧入门 tier——agentic 算力账单开始浮现。
+        <div class="ah-stats">sources=<span>11</span> &middot; scanned=<span>120</span> &middot; selected=<span>8</span></div>
+      </div>
+    </header>
+
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [01]</span>GPT-5.5 + Codex 合体：OpenAI 把 agentic coding 卷成&quot;模型即产品&quot;</h2>
+      <p class="section-body">OpenAI 于 4 月 23 日发布 GPT-5.5，定位&quot;最强模型&quot;，重点强化 coding 与跨工具数据分析；同期把 Codex 与 ChatGPT 主线合并、推出 workspace agents、扩张到企业端 4M 周活——配套还有 Codex Automations、Plugins/Skills 体系、WebSockets-based Responses API 等多篇 academy 文档。Latent Space 跟进口号&quot;等同 Claude Opus 4.7 智能 / 1/4 成本&quot;。但 Simon Willison 实测发现 API 尚未公开开放、需绕 Codex 订阅接入——访问通路本身成为新的护城河。Romain Huet 同时透露 Codex 与主线模型已合并，不再有独立&quot;代码模型&quot;分支。对 agentic SE 的含义：底座原生 agentic 能力 + 平台 lock-in 一并升级，应用层&quot;模型选型&quot;的灵活度被压缩。</p>
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://openai.com/index/introducing-gpt-5-5">openai.com/index/introducing-gpt-5-5</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; OpenAI](https://openai.com/index/introducing-gpt-5-5)</span>
+      </div>
+
+      <details class="related">
+        <summary><span class="count">+3</span> 相关来源 <span class="label">&middot; 仅供参考</span></summary>
+        <ul>
+          <li><a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/23/gpt-5-5/">A pelican for GPT-5.5 via the semi-official Codex backdoor API · Simon Willison</a></li>
+          <li><a target="_blank" rel="noopener" href="https://www.latent.space/p/ainews-gpt-55-and-openai-codex-superapp">GPT-5.5 and OpenAI Codex Superapp Launch · Latent Space</a></li>
+          <li><a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/25/romain-huet/">Quoting Romain Huet（Codex 与主线合并）· Simon Willison</a></li>
+        </ul>
+      </details>
+      <div class="dashed-div"></div>
+
+      <div class="critique-block">
+        <div class="critique-h">蓝军</div>
+        <div class="quote-box">
+          <div class="quote-label">原文观点</div>
+          <div class="quote-text">GPT-5.5&quot;等同 Claude Opus 4.7 智能、1/4 成本&quot;，重塑 agentic coding 经济学。</div>
+        </div>
+        <div class="analysis-label">蓝军视角分析</div>
+        <div class="analysis-body">benchmark 智能不等于生产稳定。Anthropic 同周公布的 Claude Code postmortem 恰好说明 bench 分高 ≠ 部署稳——大规模 agent loop 里错误重试 5 次，&quot;1/4 成本&quot;就持平。况且每次大模型发布都喊一次&quot;重定义经济学&quot;（GPT-4o、Sonnet 4.6 同款话术），最后仍要靠 caching、batch、自托管组合才划算。</div>
+      </div>
+    </section>
+
+    <div class="section-hr"><span class="section-hr-tag"><span class="marker">&sect;</span>02</span></div>
+
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [02]</span>Anthropic 同周双 stumble：Claude Code 质量 postmortem + $100/月 试探</h2>
+      <p class="section-body">2026-04-24 Anthropic 发布 Claude Code 质量 postmortem，承认 4 月以来 harness 多处 bug——其中一个让 idle session 反复丢失上下文，导致用户体验明显下滑——并强调&quot;是 harness 不是模型缺陷&quot;。同周早些时候社区还在消化 Anthropic 一度尝试把 Claude Code 限制到 Max plan（$100+/月）后迅速撤回的 silent test，外界普遍读为定价试探。彭博 4-24 同步曝出 Google 拟向 Anthropic 投资 400 亿美元——三条线挤在 GPT-5.5 launch 同一窗口期，时机重合度异常高，叠加读出来更像产品线重组与资源紧张，而非各自独立的运营波动。</p>
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://www.anthropic.com/engineering/april-23-postmortem">anthropic.com/engineering/april-23-postmortem</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; Anthropic Engineering](https://www.anthropic.com/engineering/april-23-postmortem)</span>
+      </div>
+
+      <details class="related">
+        <summary><span class="count">+1</span> 相关来源 <span class="label">&middot; 仅供参考</span></summary>
+        <ul>
+          <li><a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/22/claude-code-confusion/">Is Claude Code going to cost $100/month? Probably not · Simon Willison</a></li>
+        </ul>
+      </details>
+      <div class="dashed-div"></div>
+
+      <div class="critique-block">
+        <div class="critique-h">蓝军</div>
+        <div class="quote-box">
+          <div class="quote-label">原文观点</div>
+          <div class="quote-text">Claude Code 质量下降是「harness bug 不是模型缺陷」。</div>
+        </div>
+        <div class="analysis-label">蓝军视角分析</div>
+        <div class="analysis-body">把锅给 harness 是 Anthropic 的最优叙事，但回避了更大的问题——idle session 反复丢上下文这种 bug，为什么没在内部 dogfooding 里抓到？正好赶在 GPT-5.5 直接对标的窗口期暴发，说明内部测试覆盖度不足以保证 production-quality。&quot;模型没问题&quot;听起来像安抚，暴露的实际是工程文化问题，比 model bug 更难短期修复。</div>
+      </div>
+    </section>
+
+    <div class="section-hr"><span class="section-hr-tag"><span class="marker">&sect;</span>03</span></div>
+
+    <section class="section">
+      <h2 class="section-h"><span class="marker">## [03]</span>GitHub Copilot Individual 计费收紧：agentic 算力账单浮出水面</h2>
+      <p class="section-body">2026-04-20 GitHub 公告调整 Copilot Individual 订阅：暂停新订、收紧用量上限、把 Claude Opus 4.7 限制到 premium tier。官方理由是 agentic workflows 算力消耗远超原计费模型预期。同期 GitHub 还在 Status Page 上新增 &quot;Copilot AI Model Provider&quot; 独立组件——等同把外部 LLM 故障显式承认为产品风险面。这是首个主流平台把&quot;agentic 比 chat 贵得多&quot;明示给消费者，agentic 不再被免费补贴掩盖。叠加 Anthropic 同周对 Claude Code 高用量 plan 的&quot;$100/月试探&quot;，agentic coding 行业的&quot;前期补贴-后期收割&quot;曲线在 2026Q2 同时进入收割期。</p>
+      <div class="primary-source">
+        <a target="_blank" rel="noopener" href="https://github.blog/news-insights/company-news/changes-to-github-copilot-individual-plans/">github.blog/news-insights/company-news/changes-...</a> <span style="color:var(--fg-dim); font-size:11px;">&middot; GitHub Blog](https://github.blog/news-insights/company-news/changes-to-github-copilot-individual-plans/)</span>
+      </div>
+
+      <details class="related">
+        <summary><span class="count">+1</span> 相关来源 <span class="label">&middot; 仅供参考</span></summary>
+        <ul>
+          <li><a target="_blank" rel="noopener" href="https://openai.com/index/speeding-up-agentic-workflows-with-websockets">Speeding up agentic workflows with WebSockets in the Responses API · OpenAI</a></li>
+        </ul>
+      </details>
+      <div class="dashed-div"></div>
+
+      <div class="critique-block">
+        <div class="critique-h">蓝军</div>
+        <div class="quote-box">
+          <div class="quote-label">原文观点</div>
+          <div class="quote-text">agentic workflows 太贵，所以 GitHub 收紧 Individual 订阅。</div>
+        </div>
+        <div class="analysis-label">蓝军视角分析</div>
+        <div class="analysis-body">真正在烧 agentic 算力的是已在 enterprise tier 的人，Individual 不是开销大户。收紧入门 tier 没解决根本问题，反而把&quot;想试试&quot;的开发者推向 Cursor / Aider / Claude Code——典型反向激励。Copilot 装机量靠的就是周末 hacker 和初学者建立的搜索/教程生态，这部分用户被推走，&quot;AI 编程默认选项&quot;的心智份额会被快速侵蚀。</div>
+      </div>
+    </section>
+
+
+    <h2 class="secondary-h">值得一看的事</h2>
+    <p class="secondary-lede">没进章节但值得一瞥的条目，按重要性排。</p>
+    <ul class="secondary">
+      <li>DeepSeek V4 系列发布，V4-Pro（1.6T/49B active）与 V4-Flash（284B/13B active）支持 1M token context，号称&quot;前沿质量、零头价格&quot; &mdash; <a target="_blank" rel="noopener" href="https://www.latent.space/p/ainews-deepseek-v4-pro-16t-a49b-and">DeepSeek V4 Pro and Flash · Latent Space</a></li>
+      <li>Qwen3.6-27B 27B dense 模型在编码/SVG 生成上反超自家 397B MoE 旗舰，量化后 16.8GB 可本地跑 &mdash; <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/24/deepseek-v4/">DeepSeek V4 - almost on the frontier · Simon Willison</a></li>
+      <li>Mozilla 用 Claude Mythos Preview 在 Firefox 150 中找出 271 个安全漏洞，&quot;防守方第一次有了胜算&quot; &mdash; <a target="_blank" rel="noopener" href="https://blog.mozilla.org/en/privacy-security/ai-security-zero-day-vulnerabilities/">Quoting Bobby Holley · Simon Willison</a></li>
+      <li>`llm` CLI 0.31 发布，加 GPT-5.5 支持、verbosity 控制、image detail level &mdash; <a target="_blank" rel="noopener" href="https://simonwillison.net/2026/Apr/24/llm/">llm 0.31 · Simon Willison</a></li>
+      <li>彭博：Google 拟向 Anthropic 投资 400 亿美元，行业资本节奏与 agentic 算力成本同步走高 &mdash; <a target="_blank" rel="noopener" href="https://www.bloomberg.com/news/articles/2026-04-24/google-plans-to-invest-up-to-40-billion-in-anthropic">Google plans to invest up to $40B in Anthropic · Bloomberg</a></li>
+    </ul>
+
+
+    <div class="observation">
+      <div class="observation-h">// 今日观察小结</div>
+      <div class="observation-body">本周三件最关注 + 值得一看里的 Google 投资，连成一条线：**agentic coding 的硬件 / 算力 / 商业模式三个维度同时进入压力测试**。GPT-5.5 用底座侧 lock-in 应对，Anthropic 用质量+定价双向调整应对，GitHub 用 tier 升级应对——三家应对策略截然不同，下周看哪条最先反馈到开发者实际选择上。
+
+---</div>
+    </div>
+
+    <div class="footer">
+      <span>// DeepDive Boris &middot; agentic-se daily brief</span>
+      <span><a href="index.html">&larr; 全部报告</a></span>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

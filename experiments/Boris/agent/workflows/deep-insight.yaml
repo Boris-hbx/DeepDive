@@ -1,0 +1,30 @@
+name: deep-insight
+description: 多源采集 → 过滤 → 摘要 → 报告
+match_hints:
+  - 洞察
+  - 调研
+  - 抓取
+  - 报告
+  - brief
+  - insight
+  - research
+  - fetch
+steps:
+  - name: plan
+    type: llm
+    description: 分析任务，选择数据源和工具
+  - name: fetch
+    type: tool
+    description: 用工具采集数据
+  - name: filter
+    type: tool_or_llm
+    description: 过滤和去重
+  - name: summarize
+    type: llm
+    description: 筛选评分 + 生成摘要
+  - name: blue_review
+    type: blue_agent
+    description: 蓝军审查报告草稿
+  - name: report
+    type: llm
+    description: 渲染最终报告
