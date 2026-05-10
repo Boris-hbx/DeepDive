@@ -1,0 +1,124 @@
+# Zhi 的实践笔记
+
+## 技术栈
+
+- 语言：Python 3.9
+- LLM：Anthropic Claude Opus 4.6（`claude-opus-4-6`）
+- 抓取：`requests` + `feedparser`
+- 静态站点：纯 Python 生成 HTML（无框架）
+- 托管方式：本地预览（暂未部署）
+
+## 信息源
+
+选了 5 个源，覆盖头部 AI 公司官方博客 + 社区 + 独立博主：
+
+| 源 | 类型 | 选择理由 |
+|---|---|---|
+| Hacker News | API | 社区热度最高的技术聚合站，覆盖面广 |
+| Anthropic Blog | RSS | Claude 生态一手信息 |
+| OpenAI Blog | RSS | GPT 生态一手信息 |
+| Simon Willison | Atom | AI 工具链方向最活跃的独立博主 |
+| GitHub Blog | RSS | 开发者工具和 Copilot 动态 |
+
+## 流水线设计
+
+```
+fetch（并行抓取 5 个源）
+  → filter（关键词匹配，筛选 Agentic SE 相关）
+  → dedup（URL 去重）
+  → summarize（Claude 一次性生成完整 brief）
+  → save（输出 Markdown 到 briefs/）
+  → render（生成静态 HTML 站点）
+```
+
+单 agent，无多步分解。抓取和摘要是两个独立脚本，手动串联。
+
+## Prompt 思路
+
+- 采用 system prompt + user prompt 分离：system 定义角色和规则，user 提供当天数据
+- 核心约束：只能使用提供的 URL，不能编造链接
+- 输出格式直接在 prompt 中给出完整模板，减少格式偏差
+- 迭代 1 次：初版直接可用，未做多轮调优
+
+## 成本 / 时延
+
+- 抓取阶段：~10 秒（HN API 逐条请求是瓶颈）
+- LLM 调用：~15-20 秒（Opus 4.6，单次调用，~2000 token 输出）
+- 总计：约 30 秒跑完一次
+- Token 消耗：输入 ~1500 token，输出 ~800 token，单次成本约 $0.05
+
+## 出乎意料的事
+
+1. **好**：Claude Code 从零搭建整个流水线非常快，从想法到跑通不到 20 分钟
+2. **差**：模型 ID 踩坑——`claude-opus-4-20250514` 和 `claude-opus-4-6` 是不同的，API key 权限和模型 ID 的对应关系不直观
+3. **好**：抓取 + 关键词过滤的简单方案效果不错，79 篇中筛出 21 篇相关，最终 brief 质量可读
+
+## 踩坑记录
+
+### Write 工具大文件写入失败（2026-05-06）
+
+**现象：** 用 Write 工具写入 286 行 HTML 文件时，连续 3 次报错 `InputValidationError: required parameter file_path/content is missing`。
+
+**原因：** HTML 内容过长（含大量 `<`、`>`、引号等特殊字符），导致工具调用的参数序列化/解析失败，参数未能正确传递。
+
+**解决方案：** 改用 Bash 工具通过 heredoc 方式写入：
+```bash
+cat > /path/to/file.html << 'HTMLEOF'
+...内容...
+HTMLEOF
+```
+
+**规则：** 超过 100 行或含大量 HTML/特殊字符的文件，优先使用 Bash heredoc 写入，不要用 Write 工具。
+
+### Opus 4.6 ThinkingBlock 问题（2026-05-06）
+
+**现象：** 调用 Claude API 后 `message.content[0].text` 报错 `'ThinkingBlock' object has no attribute 'text'`。
+
+**原因：** Opus 4.6 默认启用 extended thinking，返回的第一个 content block 是 ThinkingBlock 而非 TextBlock。
+
+**解决方案：** 过滤出 text block：
+```python
+text_blocks = [b for b in message.content if b.type == "text"]
+response = text_blocks[0].text if text_blocks else ""
+```
+
+## 如果再来一次
+
+- HN 抓取改成批量请求（当前逐条太慢）
+- 加一个缓存层，避免重复抓取相同内容
+- 关键词过滤太粗糙，可以用 LLM 做二次相关性判断
+- 静态站点可以用更好的 CSS 样式，当前极简
+
+## 复盘分析：当前问题与优化方向
+
+### 当前薄弱环节
+
+1. **过滤太粗糙** — 关键词匹配只看标题，漏掉相关但标题不含关键词的文章，也会误选标题沾边但内容无关的
+2. **无跨天记忆** — 每天独立跑，不知道昨天报过什么，可能重复推荐同一事件的后续报道
+3. **无校验** — Claude 输出的 brief 没有验证格式是否合规、链接是否真实存在
+4. **单次调用上限** — 把 21 篇文章一次性丢给模型，如果相关文章更多（50+），context 会成为瓶颈
+
+### 架构优化：是否拆成多 agent
+
+结论：值得拆成三层，但不需要引入 agent 框架，函数调用串联即可。
+
+| 层 | 职责 | 为什么独立 |
+|---|---|---|
+| **收集 + 相关性判断** | 抓取 → 用 LLM 判断每篇是否相关（替代关键词） | 可以并行处理多个源，prompt 简单、用便宜模型就行 |
+| **融合分析 + 去重** | 聚类同一事件的多篇报道，结合历史 brief 去重，排优先级 | 需要跨天上下文（长期记忆），逻辑最复杂 |
+| **生成 + 校验** | 生成 brief → 检查格式合规 → 验证 URL 可访问 | 校验是确定性逻辑，不需要 LLM |
+
+### 优化路线图
+
+**短期（本周能做）：**
+- 相关性判断改用 LLM（Haiku 级别就够，成本低）替代关键词
+- 加一个 brief 格式校验脚本（正则检查结构 + requests.head 验证链接）
+- 加一个 `history.json` 记录过去 7 天推过的 URL，去重用
+
+**中期（第二周讨论）：**
+- 引入简单的"长期记忆"——每天生成 brief 后存一份摘要索引，下次生成时作为 context 传入，避免重复
+- 相关性判断和摘要生成用不同模型：过滤用便宜快的，最终 brief 用 Opus
+- 信息源扩展到 10+ 个时，抓取改成异步并行
+
+**关于 agent 框架：**
+当前规模（5 个源、每天跑一次）用函数调用串联就够，不需要 LangChain / CrewAI 等框架。如果后续要做 Job 2（主题深挖、交互式探索），那时候再考虑多 agent 编排。

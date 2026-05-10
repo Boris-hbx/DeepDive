@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek V3 → V4 演进深度技术分析</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 1000px; margin: 40px auto; padding: 0 20px; line-height: 1.8; color: #1a1a1a; }
+        h1 { border-bottom: 3px solid #0f766e; padding-bottom: 12px; font-size: 1.6em; }
+        h2 { color: #0f766e; margin-top: 48px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+        h3 { color: #374151; margin-top: 32px; }
+        h4 { color: #4b5563; margin-top: 24px; }
+        .meta { color: #6b7280; font-size: 0.9em; margin-bottom: 30px; }
+        table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 0.9em; }
+        th, td { border: 1px solid #e5e7eb; padding: 10px 14px; text-align: left; }
+        th { background: #f0fdfa; }
+        code { background: #f3f4f6; padding: 2px 5px; border-radius: 3px; font-size: 0.88em; }
+        pre { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.82em; line-height: 1.5; }
+        .callout { background: #f0fdfa; border-left: 4px solid #0f766e; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .callout-warn { background: #fffbeb; border-left: 4px solid #d97706; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 16px 0; }
+        .formula { background: #f9fafb; border: 1px solid #e5e7eb; padding: 12px 16px; margin: 12px 0; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 0.9em; overflow-x: auto; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-right: 6px; }
+        .tag-arch { background: #dbeafe; color: #1e40af; }
+        .tag-code { background: #d1fae5; color: #065f46; }
+        .tag-math { background: #ede9fe; color: #5b21b6; }
+        .tag-impl { background: #fef3c7; color: #92400e; }
+        .source-list { font-size: 0.85em; color: #6b7280; margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+        .source-list a { color: #0f766e; }
+        .diff-add { color: #16a34a; }
+        .diff-del { color: #dc2626; }
+        .nav-link { color: #0f766e; text-decoration: none; font-size: 0.9em; }
+        .nav-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<p><a class="nav-link" href="deepseek-evolution-analysis.html">← 返回概览版分析</a></p>
+
+<h1>DeepSeek V3 → V3.2 → V4 深度技术分析</h1>
+<p style="font-size:1.1em; color:#4b5563;">架构实现细节、数学公式与代码级解析</p>
+
+<div class="meta">
+    <p>分析日期：2026-05-07 | 基于源代码仓库 + 论文 + 推理框架实现</p>
+    <p>本文是 <a href="deepseek-evolution-analysis.html">演进全景分析</a> 的技术细节补充，深入到公式、代码和实现层面。</p>
+</div>
+
+<h2 id="mla">一、MLA（Multi-head Latent Attention）机制详解</h2>
+
+<div class="callout">
+    <strong>核心思想：</strong>MLA 通过低秩投影将 KV cache 从 <code>n_heads × head_dim</code> 压缩到一个共享的低秩潜在向量 <code>kv_lora_rank</code>，在推理时只需缓存这个压缩向量，大幅减少显存占用。
+</div>
+
+<h3>1.1 完整超参数（V3 671B 实际配置）</h3>
+
+<table>
+    <tr><th>参数</th><th>值</th><th>含义</th></tr>
+    <tr><td><code>dim</code></td><td>7168</td><td>模型隐藏维度</td></tr>
+    <tr><td><code>n_heads</code></td><td>128</td><td>注意力头数</td></tr>
+    <tr><td><code>q_lora_rank</code></td><td>1536</td><td>Query 低秩压缩维度</td></tr>
+    <tr><td><code>kv_lora_rank</code></td><td>512</td><td>KV 低秩压缩维度（核心！）</td></tr>
+    <tr><td><code>qk_nope_head_dim</code></td><td>128</td><td>不带位置编码的 QK 维度</td></tr>
+    <tr><td><code>qk_rope_head_dim</code></td><td>64</td><td>带 RoPE 的 QK 维度</td></tr>
+    <tr><td><code>v_head_dim</code></td><td>128</td><td>Value 头维度</td></tr>
+    <tr><td><code>n_layers</code></td><td>61</td><td>Transformer 层数</td></tr>
+    <tr><td><code>n_dense_layers</code></td><td>3</td><td>前 3 层使用 Dense MLP</td></tr>
+</table>
+
+<h3>1.2 数学公式</h3>
+<span class="tag tag-math">数学推导</span>
+
+<p><strong>标准 MHA 的 KV cache 大小：</strong></p>
+<div class="formula">
+KV_cache_MHA = 2 × n_heads × head_dim × seq_len × n_layers<br>
+= 2 × 128 × 128 × seq_len × 61 = 2,002,944 × seq_len（每 token 约 2M 参数）
+</div>
+
+<p><strong>MLA 的 KV cache 大小：</strong></p>
+<div class="formula">
+KV_cache_MLA = (kv_lora_rank + qk_rope_head_dim) × seq_len × n_layers<br>
+= (512 + 64) × seq_len × 61 = 35,136 × seq_len（每 token 约 35K 参数）
+</div>
+
+<p><strong>压缩比：</strong> 2,002,944 / 35,136 ≈ <strong>57x</strong></p>
+
+<div class="callout-warn">
+    <strong>关键洞察：</strong>MLA 的 KV cache 只需存储两样东西：(1) 压缩后的 KV 潜在向量 <code>c_kv</code>（512维），(2) 解耦的 RoPE key <code>k_pe</code>（64维）。总共 576 维 vs 标准 MHA 的 32,768 维（128头×256维）。
+</div>
+
+<h3>1.3 计算流程（基于源代码）</h3>
+<span class="tag tag-code">代码分析</span>
+
+<pre>
+# ===== Query 路径 =====
+# Step 1: 低秩压缩 (7168 → 1536)
+q_compressed = wq_a(x)                    # [B, S, 1536]
+q_compressed = RMSNorm(q_compressed)
+
+# Step 2: 展开到多头 (1536 → 128 × 192)
+q = wq_b(q_compressed)                    # [B, S, 128, 192]
+q_nope, q_pe = split(q, [128, 64])       # 分离位置无关和位置相关部分
+q_pe = apply_rotary_emb(q_pe, freqs)     # 只对 64 维施加 RoPE
+
+# ===== KV 路径 =====
+# Step 3: 联合压缩 (7168 → 576)
+kv_combined = wkv_a(x)                    # [B, S, 576]
+c_kv, k_pe = split(kv_combined, [512, 64])
+c_kv = RMSNorm(c_kv)                     # 压缩 KV 向量
+k_pe = apply_rotary_emb(k_pe, freqs)     # 解耦 RoPE key
+
+# ===== 推理时的 Absorb 优化 =====
+# 核心技巧：将 wkv_b 的权重"吸收"到 query 中
+# 避免在推理时展开 KV（节省计算）
+wkv_b_reshaped = wkv_b.weight.view(n_heads, qk_nope_dim + v_dim, kv_lora_rank)
+
+# Q 吸收 K 的投影矩阵
+q_nope_absorbed = einsum("bshd,hdc->bshc", q_nope, wkv_b[:, :128])  # [B,S,H,512]
+
+# 直接在压缩空间计算注意力分数
+scores = einsum("bshc,btc->bsht", q_nope_absorbed, kv_cache)  # 压缩空间点积
+       + einsum("bshr,btr->bsht", q_pe, pe_cache)             # RoPE 部分
+scores *= softmax_scale
+
+# 输出也在压缩空间计算，最后再展开
+output = einsum("bsht,btc->bshc", attn_weights, kv_cache)     # [B,S,H,512]
+output = einsum("bshc,hdc->bshd", output, wkv_b[:, -128:])    # 展开 V
+</pre>
+
+<h4>1.4 RoPE 解耦设计的精妙之处</h4>
+
+<p>MLA 面临一个核心矛盾：RoPE 是位置相关的，但 KV 压缩需要位置无关的表示。DeepSeek 的解决方案：</p>
+
+<div class="section-box">
+<ol>
+    <li><strong>将 QK 分为两部分</strong>：128 维不带位置编码（nope），64 维带 RoPE（rope）</li>
+    <li><strong>KV 压缩只作用于 nope 部分</strong>：512 维的 <code>c_kv</code> 通过 <code>wkv_b</code> 展开为 128 维的 <code>k_nope</code></li>
+    <li><strong>RoPE key 单独存储</strong>：64 维的 <code>k_pe</code> 不经过压缩，直接缓存</li>
+    <li><strong>注意力分数 = nope 部分 + rope 部分</strong>：两部分独立计算后相加</li>
+</ol>
+<p>这样既保留了位置信息，又实现了 KV 的高效压缩。代价是多存 64 维的 <code>k_pe</code>，但相比节省的 KV cache 微不足道。</p>
+</div>
+
+<h2 id="indexer">二、Indexer 稀疏注意力机制（V3.2 首创）</h2>
+
+<div class="callout">
+    <strong>核心思想：</strong>V3.2 引入 Indexer 模块，在注意力计算前先用轻量级打分器选出最相关的 top-k token（默认 2048），只对这些 token 做完整注意力。这是 DeepSeek 首次将"选择性计算"从 FFN 层（MoE）推广到注意力层。
+</div>
+
+<h3>2.1 Indexer 超参数</h3>
+
+<table>
+    <tr><th>参数</th><th>值</th><th>含义</th></tr>
+    <tr><td><code>index_n_heads</code></td><td>64</td><td>Indexer 的注意力头数（比主注意力少一半）</td></tr>
+    <tr><td><code>index_head_dim</code></td><td>128</td><td>Indexer 头维度</td></tr>
+    <tr><td><code>index_topk</code></td><td>2048</td><td>每个 query 选择的 token 数</td></tr>
+</table>
+
+<h3>2.2 Indexer 工作流程</h3>
+<span class="tag tag-code">代码分析</span>
+
+<pre>
+class Indexer:
+    # 输入：x (当前 token 表示), qr (query 的低秩压缩)
+
+    # Step 1: 生成 Indexer 专用的 Q 和 K
+    q = wq_b(qr)                          # 复用主注意力的 q_lora_rank 输出
+    q = reshape(q, [B, S, 64, 128])       # 64 个 indexer 头
+    q_pe, q_nope = split(q, [64, 64])     # RoPE 部分 + 非 RoPE 部分
+    q_pe = apply_rotary_emb(q_pe)         # 注意：indexer 的 RoPE 不是 interleaved
+
+    k = wk(x)                             # 独立的 K 投影 (7168 → 128)
+    k = LayerNorm(k)                      # 注意：用 LayerNorm 而非 RMSNorm
+    k_pe, k_nope = split(k, [64, 64])
+    k_pe = apply_rotary_emb(k_pe)
+
+    # Step 2: Hadamard 旋转（关键！）
+    q = hadamard_transform(q, scale=128^-0.5)
+    k = hadamard_transform(k, scale=128^-0.5)
+
+    # Step 3: FP8 量化后计算相似度
+    q_fp8, q_scale = act_quant(q, block_size=128)
+    k_fp8, k_scale = act_quant(k, block_size=128)
+
+    # Step 4: 加权打分
+    weights = weights_proj(x.float()) * n_heads^-0.5  # [B, S, 64]
+    weights = weights * q_scale * softmax_scale
+
+    # Step 5: FP8 索引计算（自定义 kernel）
+    index_score = fp8_index(q_fp8, weights, k_cache, k_scale_cache)
+
+    # Step 6: Top-k 选择
+    topk_indices = index_score.topk(min(2048, seq_len))[1]
+    return topk_indices
+</pre>
+
+<h3>2.3 关键设计决策</h3>
+
+<div class="section-box">
+<h4>为什么用 Hadamard 变换？</h4>
+<p>Hadamard 变换是一种正交变换，将向量的能量均匀分散到所有维度。这对 FP8 量化至关重要：</p>
+<ul>
+    <li>原始向量可能有少数维度值很大（outlier），FP8 量化会损失精度</li>
+    <li>Hadamard 变换后，所有维度的值域更均匀，FP8 量化误差更小</li>
+    <li>计算复杂度 O(d log d)，开销极小</li>
+</ul>
+
+<h4>为什么 Indexer 用 FP8 而非 BF16？</h4>
+<p>Indexer 的目的是<strong>快速粗筛</strong>，不需要精确的注意力分数。FP8 的精度足够区分"相关"和"不相关"的 token，同时：</p>
+<ul>
+    <li>K cache 存储量减半（FP8 vs BF16）</li>
+    <li>矩阵乘法吞吐量翻倍（FP8 GEMM）</li>
+    <li>Indexer 本身的计算开销降到最低</li>
+</ul>
+
+<h4>Indexer 如何与主注意力配合？</h4>
+<pre>
+# 在 MLA.forward() 中：
+topk_indices = self.indexer(x, qr, start_pos, freqs_cis, mask)
+
+# 构造稀疏 mask：只允许 attend 到 top-k 位置
+index_mask = full((B, S, seq_len), -inf)
+index_mask.scatter_(-1, topk_indices, 0)  # top-k 位置设为 0（允许）
+
+# 叠加到注意力分数上
+scores += index_mask  # 非 top-k 位置被 mask 掉（-inf → softmax 后为 0）
+</pre>
+</div>
+
+<h3>2.4 V3 vs V3.2 残差连接的变化</h3>
+<span class="tag tag-impl">实现差异</span>
+
+<p>V3.2 对残差连接做了重要修改——<strong>将残差加法融入 RMSNorm</strong>：</p>
+
+<pre>
+# V3 的 Block.forward()：
+x = x + self.attn(self.attn_norm(x), ...)    # 标准 Pre-Norm
+x = x + self.ffn(self.ffn_norm(x))
+
+# V3.2 的 Block.forward()：
+x, residual = self.attn_norm(x, residual)     # Norm 内部做残差加法（float32）
+x = self.attn(x, ...)
+x, residual = self.ffn_norm(x, residual)      # 同上
+x = self.ffn(x)
+</pre>
+
+<p>V3.2 的 RMSNorm 实现：</p>
+<pre>
+def forward(self, x, residual=None):
+    if residual is None:
+        x = x.float()  # 提升到 float32
+        ...
+    else:
+        x = residual = x.float() + residual.float()  # 残差加法在 float32 下进行！
+        var = x.pow(2).mean(-1, keepdim=True)
+        x = x * rsqrt(var + eps)
+        return (self.weight * x).to(dtype), residual.to(dtype)
+</pre>
+
+<div class="callout-warn">
+    <strong>为什么这很重要？</strong>在 FP8 推理中，残差流是精度的"生命线"。如果残差加法在低精度下进行，误差会逐层累积。V3.2 将残差加法提升到 float32，确保信号在 61 层传播后不会退化。这是 V4 "流形约束超连接"的工程前身。
+</div>
+
+<h2 id="v4-attention">三、V4 混合稀疏注意力（CSA + HCA）</h2>
+
+<div class="callout">
+    <strong>核心架构：</strong>V4 的每一层注意力由三个组件混合构成：SWA（滑动窗口注意力，128 token）+ 两种压缩注意力之一：C4（4:1 压缩 + top-512 稀疏）或 C128（128:1 压缩 + 全量密集）。不同层使用不同的组合。
+</div>
+
+<h3>3.1 三种注意力机制对比</h3>
+
+<table>
+    <tr><th>机制</th><th>全称</th><th>压缩比</th><th>选择策略</th><th>覆盖范围</th><th>计算复杂度</th></tr>
+    <tr><td><strong>SWA</strong></td><td>Sliding Window Attention</td><td>无压缩</td><td>最近 128 token</td><td>局部</td><td>O(128)</td></tr>
+    <tr><td><strong>C4 (CSA)</strong></td><td>Compressed Sparse Attention</td><td>4:1</td><td>top-512 稀疏选择</td><td>全局稀疏</td><td>O(512)</td></tr>
+    <tr><td><strong>C128 (HCA)</strong></td><td>Heavily Compressed Attention</td><td>128:1</td><td>全量密集</td><td>全局密集</td><td>O(seq/128)</td></tr>
+</table>
+
+<h3>3.2 CSA（Compressed Sparse Attention）详解</h3>
+<span class="tag tag-arch">架构核心</span>
+
+<p>CSA 是 V3.2 Indexer 的系统化升级版：</p>
+
+<pre>
+# CSA 工作流程（C4 层）
+
+# Step 1: 压缩 KV（4:1 比例）
+# 每 4 个连续 token 的 KV 通过 softmax 加权平均压缩为 1 个
+compressed_kv = compress(raw_kv, ratio=4)  # 1M tokens → 250K compressed positions
+
+# Step 2: Lightning Indexer 打分
+# 用轻量级 GEMM 计算 query 与所有压缩位置的相关性
+index_scores = indexer_gemm(query, compressed_keys)  # [B, H, 250K]
+
+# Step 3: Top-k 选择（Lightning TopK）
+# 从 250K 个压缩位置中选出 top-512
+top_indices = lightning_topk(index_scores, k=512)  # 约 15μs
+
+# Step 4: 只对选中的 512 个压缩位置做完整注意力
+selected_kv = gather(compressed_kv, top_indices)
+output_c4 = full_attention(query, selected_kv)  # O(512) 而非 O(250K)
+</pre>
+
+<h4>Flash Compressor：IO 感知的精确压缩</h4>
+
+<p>压缩过程本身是计算密集的（需要 softmax 加权平均），DeepSeek 设计了 Flash Compressor 将 5 次 HBM 访问融合为 1 次：</p>
+
+<pre>
+# 朴素实现（5 次 HBM 读写）：
+scores = linear(tokens)           # HBM read + write
+weights = softmax(scores)         # HBM read + write
+compressed = weighted_avg(kv, weights)  # HBM read + write
+
+# Flash Compressor（1 次 on-chip pass）：
+# 所有操作在 SRAM 中完成，softmax 保持 warp-local（C4）
+# 或 single CTA-wide reduction（C128）
+compressed = flash_compress(tokens, kv)  # 2 次 HBM（读入 + 写出）
+</pre>
+
+<h3>3.3 HCA（Heavily Compressed Attention）详解</h3>
+
+<p>HCA 是 CSA 的互补：用极高压缩比换取全局覆盖。</p>
+
+<pre>
+# HCA 工作流程（C128 层）
+
+# Step 1: 极度压缩（128:1）
+# 每 128 个 token 压缩为 1 个摘要 token
+summary_kv = compress(raw_kv, ratio=128)  # 1M tokens → ~8K summaries
+
+# Step 2: 全量密集注意力（无需 top-k 选择）
+# 因为只有 ~8K 个位置，全量计算也很快
+output_c128 = full_attention(query, summary_kv)  # O(8K)
+</pre>
+
+<h3>3.4 层间混合策略</h3>
+
+<div class="section-box">
+<p>V4 的 61 层 Transformer 中，每层使用以下组合之一：</p>
+<ul>
+    <li><strong>SWA + C4</strong>：局部精确 + 全局稀疏（大部分层）</li>
+    <li><strong>SWA + C128</strong>：局部精确 + 全局摘要（部分层）</li>
+</ul>
+
+<p>这种设计的直觉：</p>
+<ul>
+    <li><strong>SWA</strong> 保证最近上下文的精确性（128 token 窗口，无信息损失）</li>
+    <li><strong>C4</strong> 提供全局的细粒度检索能力（选择性关注远处的关键 token）</li>
+    <li><strong>C128</strong> 提供全局的粗粒度语义理解（整体文档结构、主题）</li>
+</ul>
+</div>
+
+<h3>3.5 KV Cache 内存分析（1M token 场景）</h3>
+
+<table>
+    <tr><th>组件</th><th>存储量</th><th>说明</th></tr>
+    <tr><td>SWA cache</td><td>128 × 576 = 73K</td><td>只存最近 128 token 的完整 KV</td></tr>
+    <tr><td>C4 compressed cache</td><td>250K × 576 = 144M</td><td>1M/4 = 250K 个压缩位置</td></tr>
+    <tr><td>C128 compressed cache</td><td>8K × 576 = 4.6M</td><td>1M/128 = ~8K 个摘要位置</td></tr>
+    <tr><td><strong>总计（每层）</strong></td><td><strong>~149M</strong></td><td>vs 标准 MHA: 1M × 32K = 32G</td></tr>
+</table>
+
+<p><strong>相对标准 MHA 的压缩比：约 2%</strong>（与 HuggingFace 博客报告的数据一致）</p>
+
+<h3>3.6 HiSparse：CPU 扩展 KV Cache</h3>
+
+<p>C4 层的一个额外优化：由于每步 decode 只访问 top-512 个压缩位置（250K 中的 0.2%），绝大部分 C4 KV cache 在任何时刻都是"不活跃"的。HiSparse 将不活跃的 C4 KV 卸载到 CPU 内存：</p>
+
+<ul>
+    <li>GPU 只保留小的 working set buffer</li>
+    <li>CPU pinned memory 存储完整的 C4 KV cache</li>
+    <li>每步根据 top-k 结果从 CPU 拉取需要的 KV</li>
+    <li>效果：长上下文服务吞吐量提升 3x</li>
+</ul>
+
+
+<h2 id="mhc">四、流形约束超连接（Manifold-Constrained Hyper-Connections）</h2>
+
+<div class="callout">
+    <strong>核心思想：</strong>mHC 是标准残差连接 <code>x + f(x)</code> 的泛化。它将残差流替换为多个并行分支的加权混合，权重通过 Sinkhorn 归一化的 GEMM 动态计算。这改善了深层网络中的梯度流动和表示质量。
+</div>
+
+<h3>4.1 从标准残差到 mHC 的演进</h3>
+
+<pre>
+# 标准残差连接（V3）
+output = x + attention(norm(x))
+
+# 融合残差 Norm（V3.2）—— 工程优化
+# 残差加法在 float32 下进行，融入 Norm 层
+x_normed, residual = RMSNorm(x, residual)  # residual 在 float32 下累加
+output = attention(x_normed)
+
+# 流形约束超连接（V4）—— 理论化
+# 多分支加权混合，权重动态计算
+branches = [branch_i(x) for i in range(hc_mult)]  # hc_mult 个并行分支
+mix_weights = sinkhorn(gemm(x))                     # 动态混合权重
+output = sum(w_i * branch_i for w_i, branch_i in zip(mix_weights, branches))
+</pre>
+
+<h3>4.2 mHC 的实现细节</h3>
+<span class="tag tag-impl">实现分析</span>
+
+<p>基于 SGLang/LMSYS 的实现描述：</p>
+
+<ul>
+    <li><strong>hc_mult 参数</strong>：控制并行分支数量</li>
+    <li><strong>Sinkhorn 归一化</strong>：对 GEMM 输出做 Sinkhorn 迭代，产生双随机矩阵作为混合权重</li>
+    <li><strong>Split-K kernel</strong>：在小 batch decode 时，K 维度跨 CTA 分割以提升 GPU 利用率</li>
+    <li><strong>融合 kernel</strong>：<code>mhc_pre_big_fuse_tilelang</code> 将 RMSNorm + Sinkhorn + 残差混合融合为一个 kernel</li>
+</ul>
+
+<h3>4.3 为什么 mHC 比标准残差更好？</h3>
+
+<div class="section-box">
+<p><strong>标准残差的问题：</strong></p>
+<ul>
+    <li>所有层共享同一个残差流，信息只能"加法叠加"</li>
+    <li>深层网络中，早期层的信号可能被后期层的输出淹没</li>
+    <li>梯度在反向传播时可能出现方向冲突</li>
+</ul>
+
+<p><strong>mHC 的优势：</strong></p>
+<ul>
+    <li>多分支允许不同类型的信息走不同的"通道"</li>
+    <li>动态权重让模型根据输入内容决定如何混合</li>
+    <li>"流形约束"确保表示不会偏离有效的表示空间</li>
+    <li>Sinkhorn 归一化保证权重的稳定性（双随机矩阵性质）</li>
+</ul>
+
+<p><strong>V3.2 → V4 的演进逻辑：</strong></p>
+<p>V3.2 的"融合残差 Norm"解决了 FP8 下残差精度的工程问题。V4 的 mHC 将这个思路理论化：不仅保证精度，还通过多分支混合提升表示能力。这是典型的"先工程验证，再理论升级"的 DeepSeek 方法论。</p>
+</div>
+
+<h2 id="moe">五、DeepSeekMoE 与无辅助损失负载均衡</h2>
+
+<div class="callout">
+    <strong>核心创新：</strong>V3 首创"无辅助损失"的负载均衡策略——不通过额外的 loss 项来鼓励均衡，而是直接在 gate 的打分上加一个可学习的 bias，在推理时动态调整路由。
+</div>
+
+<h3>5.1 MoE 配置（671B）</h3>
+
+<table>
+    <tr><th>参数</th><th>值</th><th>含义</th></tr>
+    <tr><td><code>n_routed_experts</code></td><td>256</td><td>路由专家总数</td></tr>
+    <tr><td><code>n_shared_experts</code></td><td>1</td><td>共享专家数（所有 token 都经过）</td></tr>
+    <tr><td><code>n_activated_experts</code></td><td>8</td><td>每 token 激活的专家数</td></tr>
+    <tr><td><code>n_expert_groups</code></td><td>8</td><td>专家分组数</td></tr>
+    <tr><td><code>n_limited_groups</code></td><td>4</td><td>每 token 限制的组数</td></tr>
+    <tr><td><code>moe_inter_dim</code></td><td>2048</td><td>每个专家的中间维度</td></tr>
+    <tr><td><code>score_func</code></td><td>sigmoid</td><td>打分函数（V3 用 sigmoid）</td></tr>
+    <tr><td><code>route_scale</code></td><td>2.5</td><td>路由权重缩放因子</td></tr>
+</table>
+
+<h3>5.2 Gate 路由机制（代码级）</h3>
+<span class="tag tag-code">代码分析</span>
+
+<pre>
+class Gate:
+    def forward(self, x):
+        # Step 1: 计算原始分数
+        scores = linear(x, self.weight)           # [B*S, 256]
+        scores = scores.sigmoid()                  # sigmoid 打分
+        original_scores = scores                   # 保存原始分数（用于最终权重）
+
+        # Step 2: 加 bias（无辅助损失负载均衡的核心！）
+        if self.bias is not None:
+            scores = scores + self.bias            # [256] 的可学习 bias
+
+        # Step 3: 分组路由（256 专家分为 8 组，每组 32 个）
+        scores = scores.view(B*S, 8, 32)          # 分组
+        # 每组取 top-2 的和作为组分数
+        group_scores = scores.topk(2, dim=-1)[0].sum(dim=-1)  # [B*S, 8]
+        # 选出 top-4 组
+        top_groups = group_scores.topk(4, dim=-1)[1]          # [B*S, 4]
+        # mask 掉未选中的组
+        mask = ones(B*S, 8).scatter_(1, top_groups, False)
+        scores = scores.masked_fill_(mask.unsqueeze(-1), -inf)
+        scores = scores.flatten(1)                             # [B*S, 256]
+
+        # Step 4: 从选中的组中选 top-8 专家
+        indices = scores.topk(8, dim=-1)[1]       # [B*S, 8]
+
+        # Step 5: 用原始分数（不含 bias）计算最终权重
+        weights = original_scores.gather(1, indices)
+        weights /= weights.sum(dim=-1, keepdim=True)  # 归一化
+        weights *= 2.5                                 # route_scale
+
+        return weights, indices
+</pre>
+
+<h3>5.3 无辅助损失负载均衡的精妙之处</h3>
+
+<div class="section-box">
+<p><strong>传统方法的问题：</strong></p>
+<ul>
+    <li>辅助损失（auxiliary loss）会引入"干扰梯度"——模型被迫在"学好任务"和"均衡负载"之间权衡</li>
+    <li>辅助损失的系数难以调节：太大影响模型质量，太小无法均衡</li>
+</ul>
+
+<p><strong>DeepSeek 的解法：</strong></p>
+<ul>
+    <li><code>bias</code> 只影响<strong>路由决策</strong>（哪些专家被选中），不影响<strong>最终权重</strong>（选中后的加权系数）</li>
+    <li>最终权重用 <code>original_scores</code>（不含 bias）计算，保证模型输出质量</li>
+    <li>bias 在训练中通过简单的启发式更新：过载的专家 bias 减小，欠载的增大</li>
+    <li>这完全消除了辅助损失对模型梯度的干扰</li>
+</ul>
+
+<p><strong>代码中的判断条件：</strong></p>
+<pre>
+# 只有 dim == 7168（即 671B 模型）才启用 bias
+self.bias = Parameter(empty(256, dtype=float32)) if self.dim == 7168 else None
+</pre>
+<p>这说明 bias 是在大规模训练中才需要的——小模型的专家数少，自然均衡。</p>
+</div>
+
+<h3>5.4 分组路由的设计意图</h3>
+
+<p>256 个专家分为 8 组（每组 32 个），每 token 先选 4 组，再从中选 8 个专家。这种两级路由的好处：</p>
+
+<ul>
+    <li><strong>通信效率</strong>：在分布式训练中，同组专家通常在同一节点。先选组 = 先选节点，减少跨节点通信</li>
+    <li><strong>多样性</strong>：从 4 个不同组中选专家，避免所有 token 都涌向同一组</li>
+    <li><strong>计算效率</strong>：先粗筛（8 组 → 4 组），再细选（128 个候选 → 8 个），减少 top-k 的计算量</li>
+</ul>
+
+<h2 id="fp8">六、FP8 混合精度训练体系</h2>
+
+<div class="callout">
+    <strong>核心贡献：</strong>DeepSeek V3 是首个在生产规模（671B 参数）成功使用 FP8 训练的模型。关键在于精心设计哪些计算用 FP8、哪些保持高精度，以及 block-wise 量化策略。
+</div>
+
+<h3>6.1 精度分配策略</h3>
+
+<table>
+    <tr><th>组件</th><th>精度</th><th>原因</th></tr>
+    <tr><td>GEMM（前向/反向）</td><td>FP8 (E4M3)</td><td>计算密集，FP8 吞吐量翻倍</td></tr>
+    <tr><td>残差流</td><td>BF16 → Float32（V3.2+）</td><td>精度生命线</td></tr>
+    <tr><td>Softmax / RMSNorm</td><td>Float32</td><td>数值敏感操作</td></tr>
+    <tr><td>Gate 路由</td><td>Float32</td><td>路由决策影响全局</td></tr>
+    <tr><td>Indexer K cache（V3.2）</td><td>FP8</td><td>粗筛不需要高精度</td></tr>
+    <tr><td>MoE 专家权重（V4）</td><td>FP4 (MXFP4)</td><td>进一步压缩</td></tr>
+</table>
+
+<h3>6.2 Block-wise 量化（代码级）</h3>
+<span class="tag tag-code">代码分析</span>
+
+<pre>
+# 量化参数
+block_size = 128  # 每 128 个元素共享一个 scale
+
+def act_quant(x, block_size=128, scale_fmt="ue8m0"):
+    """将激活值量化为 FP8"""
+    x_blocks = x.view(-1, block_size)
+    # 每个 block 取 abs max 作为 scale
+    scale = x_blocks.abs().amax(dim=-1) / 448.0  # E4M3 最大值约 448
+    x_fp8 = (x_blocks / scale.unsqueeze(-1)).to(torch.float8_e4m3fn)
+    return x_fp8.view_as(x), scale
+
+# 权重量化（离线完成）
+# scale 是 2D 的：[ceil(out/128), ceil(in/128)]
+weight_scale = Parameter(empty(
+    (out_features + 127) // 128,
+    (in_features + 127) // 128,
+    dtype=float32
+))
+</pre>
+
+<h3>6.3 V3.2 的 scale_fmt: "ue8m0"</h3>
+
+<p>V3.2 配置中的 <code>"scale_fmt": "ue8m0"</code> 是 NVIDIA MXFP 格式：</p>
+<ul>
+    <li><strong>ue8m0</strong>：unsigned 8-bit exponent, 0 mantissa = 纯指数 scale（2 的幂次）</li>
+    <li>每个 scale 只用 8 bit（vs 标准 float32 的 32 bit），4x 压缩</li>
+    <li>反量化只需位移操作，无需乘法</li>
+</ul>
+
+<h3>6.4 V4 的 FP4 专家权重</h3>
+
+<p>V4 将 MoE 专家权重从 FP8 进一步压缩到 MXFP4：</p>
+<ul>
+    <li>每个专家权重只占 4 bit，存储量再减半</li>
+    <li>使用 Blackwell GPU 的原生 MXFP4 支持（<code>tcgen05.mma</code> 指令）</li>
+    <li>SGLang 修改了 TRTLLM-Gen 的 fused MoE kernel 以支持 MXFP8 激活 × MXFP4 权重</li>
+    <li>只有 MoE 专家用 FP4，共享专家和注意力层仍用 FP8+</li>
+</ul>
+
+<h2 id="training">七、训练方法论：MTP、蒸馏与 Muon</h2>
+
+<h3>7.1 Multi-Token Prediction (MTP)</h3>
+
+<div class="section-box">
+<p><strong>V3 的 MTP 训练目标：</strong>除了预测下一个 token，同时预测未来 2-3 个 token。这提供了更丰富的训练信号。</p>
+
+<p><strong>V4 的 MTP 推理加速：</strong>V4 附带一个单层 MTP head（独立训练的 DSv4 decoder 层），用于推测解码（speculative decoding）：</p>
+<ul>
+    <li>MTP head 只做 SWA 注意力（无压缩器、无 Indexer），计算极轻</li>
+    <li>输入 = 上一步的隐藏状态（<code>h_proj</code>）+ 下一个 token 的 embedding（<code>e_proj</code>）</li>
+    <li>预测的 token 作为"推测"，如果主模型验证通过则直接接受</li>
+    <li>配合 ShadowRadix 的 ring buffer 扩展（C4: 8→16, C128: 128→256），EAGLE 推测解码开箱即用</li>
+</ul>
+</div>
+
+<h3>7.2 知识蒸馏（V3 → V3.2 → V4）</h3>
+
+<p>DeepSeek 的蒸馏策略是其"低成本训练"的核心：</p>
+
+<table>
+    <tr><th>模型</th><th>蒸馏来源</th><th>方法</th></tr>
+    <tr><td>DeepSeek-R1-Distill</td><td>R1 (671B)</td><td>用 R1 生成的 CoT 数据微调小模型</td></tr>
+    <tr><td>V3.2 (推测)</td><td>V3 + R1</td><td>在 V3 基础上用 R1 数据继续训练</td></tr>
+    <tr><td>V4 Flash (284B)</td><td>V4 Pro (1.6T)</td><td>从大模型蒸馏到小模型</td></tr>
+</table>
+
+<h3>7.3 Muon 优化器（V4 新增）</h3>
+
+<p>V4 据报道使用了 Muon 优化器（来自 Moonlight 项目）：</p>
+<ul>
+    <li><strong>核心思想</strong>：对梯度做正交化处理（类似 Nesterov 动量 + 正交投影）</li>
+    <li><strong>优势</strong>：比 AdamW 更快收敛，尤其在大 batch size 下</li>
+    <li><strong>与 FP8 的协同</strong>：Muon 的梯度正交化可能有助于缓解低精度训练的梯度噪声</li>
+    <li><strong>训练效率</strong>：V4 的 1.6T 参数在合理的训练预算内完成，Muon 是关键因素之一</li>
+</ul>
+
+<h3>7.4 训练基础设施</h3>
+
+<p>V3 论文披露的训练细节：</p>
+<ul>
+    <li><strong>集群</strong>：2048 × H800 GPU</li>
+    <li><strong>训练时间</strong>：约 2 个月</li>
+    <li><strong>训练成本</strong>：约 $5.5M（远低于同规模模型）</li>
+    <li><strong>通信优化</strong>：DualPipe（计算和通信重叠）、自研 all-to-all 通信库</li>
+    <li><strong>并行策略</strong>：DP + TP + EP + PP（V4 新增 CP 用于长上下文）</li>
+</ul>
+
+<h2 id="code-diff">八、V3 vs V3.2 代码级差异总结</h2>
+
+<div class="callout">
+    <strong>说明：</strong>以下基于 DeepSeek 官方开源的推理代码对比。V3 代码来自 DeepSeek-V3 仓库，V3.2 代码来自 DeepSeek-V3.2-Exp 仓库。
+</div>
+
+<h3>8.1 新增模块</h3>
+
+<table>
+    <tr><th>模块</th><th>V3</th><th>V3.2</th><th>说明</th></tr>
+    <tr><td><code>Indexer</code></td><td>❌</td><td>✅</td><td>稀疏注意力索引器</td></tr>
+    <tr><td><code>LayerNorm</code></td><td>❌</td><td>✅</td><td>Indexer 的 K 归一化用</td></tr>
+    <tr><td><code>rotate_activation</code></td><td>❌</td><td>✅</td><td>Hadamard 变换</td></tr>
+    <tr><td><code>fp8_index</code> kernel</td><td>❌</td><td>✅</td><td>FP8 索引计算 kernel</td></tr>
+</table>
+
+<h3>8.2 修改的模块</h3>
+
+<table>
+    <tr><th>模块</th><th>V3 行为</th><th>V3.2 行为</th><th>影响</th></tr>
+    <tr><td><code>RMSNorm</code></td><td>单输入，返回归一化结果</td><td>双输入（x + residual），返回归一化结果 + 新 residual</td><td>残差精度提升</td></tr>
+    <tr><td><code>Block.forward</code></td><td><code>x = x + attn(norm(x))</code></td><td><code>x, residual = norm(x, residual); x = attn(x)</code></td><td>float32 残差流</td></tr>
+    <tr><td><code>MLA.forward</code></td><td>标准全量注意力</td><td>注意力 + Indexer mask</td><td>稀疏注意力</td></tr>
+    <tr><td><code>ModelArgs</code></td><td>无 index 参数</td><td>新增 <code>index_n_heads</code>, <code>index_head_dim</code>, <code>index_topk</code></td><td>Indexer 配置</td></tr>
+    <tr><td><code>ModelArgs.scale_fmt</code></td><td>无</td><td><code>"ue8m0"</code></td><td>MXFP scale 格式</td></tr>
+</table>
+
+<h3>8.3 关键代码差异</h3>
+
+<h4>RMSNorm 的变化</h4>
+<pre>
+# V3
+def forward(self, x):
+    x = x.float()
+    var = x.pow(2).mean(-1, keepdim=True)
+    x = x * torch.rsqrt(var + self.eps)
+    return (self.weight * x).to(dtype)
+
+# V3.2（新增 residual 参数）
+def forward(self, x, residual=None):
+    if residual is None:
+        x = x.float()
+        var = x.pow(2).mean(-1, keepdim=True)
+        x = x * torch.rsqrt(var + self.eps)
+        return (self.weight * x).to(dtype)
+    else:
+        <span class="diff-add">x = residual = x.float() + residual.float()  # float32 残差加法！</span>
+        var = x.pow(2).mean(-1, keepdim=True)
+        x = x * torch.rsqrt(var + self.eps)
+        <span class="diff-add">return (self.weight * x).to(dtype), residual.to(dtype)</span>
+</pre>
+
+<h4>Block 的变化</h4>
+<pre>
+# V3
+def forward(self, x, start_pos, freqs_cis, mask):
+    x = x + self.attn(self.attn_norm(x), start_pos, freqs_cis, mask)
+    x = x + self.ffn(self.ffn_norm(x))
+    return x
+
+# V3.2
+def forward(self, x, <span class="diff-add">residual</span>, start_pos, freqs_cis, mask):
+    if residual is None:
+        x, residual = self.attn_norm(x), x
+    else:
+        <span class="diff-add">x, residual = self.attn_norm(x, residual)</span>
+    x = self.attn(x, start_pos, freqs_cis, mask)
+    <span class="diff-add">x, residual = self.ffn_norm(x, residual)</span>
+    x = self.ffn(x)
+    <span class="diff-add">return x, residual</span>
+</pre>
+
+<h4>MLA 中 Indexer 的集成</h4>
+<pre>
+# V3.2 MLA.forward() 中新增的 Indexer 逻辑
+# Prefill 模式：
+topk_indices = self.indexer(x, qr, start_pos, freqs_cis, mask)
+index_mask = torch.full((bsz, seqlen, seqlen), float("-inf"), device=x.device)
+index_mask = index_mask.scatter_(-1, topk_indices, 0)
+index_mask += mask  # 叠加因果 mask
+scores += index_mask.unsqueeze(2)  # 应用到注意力分数
+
+# Decode 模式：
+topk_indices = self.indexer(x, qr, start_pos, freqs_cis, mask)
+index_mask = torch.full((bsz, 1, end_pos), float("-inf"), device=x.device)
+index_mask = index_mask.scatter_(-1, topk_indices, 0)
+scores += index_mask.unsqueeze(2)
+</pre>
+
+<h3>8.4 V4 相对 V3.2 的进一步变化（基于推理框架信息）</h3>
+
+<table>
+    <tr><th>特性</th><th>V3.2</th><th>V4</th></tr>
+    <tr><td>稀疏注意力</td><td>Indexer + top-2048</td><td>CSA (C4 top-512) + HCA (C128 dense)</td></tr>
+    <tr><td>KV 压缩</td><td>MLA 低秩压缩</td><td>MLA + 4:1/128:1 token 级压缩</td></tr>
+    <tr><td>残差连接</td><td>Float32 融合残差</td><td>mHC 多分支超连接</td></tr>
+    <tr><td>专家权重精度</td><td>FP8</td><td>FP4 (MXFP4)</td></tr>
+    <tr><td>Scale 格式</td><td>ue8m0</td><td>MXFP block-scaled</td></tr>
+    <tr><td>推测解码</td><td>无</td><td>单层 MTP head (SWA-only)</td></tr>
+    <tr><td>上下文长度</td><td>128K</td><td>1M</td></tr>
+    <tr><td>模型规模</td><td>671B (37B active)</td><td>1.6T Pro / 284B Flash</td></tr>
+</table>
+
+<hr>
+
+<div class="source-list">
+    <h3>参考来源</h3>
+    <ul>
+        <li><a href="https://github.com/deepseek-ai/DeepSeek-V3">DeepSeek-V3 官方推理代码</a></li>
+        <li><a href="https://github.com/deepseek-ai/DeepSeek-V3.2-Exp">DeepSeek-V3.2-Exp 官方推理代码</a></li>
+        <li><a href="https://lmsys.org/blog/2026-04-25-deepseek-v4/">LMSYS/SGLang: DeepSeek-V4 Day-0 推理与 RL 支持</a></li>
+        <li><a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report (arXiv:2412.19437)</a></li>
+        <li><a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1 Technical Report (arXiv:2501.12948)</a></li>
+    </ul>
+</div>
+
+</body>
+</html>

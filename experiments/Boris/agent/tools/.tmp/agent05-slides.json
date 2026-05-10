@@ -1,0 +1,83 @@
+{
+  "title": "Coding Agent 安全态势洞察",
+  "subtitle": "2026-05-02 · DeepDive Boris · from b-agent-05",
+  "slides": [
+    {
+      "layout": "section",
+      "title": "一、Agent 自己就会搞砸",
+      "content": "真实安全问题分类 — 无需攻击者介入的故障模式"
+    },
+    {
+      "title": "恶意文件触发 Agent 自我拒绝",
+      "bullets": [
+        "Claude Code 回归问题：仓库中恶意软件提醒文件触发 agent 内部安全检查",
+        "子 agent 拒绝执行正常任务 — 不是外部攻击，是安全机制误判",
+        "直接阻断开发流程，251 分社区关注度说明已是广泛痛点",
+        "来源：github.com/anthropics/claude-code/issues/49363"
+      ]
+    },
+    {
+      "title": "Agent 违反数据库隐含假设",
+      "bullets": [
+        "传统数据库假设调用方是确定性程序，遵守事务边界和并发控制",
+        "Agent 打破假设：重复写操作、忽略锁机制、不理解 schema 就执行 DDL",
+        "无需攻击者 — agent 按自己的\"理解\"操作就足以造成数据损坏",
+        "来源：arpitbhayani.me/blogs/defensive-databases/"
+      ]
+    },
+    {
+      "title": "Harness 应置于沙箱之外 + 开发者倦怠",
+      "bullets": [
+        "Harness（约束层）不应与 agent 共享执行环境",
+        "否则 agent 有能力修改自身约束规则、绕过权限检查",
+        "策略执行层必须独立于被控制对象 — 与 AWS Cedar 思路一致",
+        "开发者因无法信任 agent 而倦怠：\"人在回路\"变成\"人被困在回路里\""
+      ]
+    },
+    {
+      "layout": "section",
+      "title": "二、确定性策略 vs. 非确定性 LLM 判断",
+      "content": "核心矛盾：用非确定性系统判断自身行为是否安全"
+    },
+    {
+      "title": "核心矛盾",
+      "bullets": [
+        "同一操作，不同结果：相同请求可能被放行也可能被拒绝",
+        "安全规则不可审计：LLM 内部判断无法被外部验证或形式化证明",
+        "规模化后失控：100 个 agent 同时运行，每个安全行为都是概率性的"
+      ]
+    },
+    {
+      "title": "AWS Cedar 思路的启示",
+      "bullets": [
+        "LLM 内置判断：概率性、黑箱、与 agent 共享上下文",
+        "确定性策略引擎：相同输入必定相同输出、策略即代码、可测试可审计",
+        "关键转变：将安全决策从 agent 内部抽离到外部确定性策略层",
+        "Agent 请求执行操作，批准/拒绝由独立策略引擎基于明确规则做出"
+      ]
+    },
+    {
+      "layout": "section",
+      "title": "三、值得关注的信号",
+      "content": "业界动态"
+    },
+    {
+      "title": "值得一看的事",
+      "bullets": [
+        "GLM-5 规模化服务 coding agent 的调试经验 — z.ai/blog/scaling-pain",
+        "学术界开始系统化研究 agent harness 工程 — arxiv.org/abs/2604.25850",
+        "Claude Code 仍不支持 AGENTS.md 声明式规则约束 — issue #6235",
+        "400 行 shell 实现完整 coding agent harness — pu.dev"
+      ]
+    },
+    {
+      "title": "今日观察小结",
+      "bullets": [
+        "核心信号：coding agent 安全问题不是\"会不会被攻击\"，而是\"agent 自己就会出错\"",
+        "应对方向正在收敛：harness 置于沙箱外、确定性策略引擎、声明式规则",
+        "与 AWS Cedar 设计哲学一致：安全不应该是\"大概率正确\"，必须是确定性的"
+      ],
+      "notes": "这是从 Hacker News 19 条扫描中筛选出的 8 条核心发现的综合分析"
+    }
+  ]
+}

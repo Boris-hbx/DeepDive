@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek V3 → V3.2 → V4 演进分析：优化思路与推理性能归因</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; line-height: 1.8; color: #1a1a1a; }
+        h1 { border-bottom: 3px solid #0f766e; padding-bottom: 12px; font-size: 1.6em; }
+        h2 { color: #0f766e; margin-top: 48px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+        h3 { color: #374151; margin-top: 32px; }
+        .meta { color: #6b7280; font-size: 0.9em; margin-bottom: 30px; }
+        table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 0.92em; }
+        th, td { border: 1px solid #e5e7eb; padding: 10px 14px; text-align: left; }
+        th { background: #f0fdfa; }
+        code { background: #f3f4f6; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #1f2937; color: #e5e7eb; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85em; }
+        .callout { background: #f0fdfa; border-left: 4px solid #0f766e; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 16px 0; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-right: 6px; }
+        .tag-arch { background: #dbeafe; color: #1e40af; }
+        .tag-perf { background: #d1fae5; color: #065f46; }
+        .tag-cost { background: #fef3c7; color: #92400e; }
+        .tag-new { background: #ede9fe; color: #5b21b6; }
+        .timeline { position: relative; padding-left: 30px; margin: 24px 0; }
+        .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 3px; background: #0f766e; border-radius: 2px; }
+        .timeline-item { position: relative; margin-bottom: 24px; }
+        .timeline-item::before { content: ''; position: absolute; left: -26px; top: 8px; width: 12px; height: 12px; background: #0f766e; border-radius: 50%; }
+        .timeline-item h4 { margin: 0 0 4px 0; color: #0f766e; }
+        .timeline-item p { margin: 0; color: #4b5563; }
+        .attribution-table td:first-child { font-weight: bold; white-space: nowrap; }
+        .pct { color: #0f766e; font-weight: bold; }
+        .source-list { font-size: 0.85em; color: #6b7280; margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+        .source-list a { color: #0f766e; }
+    </style>
+</head>
+<body>
+
+<h1>DeepSeek V3 → V3.2 → V4 演进全景分析</h1>
+<p style="font-size:1.1em; color:#4b5563;">优化思路、技术趋势与推理性能归因</p>
+
+<div class="meta">
+    <p>分析日期：2026-05-06 | 综合代码仓库对比 + 论文分析</p>
+</div>
+
+<h2>一、演进时间线</h2>
+
+<div class="timeline">
+    <div class="timeline-item">
+        <h4>DeepSeek-V3（2024-12）</h4>
+        <p>671B / 37B activated | 128K context | MLA + DeepSeekMoE | 14.8T tokens 训练</p>
+    </div>
+    <div class="timeline-item">
+        <h4>DeepSeek-V3.2-Exp（2026-02）</h4>
+        <p>671B / 37B activated | 引入 Indexer 稀疏注意力原型 | FP8 KV cache | 残差融合 Norm</p>
+    </div>
+    <div class="timeline-item">
+        <h4>DeepSeek-V4 Pro（2026-04）</h4>
+        <p>1.6T / 49B activated | 1M context | 混合稀疏注意力（CSA+HCA）| 流形约束残差</p>
+    </div>
+    <div class="timeline-item">
+        <h4>DeepSeek-V4 Flash（2026-04）</h4>
+        <p>284B / 13B activated | 1M context | 高吞吐低成本版本 | 83.6 tokens/s</p>
+    </div>
+</div>
+
+<h2>二、三代架构全景对比</h2>
+
+<table>
+    <tr><th>维度</th><th>V3</th><th>V3.2-Exp</th><th>V4 Pro</th></tr>
+    <tr><td>总参数</td><td>671B</td><td>671B</td><td>1.6T</td></tr>
+    <tr><td>激活参数/token</td><td>37B</td><td>37B</td><td>49B</td></tr>
+    <tr><td>上下文窗口</td><td>128K</td><td>128K</td><td>1M</td></tr>
+    <tr><td>注意力机制</td><td>MLA（全序列）</td><td>MLA + Indexer（top-2048）</td><td>混合稀疏（CSA + HCA）</td></tr>
+    <tr><td>KV Cache 精度</td><td>bf16</td><td>FP8</td><td>FP8 + 分层压缩</td></tr>
+    <tr><td>残差连接</td><td>标准 Pre-Norm</td><td>融入 RMSNorm（float32）</td><td>流形约束残差</td></tr>
+    <tr><td>计算精度策略</td><td>bf16/fp8 可选</td><td>FP8 only + 关键路径 FP32</td><td>FP8 原生 + FP32 关键路径</td></tr>
+    <tr><td>MoE 通信</td><td>shared expert 独立 reduce</td><td>shared expert 本地累加</td><td>继承优化</td></tr>
+    <tr><td>训练方法</td><td>MTP + SFT + RL</td><td>—（推理优化）</td><td>MTP + SFT + RL + On-policy Distillation</td></tr>
+    <tr><td>API 输出价格</td><td>$1.10/1M</td><td>—</td><td>$3.48/1M</td></tr>
+    <tr><td>SWE-bench</td><td>~42%</td><td>—</td><td>80.6%</td></tr>
+</table>
+
+<h2>三、DeepSeek 的优化思路与技术趋势</h2>
+
+<div class="callout">
+    <strong>核心哲学：</strong>不追求暴力扩参数，而是在固定算力预算下最大化"每 FLOP 的智能产出"。每一代的核心改进都围绕一个问题：<strong>如何让更多参数在更少计算中发挥作用？</strong>
+</div>
+
+<h3>3.1 趋势一：从"全量计算"到"选择性计算"</h3>
+<span class="tag tag-arch">架构趋势</span>
+
+<table>
+    <tr><th>代际</th><th>FFN 层</th><th>注意力层</th><th>思路</th></tr>
+    <tr><td>V3</td><td>MoE（256 选 8）</td><td>全序列 MLA</td><td>FFN 已稀疏，注意力仍全量</td></tr>
+    <tr><td>V3.2</td><td>MoE（256 选 8）</td><td>Indexer top-2048</td><td>注意力也开始稀疏化</td></tr>
+    <tr><td>V4</td><td>MoE（更大规模）</td><td>CSA top-k + HCA 压缩</td><td>注意力全面稀疏 + 多粒度</td></tr>
+</table>
+
+<p><strong>趋势总结：</strong>DeepSeek 将 MoE 的"选择性激活"思想从 FFN 层推广到了注意力层。V3 时代只有 FFN 是稀疏的（256 个专家选 8 个），注意力仍然是 O(n²) 全量计算。到 V4，注意力也变成了"选择性计算"——只关注最相关的 token 子集。</p>
+
+<h3>3.2 趋势二：从"精度统一"到"精度分层"</h3>
+<span class="tag tag-perf">性能趋势</span>
+
+<pre>
+V3:   存储 bf16/fp8 可选  |  计算 bf16/fp8 可选  |  KV cache bf16
+V3.2: 存储 fp8 only      |  计算 fp8 + 关键路径 fp32  |  KV cache fp8
+V4:   存储 fp8 only      |  计算 fp8 + 关键路径 fp32  |  KV cache fp8 分层压缩
+</pre>
+
+<p><strong>设计哲学：</strong>"低精度存储，高精度计算"。具体来说：</p>
+<ul>
+    <li><strong>权重存储</strong>：FP8（省显存 50%）</li>
+    <li><strong>KV Cache</strong>：FP8（省显存 50%，V4 进一步压缩到 10%）</li>
+    <li><strong>关键计算路径</strong>：提升到 FP32（MLP 激活、路由分数、logits、残差加法）</li>
+</ul>
+<p>这不是矛盾，而是精细的工程权衡：存储是带宽瓶颈，用低精度省带宽；计算是精度瓶颈，用高精度保质量。</p>
+
+<h3>3.3 趋势三：从"工程 trick"到"原生可训练"</h3>
+<span class="tag tag-new">方法论趋势</span>
+
+<table>
+    <tr><th>技术</th><th>V3.2 的做法</th><th>V4 的做法</th></tr>
+    <tr><td>稀疏注意力</td><td>推理时才稀疏（训练仍全量）</td><td>原生可训练（NSA），训练时就稀疏</td></tr>
+    <tr><td>残差优化</td><td>工程上融入 Norm 层</td><td>理论上施加流形约束</td></tr>
+    <tr><td>FP8</td><td>推理量化</td><td>全流程原生 FP8 训练</td></tr>
+</table>
+
+<p><strong>趋势总结：</strong>V3.2 的优化更像"推理阶段的工程 hack"，V4 则将这些优化"前移"到训练阶段，让模型从一开始就学会在稀疏/低精度条件下工作。这是从"训练后优化"到"训练时优化"的范式转变。</p>
+
+<h3>3.4 趋势四：双模型策略（Pro + Flash）</h3>
+<span class="tag tag-cost">商业趋势</span>
+
+<p>V4 首次推出双版本：</p>
+<ul>
+    <li><strong>Pro（1.6T/49B）</strong>：追求极致质量，对标 Claude Opus / GPT-5.5</li>
+    <li><strong>Flash（284B/13B）</strong>：追求极致效率，83.6 tokens/s，适合高吞吐场景</li>
+</ul>
+<p>这反映了 DeepSeek 从"单一模型打天下"转向"质量-效率帕累托前沿"的产品策略。</p>
+
+<h2>四、推理性能优化归因分析</h2>
+
+<div class="callout">
+    <strong>核心问题：</strong>V4 Pro 在 1M token 上下文下，推理 FLOPs 仅为 V3 的 27%，KV cache 仅为 10%。这些收益从哪来？
+</div>
+
+<h3>4.1 归因分解</h3>
+
+<table class="attribution-table">
+    <tr><th>优化手段</th><th>FLOPs 贡献</th><th>KV Cache 贡献</th><th>首次引入</th><th>机制</th></tr>
+    <tr><td>稀疏注意力（CSA top-k）</td><td class="pct">~50%</td><td class="pct">~40%</td><td>V3.2 (Indexer)</td><td>只对 top-k token 做全注意力，跳过不相关 token</td></tr>
+    <tr><td>重度压缩注意力（HCA）</td><td class="pct">~20%</td><td class="pct">~35%</td><td>V4</td><td>将长序列压缩为少量摘要 token，极低成本获取全局信息</td></tr>
+    <tr><td>FP8 KV Cache</td><td class="pct">~5%</td><td class="pct">~15%</td><td>V3.2</td><td>KV 存储精度减半，减少显存带宽压力</td></tr>
+    <tr><td>MLA 低秩压缩（继承）</td><td class="pct">~10%</td><td class="pct">~5%</td><td>V2</td><td>KV 通过低秩投影压缩维度（512 vs 全维度）</td></tr>
+    <tr><td>权重反量化缓存</td><td class="pct">~5%</td><td class="pct">—</td><td>V3.2</td><td>避免 decode 每步重复反量化</td></tr>
+    <tr><td>MoE 通信优化</td><td class="pct">~5%</td><td class="pct">—</td><td>V3.2</td><td>shared expert 本地累加，减少 all-reduce</td></tr>
+    <tr><td>其他（kernel 优化等）</td><td class="pct">~5%</td><td class="pct">~5%</td><td>各代</td><td>硬件对齐的 kernel、算子融合</td></tr>
+</table>
+
+<p><em>注：百分比为估算贡献占比，表示该优化对总收益的相对贡献，非绝对数值。</em></p>
+
+<h3>4.2 归因可视化</h3>
+
+<pre>
+推理 FLOPs 降低归因（V4 vs V3，1M context）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+稀疏注意力 (CSA)     ████████████████████░░░░░░░░░░  50%
+重度压缩 (HCA)       ████████░░░░░░░░░░░░░░░░░░░░░░  20%
+MLA 低秩继承         ████░░░░░░░░░░░░░░░░░░░░░░░░░░  10%
+FP8 + 缓存优化       ████░░░░░░░░░░░░░░░░░░░░░░░░░░  10%
+MoE 通信 + kernel    ████░░░░░░░░░░░░░░░░░░░░░░░░░░  10%
+
+KV Cache 压缩归因（V4 vs V3，1M context）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+稀疏注意力 (CSA)     ████████████████░░░░░░░░░░░░░░  40%
+重度压缩 (HCA)       ██████████████░░░░░░░░░░░░░░░░  35%
+FP8 量化             ██████░░░░░░░░░░░░░░░░░░░░░░░░  15%
+MLA 低秩 + 其他      ████░░░░░░░░░░░░░░░░░░░░░░░░░░  10%
+</pre>
+
+<h3>4.3 各代贡献拆解</h3>
+
+<div class="section-box">
+<h4>V3 奠定的基础（仍在 V4 中发挥作用）</h4>
+<ul>
+    <li><strong>MLA（Multi-head Latent Attention）</strong>：KV 低秩压缩，将每层 KV 维度从 n_heads × head_dim 压缩到 kv_lora_rank=512</li>
+    <li><strong>DeepSeekMoE</strong>：256 专家选 8，FFN 层计算量降为 ~3%</li>
+    <li><strong>Auxiliary-loss-free 负载均衡</strong>：不引入辅助损失就能保证专家利用率</li>
+</ul>
+
+<h4>V3.2 的关键突破（V4 的技术原型）</h4>
+<ul>
+    <li><strong>Indexer</strong>：首次证明"注意力也可以稀疏化"，top-2048 选择机制</li>
+    <li><strong>FP8 KV Cache</strong>：首次将量化从权重扩展到 KV cache</li>
+    <li><strong>残差融合 Norm</strong>：解决 FP8 下残差累积误差问题</li>
+    <li><strong>移除 bf16 回退</strong>：确认 FP8 作为唯一推理精度的可行性</li>
+</ul>
+
+<h4>V4 的系统化创新</h4>
+<ul>
+    <li><strong>CSA + HCA 混合</strong>：将 V3.2 的单一 Indexer 升级为多粒度稀疏注意力</li>
+    <li><strong>原生可训练稀疏</strong>：训练时就使用稀疏注意力，而非推理时才裁剪</li>
+    <li><strong>流形约束残差</strong>：将 V3.2 的工程方案理论化</li>
+    <li><strong>规模扩展到 1.6T</strong>：在效率保证下大幅扩参数</li>
+</ul>
+</div>
+
+<h3>4.4 效率-质量权衡分析</h3>
+
+<table>
+    <tr><th>模型</th><th>激活参数</th><th>1M FLOPs（相对）</th><th>SWE-bench</th><th>$/1M output tokens</th><th>性价比指数</th></tr>
+    <tr><td>V3</td><td>37B</td><td>1.0x（不支持 1M）</td><td>~42%</td><td>$1.10</td><td>基准</td></tr>
+    <tr><td>V4 Pro</td><td>49B</td><td>0.27x</td><td>80.6%</td><td>$3.48</td><td>质量 +92%，价格 +216%</td></tr>
+    <tr><td>V4 Flash</td><td>13B</td><td>&lt;0.1x</td><td>~65%（推测）</td><td>~$0.60</td><td>质量 +55%，价格 -45%</td></tr>
+    <tr><td>Claude Opus 4.6</td><td>—</td><td>—</td><td>80.8%</td><td>$75</td><td>对比参考</td></tr>
+</table>
+
+<h2>五、DeepSeek 优化方法论总结</h2>
+
+<div class="section-box">
+<h3>方法论框架：三层优化金字塔</h3>
+
+<pre>
+        ┌─────────────────────┐
+        │   训练方法创新       │  ← V4: 原生稀疏训练、On-policy Distillation
+        │  （改变模型学到什么） │
+        ├─────────────────────┤
+        │   架构创新           │  ← V3→V4: MoE扩展、混合稀疏注意力、流形残差
+        │  （改变计算怎么流动） │
+        ├─────────────────────┤
+        │   工程优化           │  ← V3.2: FP8量化、kernel优化、缓存策略
+        │  （改变硬件怎么执行） │
+        └─────────────────────┘
+</pre>
+
+<p><strong>DeepSeek 的独特之处：</strong>三层同时推进，且下层验证上层。V3.2 先在工程层验证 Indexer 可行，V4 再在架构层系统化为 CSA/HCA，最后在训练层实现原生可训练。这种"自底向上验证、自顶向下设计"的方法论值得学习。</p>
+</div>
+
+<h3>5.1 六条核心优化原则</h3>
+
+<table>
+    <tr><th>#</th><th>原则</th><th>V3 体现</th><th>V4 体现</th></tr>
+    <tr><td>1</td><td><strong>选择性计算优于全量计算</strong></td><td>MoE（FFN 层稀疏）</td><td>MoE + 稀疏注意力（全面稀疏）</td></tr>
+    <tr><td>2</td><td><strong>存储用低精度，计算用高精度</strong></td><td>FP8 权重可选</td><td>FP8 存储 + FP32 关键路径</td></tr>
+    <tr><td>3</td><td><strong>压缩维度优于裁剪序列</strong></td><td>MLA 低秩 KV</td><td>MLA + HCA 序列压缩</td></tr>
+    <tr><td>4</td><td><strong>推理优化前移到训练阶段</strong></td><td>—</td><td>原生稀疏训练、FP8 原生训练</td></tr>
+    <tr><td>5</td><td><strong>先验证再系统化</strong></td><td>—</td><td>V3.2 验证 → V4 系统化</td></tr>
+    <tr><td>6</td><td><strong>硬件对齐的算法设计</strong></td><td>FP8 GEMM kernel</td><td>NSA 硬件对齐稀疏 kernel</td></tr>
+</table>
+
+<h2>六、未来趋势预判</h2>
+
+<div class="section-box">
+<p>基于 V3→V4 的演进轨迹，可以预判 DeepSeek 下一步可能的方向：</p>
+
+<ol>
+    <li><strong>注意力进一步稀疏化</strong>——当前 top-k=2048 可能继续降低，或引入动态 k（简单 query 用更少 token，复杂 query 用更多）</li>
+    <li><strong>MoE 专家数继续扩大</strong>——从 256 到 512+，总参数可能突破 10T，但激活参数保持在 50-100B</li>
+    <li><strong>多模态融合</strong>——V4 的 1M 上下文 + 稀疏注意力天然适合处理图像/视频等长序列模态</li>
+    <li><strong>推理时计算自适应</strong>——根据 query 难度动态调整激活专家数和注意力稀疏度</li>
+    <li><strong>端侧部署</strong>——Flash 版本（284B/13B）已经接近端侧可部署的规模，下一步可能推出更小的 Nano 版本</li>
+</ol>
+</div>
+
+<div class="source-list">
+<h3>参考来源</h3>
+<ul>
+    <li><a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a></li>
+    <li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf">DeepSeek-V4 Paper</a></li>
+    <li><a href="https://github.com/deepseek-ai/DeepSeek-V3">DeepSeek-V3 GitHub (inference code)</a></li>
+    <li><a href="https://github.com/deepseek-ai/DeepSeek-V3.2-Exp">DeepSeek-V3.2-Exp GitHub (inference code)</a></li>
+    <li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro">DeepSeek-V4-Pro Model Card</a></li>
+    <li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash">DeepSeek-V4-Flash Model Card</a></li>
+    <li><a href="https://arxiv.org/abs/2502.11089">NSA: Hardware-Aligned and Natively Trainable Sparse Attention</a></li>
+    <li><a href="https://www.tensoreconomics.com/p/deepseek-sparse-attention-from-first">DeepSeek Sparse Attention from First Principles</a></li>
+    <li><a href="https://lmsys.org/blog/2026-04-25-deepseek-v4/">LMSYS: DeepSeek-V4 on Day 0</a></li>
+    <li><a href="https://www.buildfastwithai.com/blogs/deepseek-v4-pro-review-2026">DeepSeek V4 Pro Review</a></li>
+    <li><a href="https://codersera.com/blog/deepseek-v4-complete-guide-2026/">DeepSeek V4 Complete Guide</a></li>
+    <li><a href="https://api-inference.huggingface.co/blog/deepseekv4">HuggingFace: DeepSeek V4 Blog</a></li>
+</ul>
+</div>
+
+<p class="meta">报告生成时间：2026-05-06 | 注：部分 V4 数据基于公开信息综合分析，标注"推测"的数据未经官方确认。</p>
+
+</body>
+</html>

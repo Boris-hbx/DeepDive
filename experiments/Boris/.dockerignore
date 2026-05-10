@@ -1,0 +1,34 @@
+# Build context = experiments/Boris/
+# Keep image lean: only site/ source, daily-report/, prompts/ should land in image.
+
+# node + next artifacts (rebuilt inside image)
+**/node_modules
+**/.next
+site/.next
+site/node_modules
+
+# secrets / local env (NEVER ship)
+**/.env
+**/.env.local
+**/.env.*.local
+
+# git + editor noise
+**/.git
+**/.gitignore
+**/.gitkeep
+**/.DS_Store
+**/.vscode
+**/.idea
+**/*.tsbuildinfo
+
+# experiment-root files not needed at runtime
+prototypes/
+radar/
+config/
+spec/
+spec.md
+conversation-*.jsonl
+README.md
+
+# site-level local README (image already runs server.js, no docs needed)
+site/README.md

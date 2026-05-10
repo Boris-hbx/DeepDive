@@ -1,0 +1,20 @@
+# fly.toml — boris-deepdive-dailyreport
+# 决策见 spec/001-web-app.md · 偏离 mvp 见 /docs/decisions.md (2026-04-26)
+
+app = 'boris-deepdive-dailyreport'
+primary_region = 'nrt'
+
+[build]
+  dockerfile = 'site/Dockerfile'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'
