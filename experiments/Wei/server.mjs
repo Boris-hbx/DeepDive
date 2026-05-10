@@ -1,3 +1,17 @@
+import dns from 'dns';
+
+// Fix: nodemailer 内部 new dns.Resolver() 是独立实例，不受 dns.setServers() 影响。
+// 此环境默认 DNS (114.114.114.114) 对 *.139.com/*.10086.cn 返回被污染地址 198.18.0.x。
+// 代理 dns.Resolver 构造函数，让所有 Resolver 实例使用正确 DNS。
+const OrigResolver = dns.Resolver;
+dns.Resolver = new Proxy(OrigResolver, {
+  construct(target, args, newTarget) {
+    const instance = Reflect.construct(target, args, newTarget);
+    instance.setServers(['223.5.5.5', '119.29.29.29']);
+    return instance;
+  }
+});
+
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
@@ -13,8 +27,9 @@ import { generateBrief } from './lib/brief-generator.mjs';
 import { fetchSource } from './lib/fetcher.mjs';
 import { generatePptx } from './lib/pptx-generator.mjs';
 import { createProvider } from './lib/llm-provider.mjs';
-import { createSession, getSession, removeSession } from './lib/session-manager.mjs';
-import { startPipeline, confirmOutlinePipeline, modifyReportPipeline, undoModifyPipeline, saveReportPipeline, addCustomSourcePipeline, autoSearchPipeline, skipSearchPipeline, chatPipeline } from './lib/pipeline/insight-pipeline.mjs';
+import { createSession, getSession, removeSession, createDeepResearchV3Session } from './lib/session-manager.mjs';
+import { startPipeline, confirmOutlinePipeline, modifyReportPipeline, undoModifyPipeline, saveReportPipeline, addCustomSourcePipeline, autoSearchPipeline, skipSearchPipeline, chatPipeline, deepResearchPipeline, deepResearchV3BrainstormTurn, deepResearchV3Plan, deepResearchV3PlanL2, deepResearchV3PlanL3, deepResearchV3Execute, deepResearchV3Synthesize } from './lib/pipeline/insight-pipeline.mjs';
+import { logEmail, logError } from './lib/logger.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SOURCES_PATH = path.join(__dirname, 'sources.json');
@@ -365,13 +380,14 @@ const routes = [
   }],
   ['GET', '/api/schedule', async (_req, res) => {
     const cfg = loadConfig();
-    return jsonRes(res, 200, { schedule: cfg.schedule, history: cfg.history || [], defaultTemplate: cfg.defaultTemplate || 'tech-blue' });
+    return jsonRes(res, 200, { schedule: cfg.schedule, history: cfg.history || [], defaultTemplate: cfg.defaultTemplate || 'tech-blue', focusTopics: cfg.focusTopics || {} });
   }],
   ['PUT', '/api/schedule', async (req, res) => {
     const body = await parseBody(req, res); if (body === null) return;
     const cfg = loadConfig();
     if (body.schedule) cfg.schedule = body.schedule;
     if (body.defaultTemplate) cfg.defaultTemplate = body.defaultTemplate;
+    if (body.focusTopics) cfg.focusTopics = body.focusTopics;
     saveConfig(cfg);
     return jsonRes(res, 200, { ok: true });
   }],
@@ -491,9 +507,11 @@ const routes = [
           html: '<p>这是一封来自 DeepDive 的测试邮件。SMTP 配置正常。</p>',
         });
         console.log('[email] 测试邮件已发送:', info.messageId, 'accepted:', info.accepted, 'rejected:', info.rejected);
+        logEmail({ to: recipients, subject: '[DeepDive] 测试邮件', reportId: '__test__', success: true, messageId: info.messageId });
         return jsonRes(res, 200, { ok: true, messageId: info.messageId, accepted: info.accepted, rejected: info.rejected });
       } catch (err) {
         console.error('[email] 测试邮件发送失败:', err.message);
+        logEmail({ to: recipients, subject: '[DeepDive] 测试邮件', reportId: '__test__', success: false, error: err.message });
         return jsonRes(res, 500, { error: '邮件发送失败: ' + (err.message || String(err)) });
       }
     }
@@ -516,9 +534,11 @@ const routes = [
         html: htmlContent,
       });
       console.log('[email] 报告邮件已发送:', info.messageId, 'accepted:', info.accepted, 'rejected:', info.rejected);
+      logEmail({ to: recipients, subject: `[DeepDive] ${entry.title}`, reportId, success: true, messageId: info.messageId });
       return jsonRes(res, 200, { ok: true, messageId: info.messageId, accepted: info.accepted, rejected: info.rejected });
     } catch (err) {
       console.error('[email] 报告邮件发送失败:', err.message);
+      logEmail({ to: recipients, subject: `[DeepDive] ${entry.title}`, reportId, success: false, error: err.message });
       return jsonRes(res, 500, { error: '邮件发送失败: ' + (err.message || String(err)) });
     }
   }],
@@ -599,9 +619,129 @@ const routes = [
       await chatPipeline(sessionId, message, domain, emit);
     } catch (err) {
       console.error('[chat] pipeline error:', err.message);
+      logError({ source: 'chatPipeline', message: err.message, stack: err.stack, sessionId });
       emit('error', { message: err.message || String(err) });
     }
 
+    res.end();
+  }],
+  // === 深度研究 API (增强洞察：Plan → Search → Analyze → Reflect → Synthesize) ===
+  ['POST', '/api/insight/deep-research', async (req, res) => {
+    const body = await parseBody(req, res); if (body === null) return;
+    const { topic, domain, analysisDoc } = body;
+    if (!topic) return jsonRes(res, 400, { error: '缺少 topic' });
+
+    const sessionId = createSession({ topic, domain: domain || '', timeRange: '', analysisDoc: analysisDoc || '' });
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    });
+
+    res.write(`event: session\ndata: ${JSON.stringify({ sessionId })}\n\n`);
+
+    const emit = (event, data) => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      await deepResearchPipeline(sessionId, domain, emit, analysisDoc);
+    } catch (err) {
+      console.error('[deep-research] pipeline error:', err.message);
+      logError({ source: 'deepResearchPipeline', message: err.message, stack: err.stack, sessionId });
+      emit('error', { message: err.message || String(err) });
+    }
+
+    res.end();
+  }],
+  // === 深度研究 V3 API ===
+  // Brainstorm turn: one dialogue turn to refine analysis task list
+  ['POST', '/api/insight/deep-research-v3/brainstorm', async (req, res) => {
+    const body = await parseBody(req, res); if (body === null) return;
+    const { sessionId: existingSessionId, topic, message, domain } = body;
+    if (!message) return jsonRes(res, 400, { error: '缺少 message' });
+
+    let sessionId = existingSessionId;
+    if (!sessionId) {
+      if (!topic) return jsonRes(res, 400, { error: '首次请求需提供 topic' });
+      sessionId = createDeepResearchV3Session({ topic, domain: domain || '' });
+    }
+
+    const session = getSession(sessionId);
+    if (!session) return jsonRes(res, 404, { error: '会话不存在' });
+
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+    res.write(`event: session\ndata: ${JSON.stringify({ sessionId })}\n\n`);
+    const emit = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+
+    try {
+      const result = await deepResearchV3BrainstormTurn(sessionId, message, emit);
+      emit('brainstorm_done', result);
+    } catch (err) {
+      console.error('[v3-brainstorm] error:', err.message);
+      logError({ source: 'deepResearchV3BrainstormTurn', message: err.message, stack: err.stack, sessionId });
+      emit('error', { message: err.message || String(err) });
+    }
+    res.end();
+  }],
+  // Plan: decompose confirmed tasks into L1 tree (and optionally L2/L3 in auto mode)
+  ['POST', '/api/insight/deep-research-v3/plan', async (req, res) => {
+    const body = await parseBody(req, res); if (body === null) return;
+    const { sessionId } = body;
+    if (!sessionId) return jsonRes(res, 400, { error: '缺少 sessionId' });
+
+    const session = getSession(sessionId);
+    if (!session) return jsonRes(res, 404, { error: '会话不存在' });
+
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+    const emit = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+
+    try {
+      const result = await deepResearchV3Plan(sessionId, emit);
+      emit('plan_done', result);
+    } catch (err) {
+      console.error('[v3-plan] error:', err.message);
+      logError({ source: 'deepResearchV3Plan', message: err.message, stack: err.stack, sessionId });
+      emit('error', { message: err.message || String(err) });
+    }
+    res.end();
+  }],
+  // Confirm: user confirms a plan level and triggers next decomposition or execution
+  ['POST', '/api/insight/deep-research-v3/confirm', async (req, res) => {
+    const body = await parseBody(req, res); if (body === null) return;
+    const { sessionId, level, taskTree, autoAll } = body;
+    if (!sessionId) return jsonRes(res, 400, { error: '缺少 sessionId' });
+
+    const session = getSession(sessionId);
+    if (!session) return jsonRes(res, 404, { error: '会话不存在' });
+
+    // Apply user edits to task tree if provided
+    if (taskTree) session.taskTree = taskTree;
+    if (autoAll) session.confirmMode = 'auto';
+
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+    const emit = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+
+    try {
+      let result;
+      if (level === 1) {
+        result = await deepResearchV3PlanL2(sessionId, emit);
+      } else if (level === 2) {
+        result = await deepResearchV3PlanL3(sessionId, emit);
+      } else if (level === 3 || level === 'execute') {
+        // User confirmed L3 (or chose to stop at L2) — start execution
+        await deepResearchV3Execute(sessionId, emit);
+        result = await deepResearchV3Synthesize(sessionId, emit);
+      } else {
+        result = { error: '未知 level' };
+      }
+      emit('confirm_done', result || {});
+    } catch (err) {
+      console.error('[v3-confirm] error:', err.message);
+      logError({ source: 'deepResearchV3Confirm', message: err.message, stack: err.stack, sessionId });
+      emit('error', { message: err.message || String(err) });
+    }
     res.end();
   }],
   // === 交互式洞察工作台 API ===
@@ -616,6 +756,7 @@ const routes = [
     startPipeline(sessionId).catch(err => {
       console.error('洞察流水线失败:', err.message || err);
       console.error('Stack:', err.stack);
+      logError({ source: 'startPipeline', message: err.message, stack: err.stack, sessionId });
       const session = getSession(sessionId);
       if (session) {
         session.stage = 'error';
@@ -637,6 +778,7 @@ const routes = [
 
     // Run body generation asynchronously
     confirmOutlinePipeline(sessionId, outline).catch(err => {
+      logError({ source: 'confirmOutlinePipeline', message: err.message, stack: err.stack, sessionId });
       const session = getSession(sessionId);
       if (session) {
         session.stage = 'error';
@@ -666,6 +808,7 @@ const routes = [
 
     // Run auto-search asynchronously
     autoSearchPipeline(sessionId).catch(err => {
+      logError({ source: 'autoSearchPipeline', message: err.message, stack: err.stack, sessionId });
       const session = getSession(sessionId);
       if (session) {
         session.stage = 'error';
@@ -683,6 +826,7 @@ const routes = [
 
     // Generate outline directly from LLM thinking
     skipSearchPipeline(sessionId).catch(err => {
+      logError({ source: 'skipSearchPipeline', message: err.message, stack: err.stack, sessionId });
       const session = getSession(sessionId);
       if (session) {
         session.stage = 'error';
@@ -723,7 +867,9 @@ const routes = [
     if (!sessionId) return jsonRes(res, 400, { error: '缺少 sessionId' });
 
     try {
-      const result = await saveReportPipeline(sessionId, title);
+      const session = getSession(sessionId);
+      const opts = session && session.mode === 'deep' ? { type: 'deep-research' } : {};
+      const result = await saveReportPipeline(sessionId, title, opts);
       return jsonRes(res, 200, { ok: true, ...result });
     } catch (err) {
       return jsonRes(res, 500, { error: err.message });

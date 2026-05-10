@@ -3,6 +3,23 @@
 > 边做边补，记关键决策、踩坑和修复方法。参考 Dong 的 NOTES.md 格式。
 > 状态：Insight Agent 全流水线已跑通，server 运行中。
 
+## 2026-05-10
+
+### 功能：深度研究 v3 — 三层任务分解 + 逐级确认
+
+- 做了什么：实现 spec/003-deep-research.md v3 的后端 pipeline + server 路由 + 前端 UI
+- 为什么修改：v2 是单层线性搜索，v3 改为 Brainstorm → 任务树分解（L1/L2/L3）→ 逐级用户确认 → 逐叶子任务执行（mini Reflect）→ 结构化报告
+- 改动范围：
+  - `lib/pipeline/insight-pipeline.mjs`：新增 5 个导出函数：`deepResearchV3BrainstormTurn`、`deepResearchV3Plan`、`deepResearchV3PlanL2`、`deepResearchV3PlanL3`、`deepResearchV3Execute`、`deepResearchV3Synthesize`；新增 `persistV3`、`collectLeaves`、`findNode` 辅助函数；中间产物落盘到 `data/deep-research/{sessionId}/`
+  - `server.mjs`：新增 3 个路由：`POST /api/insight/deep-research-v3/brainstorm`（SSE）、`POST /api/insight/deep-research-v3/plan`（SSE）、`POST /api/insight/deep-research-v3/confirm`（SSE，处理 L1/L2/L3 确认 + 执行 + 综合）
+  - `insight.html`：新增"深度研究 v3"开关（与 v2 互斥）、v3 状态变量、任务树渲染函数、执行进度渲染、SSE 读取辅助函数 `readSSE`、v3 CSS 样式
+- 关键判断点：
+  - v3 pipeline 拆分为多个独立导出函数（而非单一大函数），原因：每个阶段需要等待用户确认，无法在一次 HTTP 请求内完成；confirm 路由根据 level 参数决定调用哪个阶段
+  - 中间产物落盘用 `fs.writeFileSync` + try-catch，落盘失败不中断主流程（遵循 spec 约束）
+  - v3 开关与 v2 开关互斥，避免状态混乱
+- 风险和假设：v2 `deepResearchPipeline` 保留不变；v3 session 用 `createDeepResearchV3Session` 独立创建，不复用 v2 session
+- 如何验证：启动 server → 访问 `/insight.html` → 勾选"深度研究 v3" → 输入课题 → 多轮 Brainstorm → 发送"确认" → 右侧出现任务清单 → 点击"开始任务分解" → 右侧出现 L1 任务树 + 确认按钮 → 逐级确认 → 执行阶段右侧显示进度 → 最终生成结构化报告
+
 ## 2026-04-29
 
 ### 功能：报告删除
@@ -25,6 +42,26 @@
   - `config.json`：新增 `email` 字段存储 SMTP 和收件人配置
 - 如何验证：配置 SMTP → 添加收件人 → 保存 → 首页卡片点击"发送报告" → 选择收件人 → 发送 → 检查收件箱
 - 安全性改进：SMTP 用户名/密码从 config.json 移到环境变量（SMTP_USER/SMTP_PASS），写入 .env，GET API 只返回 hasUser/hasPass 掩码，不暴露明文
+
+### 功能：每日 Brief 深度优化
+
+- 做了什么：三方面改造 — 自然语言关注主题 + 双通道排序 + 新数据源类型
+- 为什么修改：原有排序只看领域关键词匹配，无法表达复杂关注意图；信息来源局限于 RSS 和 HN
+- 关键判断点：
+  - 关注主题按领域（SE/CS）分别管理，自然语言配置，通过关键词 token 匹配计算 focusScore
+  - 新增 globalScore 通道（纯热度+权威+时效，不做领域过滤）选出业界 TOP 新闻
+  - 原有 domainScore 融入 focusScore（wFocus=0.10），再综合排序
+  - X/WeChat 源复用 RSS 解析逻辑，通过 Nitter/RSSHub 桥接，无需新 API 依赖
+- 改动范围：
+  - `config.json`：新增 `focusTopics` 字段
+  - `server.mjs`：GET/PUT schedule 支持 focusTopics
+  - `admin.html`：定时任务面板新增 SE/CS 两区关注主题增删 UI
+  - `lib/fetcher.mjs`：新增 `fetchX()`、`fetchWechat()`
+  - `lib/ranker.mjs`：新增 `computeGlobalScore()`、`computeFocusScore()`，rankItems 支持双通道
+  - `lib/pipeline/stages.mjs`：rankStage 传入 focusTopics，briefSummarizeStage 分离 globalTop + domainItems
+  - `lib/pipeline/runner.mjs`：ctx 新增 focusTopics
+  - `lib/brief-generator.mjs`：注入 focusTopics 到 pipeline
+  - `lib/prompts.mjs`：重写 `getBriefPrompt`，三段式结构 + 关注主题注入
 
 ### Bug 修复
 
@@ -298,3 +335,156 @@ node lib/dedup.test.mjs
   - `server.mjs` — 新增 6 个 API 路由 + SSE 辅助函数
   - `index.html` — "新建洞察"按钮改为跳转 `/insight.html`
 - 验证：启动 server 后 SSE 流推送完整流水线（88 条文档获取→排序→分析→纲要），各阶段事件正常发送，前端正确渲染文档列表
+
+## 2026-05-05
+
+### 功能：深度研究（增强现有洞察流水线）
+
+- 做了什么：在 insight.html 工作台中增加"深度研究"模式——勾选后课题会经过 Plan→Search→Analyze→Reflect 多轮迭代循环，最终综合生成深度报告
+- 为什么修改：现有洞察是单次线性 RSS 抓取+分析，无法主动搜索互联网，也无法迭代深入
+- 关键判断点：
+  - **增强而非重建**：不复刻 LangGraph/DeerFlow 的多 agent 架构，而是在现有 insight-pipeline.mjs 中新增 `deepResearchPipeline` 函数，复用 fetcher、ranker、analyzeDocuments、bodyGeneration 等已有能力
+  - **Web 搜索后端选 Tavily**：专为 AI agent 设计，API 简单，`fetch()` 调用无需新 npm 依赖；同时保留 DuckDuckGo 免费 fallback
+  - **轮次上限 3**：控制成本和延迟，Reflect 阶段 LLM 评估信息缺口，有缺口才补搜
+  - **SSE 流式推送**：与现有 Chat API 模式一致，前端用 `fetch` + `ReadableStream` 读 SSE，事件类型新增 plan/search_results/reflect
+  - **UI 不破坏现有行为**：深度研究是 checkbox 开关（默认不勾选=现有 brainstorm 模式），勾选后才走新接口
+- 改动范围：
+  - `lib/search-provider.mjs`：新建，Tavily API + DuckDuckGo fallback，返回标准化 `[{title, url, snippet, source}]`
+  - `lib/prompts.mjs`：新增 3 个 prompt（`getDeepResearchPlanPrompt`、`getReflectPrompt`、`getSearchQueryPrompt`）
+  - `lib/session-manager.mjs`：session 新增 `subQuestions`、`researchRounds`、`mode` 字段
+  - `lib/pipeline/insight-pipeline.mjs`：新增 `deepResearchPipeline(sessionId, domain, emit)`，5 阶段 Plan→循环(Search→Analyze→Reflect)→Synthesize
+  - `server.mjs`：新增 `POST /api/insight/deep-research` SSE 路由
+  - `insight.html`：新增深度研究 checkbox + CSS + `sendDeepResearch()` SSE 处理函数
+  - `.env.example`：新增 `SEARCH_PROVIDER`、`TAVILY_API_KEY`
+- 风险和假设：
+  - Tavily API key 需要在 .env 中配置，未配置时自动 fallback 到 DuckDuckGo（效果差一些但可用）
+  - 深度研究单次消耗 10-30 次 LLM 调用，成本显著高于普通 brainstorm
+  - Reflect 阶段的 JSON 解析可能不稳定，失败时默认 `overallSufficient=true` 提前结束
+- 如何验证：启动 server → 打开 insight.html → 勾选"深度研究" → 输入课题 → 观察 SSE 流（Plan 拆解、每轮搜索、Reflect 评估、最终报告生成）→ 保存报告 → 确认首页出现
+- 修复 Bing 搜索：Node.js fetch 用 HTTP/2 连 cn.bing.com 被 ECONNRESET，改为 https 模块 + ALPNProtocols: ['http/1.1']；Bing HTML 结构中标题在一个不带 tilk class 的 `<a target="_blank" h="ID=SERP,...">` 中，修复正则匹配
+- 新建 `spec/003-deep-research.md` — 深度研究功能完整 spec（目标、验收条件、设计约束、API、实现备忘）
+- 修复深度研究报告不显示在主界面：
+  - 现象：深度研究 pipeline 只 emit done 事件，从未调用 saveReportPipeline 落盘
+  - 根因：`deepResearchPipeline` 缺少自动保存调用，`saveReportPipeline` 硬编码 type='survey'，`index.html` TY 映射缺少 'deep-research'
+  - 修复：`deepResearchPipeline` 末尾增加调用 `saveReportPipeline(sessionId, topic, { type: 'deep-research' })` 自动落盘；`saveReportPipeline` 接收可选 opts.type（默认 'survey'）；server 保存 API 根据 session.mode 自动传 type；index.html 新增 deep-research 筛选项 + TY 映射 + CSS tag
+
+## 2026-05-07
+
+### 功能：深度研究 v2 — Brainstorm 前置 + 去纲要 + 对话修改
+
+- 做了什么：三方面改进 —
+  1. 深度研究增加 Brainstorm 前置阶段，先对齐目标再启动搜索
+  2. 移除纲要生成步骤，研究完成后直接流式生成报告正文
+  3. 报告生成后支持对话修改（modify_report intent）
+- 为什么修改：
+  - 原先直接拆解子问题搜索，缺少目标对齐环节，研究方向可能跑偏
+  - 纲要生成步骤输出空泛不可用，浪费 LLM 调用
+  - 报告生成后无修改能力，用户需重新生成
+- 改动范围：
+  - `lib/prompts.mjs`：`getDeepResearchPlanPrompt` 新增 `analysisDoc` 参数注入 Brainstorm 上下文；新增 `getDeepResearchBodyPrompt`（无需 outline 参数）
+  - `lib/pipeline/intent.mjs`：新增 `DEEP_RESEARCH_TRIGGERS`、`modify_report` intent；`detectIntent` 接受 `fromDeepResearch` 参数
+  - `lib/pipeline/insight-pipeline.mjs`：`deepResearchPipeline` 签名新增 `analysisDoc`；移除 ~50 行纲要生成代码，改为 `getDeepResearchBodyPrompt` 直出报告；设 `session._fromDeepResearch = true`；`chatPipeline` 新增 `modify_report` 处理（流式修改 + emit）
+  - `server.mjs`：`POST /api/insight/deep-research` 接受 `analysisDoc` 字段
+  - `lib/session-manager.mjs`：`createSession` 接受可选 `analysisDoc`
+  - `insight.html`：新增 `deepResearchStarted`/`deepResearchDone`/`analysisDoc` 状态；Brainstorm 完成后注入"开始深度研究"按钮；移除 outline SSE 事件处理；支持 `modify` done 类型；checkbox 切换重置状态
+  - `spec/003-deep-research.md`：更新至 v2（新流程、验收条件、SSE 事件表、实现备忘）
+
+- 修复深度研究搜索失败（Bing HTML 解析器正则缺陷）：
+  - 现象：Brainstorm 阶段信息正确，但深度研究搜索阶段"未检索到任何有效信息"
+  - 根因：Bing 标题链接 `<a>` 内含 `<strong>` 等内联标签（如 `<a ...><strong>RSAC</strong> 2026 Conference</a>`），正则 `([^<]*)` 遇 `<` 即断，标题匹配失败；同时每个结果块有两个 `<a>` 标签（tilk 面包屑+标题），原有正则会先匹配到含 `<div>` 的 tilk 链接
+  - 修复：`([^<]*)` → `([\s\S]*?)` 跨标签匹配标题；`<a\s+target=` 确保 `target="_blank"` 紧跟 `<a` 后，跳过 tilk 面包屑链接
+
+- 修复深度研究 LLM 声称"无法搜索网络"：
+  - 现象：深度研究 pipeline 实际执行了网络搜索（Bing），但 LLM 在合成阶段输出"我无法搜索网络"、"我的知识截止于2025年"、"建议您访问官网"
+  - 根因：`getDeepResearchBodyPrompt` 没有告诉 LLM 素材来自网络搜索——LLM 看到的只是"已收集并分析的素材"，不知道这是实时搜索的结果。当素材不包含用户要的精确信息时，LLM 回退到默认行为（诚实声明能力边界）
+  - 修复：
+    1. `lib/prompts.mjs`：重写 `getDeepResearchBodyPrompt`，增加强指令——
+       - 明确告知"系统刚刚为你执行了多轮网络搜索"
+       - 黑名单禁止语："我无法搜索"、"我无法访问网络"、"我的知识截止于"、"建议您访问XX官网"
+       - 建立 LLM 角色认同：你就是搜索执行者
+       - 空素材时明确要求用内部知识写报告并标注待验证
+    2. `.env`：设置 `SEARCH_PROVIDER=bing` 避免 Tavily→Bing fallback 的无效网络调用
+  - 风险：强指令可能让 LLM 在素材确实不足时编造内容——已通过"标注哪些信息需要进一步验证"来平衡
+
+- 修复 Bing 搜索 `read ECONNRESET`：
+  - 现象：深度研究 pipeline 中 Bing 搜索报 `read ECONNRESET`，连接建立后读取响应时被重置
+  - 根因：
+    1. Node.js `https` 模块全局 agent 默认 `keepAlive: true`，Bing 服务器关闭了空闲连接但 agent 仍保持引用，下一个请求复用已关闭的连接导致 reset
+    2. 当 `SEARCH_PROVIDER=bing` 时，`searchWeb` 的 fallback chain 没有覆盖 bing（只有 tavily 和 duckduckgo），Bing 失败后直接返回 `[]`
+  - 修复 (`lib/search-provider.mjs`)：
+    1. 创建独立 `https.Agent({ keepAlive: false, timeout: 10000 })` + 请求头加 `Connection: close`，避免复用已关闭连接
+    2. `fetchHttps` 增加 `retries` 参数，`ECONNRESET` 时自动重试（200ms 间隔），最多重试 1 次
+    3. `searchWeb` fallback 新增 `provider === 'bing'` → DuckDuckGo
+  - 验证：直接测试 searchWeb 返回 3 条；searchBatch 并行 2 查询返回 6 条；5 轮压力测试全部通过
+
+## 2026-05-10
+
+### 功能：系统可观测性 — 落盘日志
+
+- 做了什么：设计并实现统一落盘日志系统，覆盖 LLM 调用、搜索操作、邮件发送、错误记录四类
+- 为什么修改：系统问题排查全靠 `console.log`，无法回溯历史调用，出问题后无法追溯
+- 关键判断点：
+  - **格式选 JSONL**（每行一个 JSON 对象）：比 CSV 灵活支持嵌套字段，比 SQLite 零依赖，`grep`/`jq` 可直接查询
+  - **按 category 分文件**（llm.jsonl / search.jsonl / email.jsonl / error.jsonl）：比单一大文件更易于按类型检索
+  - **按日期分目录**（logs/YYYY/MM/DD/）：自动轮转，旧日志可手动清理
+  - **写盘用 `appendFileSync`**：写入量不大（每次 LLM 调用 ~1KB），同步写避免进程退出时丢数据，try-catch 包裹确保不因日志写盘失败中断主流程
+- 改动范围：
+  - `lib/logger.mjs`：新建，4 个导出函数 `logLLM`/`logSearch`/`logEmail`/`logError`，统一写入格式
+  - `lib/llm-provider.mjs`：`createProvider()` 返回前用 `withLogging()` 包装，透明记录每次 `generate()` 和 `generateStream()` 的耗时、token、错误
+  - `lib/search-provider.mjs`：`searchBatch()` 记录 provider、查询词、结果数、耗时、错误
+  - `lib/pipeline/insight-pipeline.mjs`：plan/reflect/synthesize/save 阶段解析失败和异常落盘
+  - `server.mjs`：邮件发送成功/失败落盘；chat/deep-research/start/confirm-outline/auto-search/skip-search 各 pipeline 异常落盘
+  - `.gitignore`：新增 `logs/`
+- 日志示例：
+  - LLM: `{"ts":"...","type":"llm","provider":"Claude (Anthropic)","model":"...","promptLen":3500,"promptPreview":"...","responseLen":1200,"usage":{"input":3500,"output":1200},"durationMs":3200,"error":null}`
+  - Search: `{"ts":"...","type":"search","provider":"bing","queries":["RSAC 2026"],"resultCount":5,"durationMs":800,"error":null}`
+  - Email: `{"ts":"...","type":"email","to":["..."],"subject":"...","reportId":"...","success":true,"messageId":"<...>","error":null}`
+  - Error: `{"ts":"...","type":"error","source":"deepResearchPipeline.plan","message":"...","stack":"...","sessionId":"..."}`
+- 验证：语法检查全部通过；写入测试产生 4 个 JSONL 文件，格式正确
+
+### 功能：Brainstorm 阶段增加轻量搜索
+
+- 做了什么：在 Chat pipeline 的 brainstorm 阶段，每次 LLM 调用前执行一次轻量 Web 搜索（3 条结果，5s 超时），搜索结果注入到 prompt 中辅助目标对齐
+- 为什么修改：原先 Brainstorm 完全依赖 LLM 内部知识，对前沿/小众课题（如 RSAC 2026）方向可能跑偏；增加实时搜索让 LLM 能看到最新动态后再做分析
+- 关键判断点：
+  - 搜索量 3 条（非 5 条），超时 5s，失败静默回退——不阻塞用户体验
+  - 搜索结果注入位置在 prompt 中段，紧跟课题后，附指令"请利用搜索结果中的最新动态、产品名称、事件来佐证或补充分析"
+  - 无搜索结果时 search block 完全不出现在 prompt 中（保持向后兼容）
+- 改动范围：
+  - `lib/prompts.mjs`：`getBrainstormUpdatePrompt` 新增第 5 参数 `searchContext`
+  - `lib/pipeline/insight-pipeline.mjs`：brainstorm handler 增加 `Promise.race([searchWeb(...), timeout])` 调用
+- 验证：prompt 正确注入/不注入搜索块；Bing 搜索 3 条结果正常返回；语法检查通过
+  - 修复：Brainstorm 搜索注入效果不够 — LLM 仍说"尚未公布"：
+    - 现象：Brainstorm 搜索已执行并返回结果，但 LLM 仍输出"实际 RSAC 2026 创新沙盒十强尚未公布"
+    - 根因：
+      1. `searchWeb` 无落盘日志，无法验证搜索是否确实执行
+      2. prompt 中搜索结果权威性不够——原指令"请利用搜索结果佐证"太温和，LLM 在内部知识冲突时倾向保守
+    - 修复：
+      1. `lib/search-provider.mjs`：`searchWeb` 增加 `logSearch` 落盘（finally 块），每次查询可追溯
+      2. `lib/prompts.mjs`：重写 searchBlock 指令——
+         - 标注"系统刚刚从互联网搜索获取的最新信息"加实时时间戳
+         - 明确"如果搜索结果与内部知识有冲突，以搜索结果为准"
+         - 黑名单：绝对不要说"尚未公布"、"尚未发生"，除非搜索结果本身这样说明
+         - snippet 长度截断到 300 字
+
+- 修复 Bing 搜索无法查到具体信息（如 RSAC 创新沙盒十强名单）：
+  - 现象：手工搜索可以查到 RSAC 2026 创新沙盒十强公司，但系统提示"搜索未返回具体名称"。Bing 返回的 5 条结果都是 RSAC 通稿，标题和 snippet 不含公司名
+  - 根因：
+    1. `cn.bing.com` 对特定页面（如 RSAC 沙盒入围名单）索引质量差，不排在首页
+    2. `setmkt=en-US` 在 `cn.bing.com` 上行为不一致——部分英文查询返回无关垃圾结果（豆包AI、百度知道等）
+    3. 仅凭搜索 snippet（150 字）不够——具体信息埋在文章正文里
+    4. 知乎等中文内容站返回 403 禁止抓取
+  - 修复：
+    1. `lib/search-provider.mjs`：提取 `parseBingResults()` 共用解析函数；`searchBing` 改为并行发两个请求（无 setmkt + setmkt=en-US），合并去重取交集——覆盖中英文查询
+    2. `lib/pipeline/insight-pipeline.mjs`：brainstorm 搜索后增加内容增强——挑选非知乎、非首页的结果，fetch 全文 HTML，清洗后注入 `_fullText`（最多 3000 字）。过滤 403 站点，<200 字内容视为无效丢弃
+    3. `lib/prompts.mjs`：searchBlock 增加 `_fullText` 展示（以"页面全文摘录"注入，最多 2000 字）
+  - 限制：即使双路搜索，`cn.bing.com` 仍无法返回决赛入围名单专属页面——该信息在 Bing.cn 索引中不存在或排名极低。后续可考虑增加 Baidu/Google 作为备选搜索源
+
+- 增加 Bing 国际版作为第三个并行搜索源：
+  - 做了什么：`searchBing` 从双路并行升级为三路并行——新增 `www.bing.com` + `setmkt=zh-CN`，与原有 `cn.bing.com`（无 setmkt + setmkt=en-US）合并去重
+  - 为什么：`www.bing.com` 国际版索引与 `cn.bing.com` 不同，对特定页面（如 RSAC 创新沙盒决赛名单、知乎文章等）覆盖面更好，实测从 5 条通稿提升到 8 条覆盖知乎/secrss/163/腾讯新闻等中文信息源
+  - 如何验证：`searchWeb('RSAC 2026 创新沙盒 十强', 8)` 返回 8 条结果，包含知乎专栏文章详细列出创新沙盒十强公司
+- 尝试增加百度搜索源：
+  - 做了什么：测试 `www.baidu.com`、`m.baidu.com`、`sp0.baidu.com` 等多个百度端点，均返回"百度安全验证"CAPTCHA 页面（1438 字节），即使使用 Baiduspider UA 也无法绕过
+  - 结论：百度在当前服务器 IP 上全面封禁程序化访问，需 headless browser（Playwright/Puppeteer）才能使用，不在本次任务范围内
+  - 替代方案：Bing 三路并行搜索已显著提升中文内容覆盖面，暂不引入百度

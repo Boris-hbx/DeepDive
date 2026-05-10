@@ -59,6 +59,55 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .chat-input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
 .chat-input-row button:hover:not(:disabled) { opacity: 0.9; }
 .chat-hint { font-size: 0.7rem; color: var(--muted); margin-top: 0.4rem; }
+.chat-options { padding: 0 0 0.4rem 0; }
+.deep-toggle { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--muted); cursor: pointer; user-select: none; }
+.deep-toggle input { display: none; }
+.deep-toggle-mark {
+  width: 32px; height: 18px; border-radius: 10px; background: var(--border);
+  position: relative; transition: background 0.2s; flex-shrink: 0;
+}
+.deep-toggle-mark::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%; background: white;
+  transition: transform 0.2s;
+}
+.deep-toggle input:checked + .deep-toggle-mark { background: var(--accent); }
+.deep-toggle input:checked + .deep-toggle-mark::after { transform: translateX(14px); }
+.deep-toggle-desc { font-size: 0.65rem; opacity: 0.65; }
+#deep-v3-toggle-label input:checked + .deep-toggle-mark { background: #7c3aed; }
+/* V3 task tree */
+.v3-tree-container { padding: 0.75rem; }
+.v3-tree-node { padding: 0.3rem 0.5rem; margin: 0.2rem 0; border-left: 2px solid var(--border); }
+.v3-node-l1 { border-left-color: var(--accent); font-weight: 600; }
+.v3-node-l2 { border-left-color: #7c3aed; }
+.v3-node-l3 { border-left-color: var(--muted); font-size: 0.85rem; }
+.v3-node-id { font-size: 0.7rem; color: var(--muted); margin-right: 0.3rem; }
+.v3-node-title { color: var(--text); }
+.v3-node-desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+.v3-confirm-bar { display: flex; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid var(--border); margin-top: 0.5rem; }
+.v3-btn-confirm { padding: 0.4rem 1.2rem; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+.v3-btn-auto { padding: 0.4rem 1rem; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.v3-btn-auto:hover { border-color: var(--accent); color: var(--accent); }
+/* V3 task list (brainstorm) */
+.v3-tasklist { padding: 0.75rem; }
+.v3-task-item { padding: 0.5rem 0.75rem; margin: 0.3rem 0; background: var(--bg-2); border-radius: 6px; border-left: 3px solid var(--accent); }
+.v3-task-id { font-size: 0.7rem; color: var(--muted); margin-right: 0.3rem; }
+.v3-task-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+/* V3 execution progress */
+.v3-exec-container { padding: 0.75rem; }
+.v3-exec-node { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.35rem 0.5rem; margin: 0.2rem 0; border-radius: 4px; font-size: 0.85rem; }
+.v3-exec-spinner { color: var(--accent); font-size: 1rem; animation: spin 1s linear infinite; flex-shrink: 0; }
+.v3-exec-done .v3-exec-spinner { color: #22c55e; animation: none; }
+.v3-exec-title { color: var(--text); }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* Research status banner */
+.research-banner {
+  padding: 0.6rem 1rem; margin: 0 1rem 0.5rem;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.78rem; color: var(--muted); display: none;
+}
+.research-banner .rb-round { color: var(--accent); font-weight: 600; }
+.research-banner .rb-gaps { color: var(--warn); }
 
 /* Right panel */
 .right { display: flex; flex-direction: column; overflow: hidden; }
@@ -129,6 +178,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
         <textarea id="chat-input" placeholder="输入洞察主题、背景或指令..." rows="2"></textarea>
         <button id="btn-send">发送</button>
       </div>
+      <div class="chat-options">
+        <label class="deep-toggle" id="deep-toggle-label">
+          <input type="checkbox" id="chk-deep" />
+          <span class="deep-toggle-mark"></span>
+          <span>深度研究</span>
+          <span class="deep-toggle-desc">多轮搜索 + 迭代深入</span>
+        </label>
+        <label class="deep-toggle" id="deep-v3-toggle-label" style="margin-left:1rem">
+          <input type="checkbox" id="chk-deep-v3" />
+          <span class="deep-toggle-mark"></span>
+          <span>深度研究 v3</span>
+          <span class="deep-toggle-desc">任务分解 + 逐级确认</span>
+        </label>
+      </div>
       <div class="chat-hint" id="chat-hint">发送后 AI 将进行初步分析，右侧实时更新</div>
     </div>
   </div>
@@ -159,6 +222,7 @@ let currentOutline = [];
 let viewingMarkdown = true;
 let sending = false;
 let currentTopic = '';
+let isDeepResearch = false;
 
 // === DOM refs ===
 const $chatMessages = document.getElementById('chat-messages');
@@ -172,6 +236,18 @@ const $chatHint = document.getElementById('chat-hint');
 const $toast = document.getElementById('toast');
 const $btnSave = document.getElementById('btn-save');
 const $btnToggleEdit = document.getElementById('btn-toggle-edit');
+const $chkDeep = document.getElementById('chk-deep');
+const $chkDeepV3 = document.getElementById('chk-deep-v3');
+let deepResearchStarted = false;
+let deepResearchDone = false;
+let analysisDoc = '';
+
+// === Deep Research V3 state ===
+let isDeepResearchV3 = false;
+let v3SessionId = null;
+let v3Stage = 'idle'; // idle | brainstorming | awaiting_l1 | awaiting_l2 | awaiting_l3 | executing | done
+let v3TaskTree = [];
+let v3ConfirmMode = 'manual';
 
 // === Utils ===
 function escHtml(s) {
@@ -280,6 +356,401 @@ function finalizeReport() {
   $btnToggleEdit.style.display = 'inline-block';
 }
 
+// === Deep Research V3 UI helpers ===
+function renderV3TaskTree(tree, awaitingLevel) {
+  $rightTitle.textContent = '任务树';
+  $modeBadge.textContent = `v3 — L${awaitingLevel} 确认`;
+
+  function nodeHtml(node, depth) {
+    const indent = depth * 1.2;
+    const levelClass = `v3-node-l${node.level || depth + 1}`;
+    let html = `<div class="v3-tree-node ${levelClass}" style="margin-left:${indent}rem">`;
+    html += `<span class="v3-node-id">[${node.id}]</span> <span class="v3-node-title">${escHtml(node.title)}</span>`;
+    if (node.description) html += `<div class="v3-node-desc">${escHtml(node.description)}</div>`;
+    html += '</div>';
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) html += nodeHtml(child, depth + 1);
+    }
+    return html;
+  }
+
+  let treeHtml = '<div class="v3-tree-container">';
+  for (const node of tree) treeHtml += nodeHtml(node, 0);
+  treeHtml += '</div>';
+
+  const confirmBtns = `
+    <div class="v3-confirm-bar">
+      <button class="v3-btn-confirm" id="btn-v3-confirm-level">确认 L${awaitingLevel}，继续分解</button>
+      <button class="v3-btn-auto" id="btn-v3-auto-all">全部自动（跳过后续确认）</button>
+    </div>`;
+
+  $rightBody.innerHTML = treeHtml + confirmBtns;
+
+  document.getElementById('btn-v3-confirm-level').addEventListener('click', () => {
+    sendV3Confirm(awaitingLevel, false);
+  });
+  document.getElementById('btn-v3-auto-all').addEventListener('click', () => {
+    v3ConfirmMode = 'auto';
+    sendV3Confirm(awaitingLevel, true);
+  });
+}
+
+function renderV3ExecutionProgress(nodeId, title, round) {
+  const container = document.getElementById('v3-exec-progress') || (() => {
+    const el = document.createElement('div');
+    el.id = 'v3-exec-progress';
+    el.className = 'v3-exec-container';
+    $rightBody.innerHTML = '';
+    $rightBody.appendChild(el);
+    return el;
+  })();
+
+  let nodeEl = document.getElementById(`v3-node-${nodeId}`);
+  if (!nodeEl) {
+    nodeEl = document.createElement('div');
+    nodeEl.id = `v3-node-${nodeId}`;
+    nodeEl.className = 'v3-exec-node';
+    nodeEl.innerHTML = `<span class="v3-exec-spinner">⟳</span> <span class="v3-exec-title">${escHtml(title)}</span>`;
+    container.appendChild(nodeEl);
+  } else {
+    nodeEl.querySelector('.v3-exec-spinner').textContent = round > 1 ? '⟳²' : '⟳';
+  }
+}
+
+function markV3NodeDone(nodeId) {
+  const nodeEl = document.getElementById(`v3-node-${nodeId}`);
+  if (nodeEl) {
+    nodeEl.querySelector('.v3-exec-spinner').textContent = '✓';
+    nodeEl.classList.add('v3-exec-done');
+  }
+}
+
+// SSE helper: read a fetch response as SSE and call onEvent(type, data) for each event
+async function readSSE(resp, onEvent) {
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let eventType = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (line.startsWith('event: ')) {
+        eventType = line.slice(7).trim();
+      } else if (line.startsWith('data: ')) {
+        let data;
+        try { data = JSON.parse(line.slice(6)); } catch (_) { continue; }
+        onEvent(eventType, data);
+        eventType = '';
+      }
+    }
+  }
+}
+
+// V3 brainstorm turn
+async function sendV3BrainstormTurn(text) {
+  const body = { message: text };
+  if (v3SessionId) {
+    body.sessionId = v3SessionId;
+  } else {
+    body.topic = currentTopic || text.slice(0, 100);
+    body.domain = 'software-engineering';
+  }
+
+  const resp = await fetch('/api/insight/deep-research-v3/brainstorm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const d = await resp.json().catch(() => ({}));
+    throw new Error(d.error || resp.statusText);
+  }
+
+  let typingRemoved = false;
+  await readSSE(resp, (type, data) => {
+    if (type === 'session') {
+      v3SessionId = data.sessionId;
+    } else if (type === 'progress') {
+      if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+      setHint(data.detail || '');
+      setStageBadge('v3 Brainstorm');
+    } else if (type === 'brainstorm_tasklist') {
+      if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+      renderV3BrainstormTaskList(data.tasks, data.confirmed);
+    } else if (type === 'reply') {
+      if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+      appendAiMsg(data.text);
+    } else if (type === 'brainstorm_done') {
+      if (data.confirmed) {
+        v3Stage = 'planning';
+        setHint('任务清单已确认，点击"开始分解"启动任务树规划');
+        injectV3PlanButton();
+      } else {
+        setHint('可继续补充，或发送"确认"开始任务分解');
+      }
+    } else if (type === 'error') {
+      if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+      appendAiMsg('v3 Brainstorm 出错：' + (data.message || '未知错误'));
+      showToast(data.message || '未知错误', true);
+    }
+  });
+  if (!typingRemoved) removeTypingIndicator();
+}
+
+function renderV3BrainstormTaskList(tasks, confirmed) {
+  $rightTitle.textContent = '分析任务清单';
+  $modeBadge.textContent = confirmed ? 'v3 — 已确认' : 'v3 Brainstorm';
+
+  let html = '<div class="v3-tasklist">';
+  for (const t of tasks) {
+    html += `<div class="v3-task-item"><span class="v3-task-id">[${escHtml(t.id)}]</span> <strong>${escHtml(t.title)}</strong><div class="v3-task-desc">${escHtml(t.description)}</div></div>`;
+  }
+  html += '</div>';
+
+  if (confirmed) {
+    html += `<div class="v3-confirm-bar"><button class="v3-btn-confirm" id="btn-v3-start-plan">开始任务分解</button></div>`;
+  }
+
+  $rightBody.innerHTML = html;
+
+  if (confirmed) {
+    document.getElementById('btn-v3-start-plan').addEventListener('click', () => {
+      sendV3Plan();
+    });
+  }
+}
+
+function injectV3PlanButton() {
+  const existing = document.getElementById('btn-v3-start-plan');
+  if (existing) return;
+  const bar = document.createElement('div');
+  bar.className = 'v3-confirm-bar';
+  bar.innerHTML = '<button class="v3-btn-confirm" id="btn-v3-start-plan">开始任务分解</button>';
+  $rightBody.appendChild(bar);
+  document.getElementById('btn-v3-start-plan').addEventListener('click', () => sendV3Plan());
+}
+
+// V3 plan phase
+async function sendV3Plan() {
+  if (!v3SessionId) return;
+  v3Stage = 'planning';
+  setStageBadge('v3 规划中');
+  setHint('正在分解任务树...');
+  appendAiMsg('开始任务树分解...');
+  showTypingIndicator();
+
+  const resp = await fetch('/api/insight/deep-research-v3/plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId: v3SessionId }),
+  });
+
+  if (!resp.ok) {
+    removeTypingIndicator();
+    const d = await resp.json().catch(() => ({}));
+    appendAiMsg('规划失败：' + (d.error || resp.statusText));
+    return;
+  }
+
+  let typingRemoved = false;
+  await readSSE(resp, (type, data) => {
+    if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+    if (type === 'progress') {
+      setStageBadge('v3 ' + (data.stage || '规划'));
+      setHint(data.detail || '');
+    } else if (type === 'plan_l1') {
+      v3TaskTree = data.nodes;
+    } else if (type === 'plan_l2') {
+      v3TaskTree = data.tree;
+    } else if (type === 'plan_l3') {
+      v3TaskTree = data.tree;
+    } else if (type === 'awaiting_confirm') {
+      v3Stage = `awaiting_l${data.level}`;
+      v3TaskTree = data.tree || data.nodes || v3TaskTree;
+      renderV3TaskTree(v3TaskTree, data.level);
+      setHint(`L${data.level} 任务树已生成，请确认后继续`);
+      appendAiMsg(`L${data.level} 分解完成，请在右侧确认任务树。`);
+    } else if (type === 'plan_done') {
+      if (data.stage === 'ready_to_execute') {
+        v3Stage = 'ready_to_execute';
+        setHint('任务树构建完毕，点击"开始执行"启动研究');
+        appendAiMsg('任务树构建完毕，可点击右侧"确认 L3，继续分解"按钮开始执行研究。');
+      }
+    } else if (type === 'error') {
+      appendAiMsg('规划出错：' + (data.message || '未知错误'));
+      showToast(data.message || '未知错误', true);
+    }
+  });
+  if (!typingRemoved) removeTypingIndicator();
+}
+
+// V3 confirm a level and proceed
+async function sendV3Confirm(level, autoAll) {
+  if (!v3SessionId) return;
+  setStageBadge('v3 确认中');
+  setHint('正在处理确认...');
+
+  const resp = await fetch('/api/insight/deep-research-v3/confirm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId: v3SessionId, level, taskTree: v3TaskTree, autoAll }),
+  });
+
+  if (!resp.ok) {
+    const d = await resp.json().catch(() => ({}));
+    appendAiMsg('确认失败：' + (d.error || resp.statusText));
+    return;
+  }
+
+  let typingRemoved = false;
+  let reportChunks = '';
+
+  await readSSE(resp, (type, data) => {
+    if (type === 'progress') {
+      setStageBadge('v3 ' + (data.stage || ''));
+      setHint(data.detail || '');
+    } else if (type === 'plan_l2') {
+      v3TaskTree = data.tree;
+    } else if (type === 'plan_l3') {
+      v3TaskTree = data.tree;
+    } else if (type === 'awaiting_confirm') {
+      v3Stage = `awaiting_l${data.level}`;
+      v3TaskTree = data.tree || data.nodes || v3TaskTree;
+      renderV3TaskTree(v3TaskTree, data.level);
+      setHint(`L${data.level} 任务树已生成，请确认后继续`);
+      appendAiMsg(`L${data.level} 分解完成，请在右侧确认任务树。`);
+    } else if (type === 'task_start') {
+      if (!typingRemoved) { typingRemoved = true; }
+      renderV3ExecutionProgress(data.nodeId, data.title, 1);
+      setStageBadge('v3 执行中');
+    } else if (type === 'task_done') {
+      markV3NodeDone(data.nodeId);
+    } else if (type === 'l1_summary') {
+      appendAiMsg(`[${data.nodeId}] 小结：${data.summary}`);
+    } else if (type === 'content') {
+      reportChunks += data.chunk;
+      currentMarkdown = reportChunks;
+      renderReport(currentMarkdown);
+      setStageBadge('v3 生成中');
+    } else if (type === 'done') {
+      if (data.type === 'report') {
+        currentMarkdown = data.markdown || currentMarkdown;
+        v3Stage = 'done';
+        finalizeReport();
+        setStageBadge('v3 完成');
+        setHint('深度研究 v3 报告已生成，可保存或继续对话修改');
+        appendAiMsg('深度研究 v3 报告已生成，可点击右上角"保存报告"。');
+      }
+    } else if (type === 'error') {
+      appendAiMsg('执行出错：' + (data.message || '未知错误'));
+      showToast(data.message || '未知错误', true);
+    }
+  });
+}
+
+// === Deep Research SSE handler ===
+async function sendDeepResearch(text) {
+  try {
+    const resp = await fetch('/api/insight/deep-research', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: text, analysisDoc }),
+    });
+
+    if (!resp.ok) {
+      const d = await resp.json().catch(() => ({}));
+      removeTypingIndicator();
+      appendAiMsg('深度研究请求失败：' + (d.error || resp.statusText));
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let reportChunks = '';
+    let typingRemoved = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      let eventType = '';
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6);
+          let data;
+          try { data = JSON.parse(dataStr); } catch (_) { continue; }
+
+          if (eventType === 'session') {
+            sessionId = data.sessionId;
+
+          } else if (eventType === 'plan') {
+            if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+            const sq = data.subQuestions || [];
+            const planMsg = '已拆解为以下研究方向：\n' + sq.map((q, i) => `${i + 1}. ${q.question}`).join('\n');
+            appendAiMsg(planMsg);
+            setStageBadge('规划中');
+
+          } else if (eventType === 'progress') {
+            if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+            const rLabel = data.round ? ` (R${data.round})` : '';
+            setStageBadge(data.stage + rLabel);
+            setHint(data.detail || '');
+
+          } else if (eventType === 'search_results') {
+            setHint(`第 ${data.round} 轮发现 ${(data.items || []).length} 条新内容`);
+
+          } else if (eventType === 'reflect') {
+            const gapCount = (data.gaps || []).length;
+            const reflectMsg = gapCount === 0
+              ? `第 ${data.round} 轮反思：信息充分 — ${data.summary || '开始综合'}`
+              : `第 ${data.round} 轮反思：发现 ${gapCount} 个信息缺口 — ${data.summary || ''}`;
+            appendAiMsg(reflectMsg);
+
+          } else if (eventType === 'content') {
+            reportChunks += data.chunk;
+            currentMarkdown = reportChunks;
+            renderReport(currentMarkdown);
+            setStageBadge('生成中');
+
+          } else if (eventType === 'done') {
+            currentMarkdown = data.markdown || currentMarkdown;
+            deepResearchDone = true;
+            finalizeReport();
+            setStageBadge('完成');
+            setHint('深度研究报告已生成，可继续对话修改内容');
+
+          } else if (eventType === 'error') {
+            if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+            appendAiMsg('深度研究出错：' + (data.message || '未知错误'));
+            showToast(data.message || '未知错误', true);
+          }
+          eventType = '';
+        }
+      }
+    }
+
+    if (!typingRemoved) removeTypingIndicator();
+
+  } catch (err) {
+    removeTypingIndicator();
+    appendAiMsg('深度研究请求失败：' + err.message);
+    showToast(err.message, true);
+  }
+}
+
 // === Send message ===
 async function sendMessage() {
   const text = $chatInput.value.trim();
@@ -294,6 +765,54 @@ async function sendMessage() {
 
   appendUserMsg(text);
   showTypingIndicator();
+
+  // === V3 deep research path ===
+  if (isDeepResearchV3) {
+    try {
+      if (v3Stage === 'idle' || v3Stage === 'brainstorming') {
+        v3Stage = 'brainstorming';
+        await sendV3BrainstormTurn(text);
+      } else if (v3Stage === 'planning' || v3Stage.startsWith('awaiting_')) {
+        // User typed a message during plan confirmation — treat as brainstorm continuation
+        await sendV3BrainstormTurn(text);
+      } else {
+        // Post-report: fall through to normal chat for modification
+        // (no-op here, handled below)
+        removeTypingIndicator();
+        appendAiMsg('报告已生成，可继续对话修改内容。');
+      }
+    } catch (err) {
+      removeTypingIndicator();
+      appendAiMsg('v3 请求失败：' + err.message);
+      showToast(err.message, true);
+    } finally {
+      sending = false;
+      $btnSend.disabled = false;
+      $chatInput.focus();
+    }
+    return;
+  }
+
+  if (isDeepResearch && deepResearchStarted && !deepResearchDone) {
+    // Mid-research message — send via chat
+    // fall through to chat path below
+  } else if (isDeepResearch && deepResearchStarted && deepResearchDone) {
+    // Post-report modification — send via chat (modify_report intent)
+    // fall through to chat path below
+  } else if (isDeepResearch && !deepResearchStarted) {
+    // Check if this is a trigger to start deep research
+    const startTriggers = ['开始深度研究', '启动深度研究', '开始研究', 'start research'];
+    if (startTriggers.some(t => text.toLowerCase().includes(t.toLowerCase()))) {
+      deepResearchStarted = true;
+      sending = false;
+      $btnSend.disabled = false;
+      await sendDeepResearch(currentTopic);
+      $chatInput.focus();
+      return;
+    }
+    // Otherwise: first message in deep research mode — brainstorm first via chat
+    // fall through to chat path below
+  }
 
   try {
     const body = { message: text };
@@ -342,9 +861,34 @@ async function sendMessage() {
 
           } else if (eventType === 'analysis_update') {
             if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
+            analysisDoc = data.markdown || '';
             renderAnalysis(data.markdown);
             setStageBadge('Brainstorm');
-            setHint('可继续补充背景，或发送"生成概要"');
+            if (isDeepResearch && !deepResearchStarted) {
+              setHint('目标已对齐。确认后点击"开始深度研究"按钮启动多轮搜索');
+              // Inject deep research start button into analysis preview
+              setTimeout(() => {
+                const preview = document.getElementById('analysis-preview');
+                if (preview && !document.getElementById('btn-start-deep')) {
+                  const btnDiv = document.createElement('div');
+                  btnDiv.id = 'dr-btn-container';
+                  btnDiv.style.cssText = 'margin-top:1rem;padding:0.75rem;background:var(--bg-2);border:1px dashed var(--accent);border-radius:8px;text-align:center';
+                  btnDiv.innerHTML = '<button id="btn-start-deep" style="padding:0.5rem 2rem;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.9rem;font-weight:600">开始深度研究</button>'
+                    + '<div style="margin-top:0.3rem;font-size:0.7rem;color:var(--muted)">基于以上分析进行多轮搜索与迭代研究</div>';
+                  preview.appendChild(btnDiv);
+                  document.getElementById('btn-start-deep').addEventListener('click', () => {
+                    deepResearchStarted = true;
+                    const btnContainer = document.getElementById('dr-btn-container');
+                    if (btnContainer) btnContainer.innerHTML = '<div style="color:var(--accent);font-weight:500">正在启动深度研究...</div>';
+                    appendUserMsg('开始深度研究');
+                    showTypingIndicator();
+                    sendDeepResearch(currentTopic);
+                  });
+                }
+              }, 100);
+            } else {
+              setHint('可继续补充背景，或发送"生成概要"');
+            }
 
           } else if (eventType === 'outline_update') {
             if (!typingRemoved) { removeTypingIndicator(); typingRemoved = true; }
@@ -370,8 +914,20 @@ async function sendMessage() {
               currentMarkdown = data.markdown || currentMarkdown;
               finalizeReport();
               setStageBadge('完成');
-              setHint('报告已生成，可保存或继续对话');
-              if (!aiReplyText) aiReplyText = '报告正文已生成，可点击右上角"保存报告"。';
+              if (isDeepResearch) {
+                deepResearchDone = true;
+                setHint('深度研究报告已生成，可继续对话修改内容');
+                if (!aiReplyText) aiReplyText = '深度研究报告已生成，可继续对话修改内容。';
+              } else {
+                setHint('报告已生成，可保存或继续对话');
+                if (!aiReplyText) aiReplyText = '报告正文已生成，可点击右上角"保存报告"。';
+              }
+            } else if (data.type === 'modify') {
+              currentMarkdown = data.markdown || currentMarkdown;
+              renderReport(currentMarkdown);
+              setStageBadge('已修改');
+              setHint('报告已按指令更新，可继续修改');
+              if (!aiReplyText) aiReplyText = '报告已更新。';
             }
             if (aiReplyText) appendAiMsg(aiReplyText);
             aiReplyText = '';
@@ -400,6 +956,47 @@ async function sendMessage() {
 }
 
 // === Event listeners ===
+$chkDeep.addEventListener('change', function() {
+  isDeepResearch = this.checked;
+  if (this.checked && $chkDeepV3.checked) { $chkDeepV3.checked = false; isDeepResearchV3 = false; }
+  if (isDeepResearch) {
+    $chatHint.textContent = '先进行 Brainstorm 对齐目标，确认后再启动深度研究';
+    $modeBadge.textContent = '深度研究';
+    $modeBadge.style.borderColor = 'var(--accent)';
+    deepResearchStarted = false;
+    deepResearchDone = false;
+    analysisDoc = '';
+    // Remove any leftover start button
+    const oldBtn = document.getElementById('dr-btn-container');
+    if (oldBtn) oldBtn.remove();
+  } else {
+    $chatHint.textContent = '发送后 AI 将进行初步分析，右侧实时更新';
+    $modeBadge.textContent = 'Brainstorm';
+    $modeBadge.style.borderColor = '';
+    deepResearchStarted = false;
+    deepResearchDone = false;
+  }
+});
+
+$chkDeepV3.addEventListener('change', function() {
+  isDeepResearchV3 = this.checked;
+  if (this.checked && $chkDeep.checked) { $chkDeep.checked = false; isDeepResearch = false; }
+  if (isDeepResearchV3) {
+    $chatHint.textContent = '先 Brainstorm 明确分析任务，发送"确认"后系统自动分解任务树';
+    $modeBadge.textContent = '深度研究 v3';
+    $modeBadge.style.borderColor = '#7c3aed';
+    v3SessionId = null;
+    v3Stage = 'idle';
+    v3TaskTree = [];
+    v3ConfirmMode = 'manual';
+  } else {
+    $chatHint.textContent = '发送后 AI 将进行初步分析，右侧实时更新';
+    $modeBadge.textContent = 'Brainstorm';
+    $modeBadge.style.borderColor = '';
+    v3Stage = 'idle';
+  }
+});
+
 $btnSend.addEventListener('click', sendMessage);
 
 $chatInput.addEventListener('keydown', (e) => {
