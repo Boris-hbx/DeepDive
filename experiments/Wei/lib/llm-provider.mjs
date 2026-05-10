@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { logLLM, logError } from './logger.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
@@ -261,6 +262,50 @@ function createClaudeProvider(cfg = {}) {
   };
 }
 
+// Wrap provider with logging — transparently logs every LLM call to disk
+function withLogging(provider, defaultModel) {
+  return {
+    name: provider.name,
+    async generate(prompt, options = {}) {
+      const model = options.model || defaultModel || '';
+      const start = Date.now();
+      try {
+        const result = await provider.generate(prompt, options);
+        logLLM({
+          provider: provider.name, model, prompt,
+          responseText: result.text, usage: result.usage,
+          durationMs: Date.now() - start,
+        });
+        return result;
+      } catch (err) {
+        logLLM({ provider: provider.name, model, error: err.message, durationMs: Date.now() - start });
+        throw err;
+      }
+    },
+    async *generateStream(prompt, options = {}) {
+      const model = options.model || defaultModel || '';
+      const start = Date.now();
+      let fullText = '';
+      let usage = { input: 0, output: 0 };
+      try {
+        for await (const event of provider.generateStream(prompt, options)) {
+          if (event.chunk) fullText += event.chunk;
+          if (event.done) usage = event.usage || usage;
+          yield event;
+        }
+        logLLM({
+          provider: provider.name, model, prompt,
+          responseText: fullText, usage,
+          durationMs: Date.now() - start,
+        });
+      } catch (err) {
+        logLLM({ provider: provider.name, model, prompt: (prompt || '').slice(0, 500), responseText: fullText, usage, durationMs: Date.now() - start, error: err.message });
+        throw err;
+      }
+    },
+  };
+}
+
 // 读取运行时配置并创建对应 provider（CLI --provider 参数 > config.json llm 字段 > 默认值）
 export function createProvider(providerOverride) {
   const llmCfg = loadLlmConfig();
@@ -274,7 +319,7 @@ export function createProvider(providerOverride) {
 
   if (protocol === 'anthropic') {
     // Claude 使用独立的 Anthropic 凭证，不混用 LLM_API_KEY
-    return createClaudeProvider({ baseURL, model, label: presetDef.label });
+    return withLogging(createClaudeProvider({ baseURL, model, label: presetDef.label }), model);
   }
-  return createOpenAICompatProvider({ apiKey, baseURL, model, label: presetDef.label });
+  return withLogging(createOpenAICompatProvider({ apiKey, baseURL, model, label: presetDef.label }), model);
 }

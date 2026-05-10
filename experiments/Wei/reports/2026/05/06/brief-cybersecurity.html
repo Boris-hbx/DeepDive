@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络安全 Brief 2026-05-06 — DeepDive</title>
+<style>
+:root {
+  --ink: #18181b; --muted: #71717a; --muted-2: #a1a1aa;
+  --border: #e4e4e7; --bg: #ffffff; --bg-2: #fafafa; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fafafa; --muted: #a1a1aa; --muted-2: #71717a;
+    --border: #27272a; --bg: #09090b; --bg-2: #18181b; --accent: #60a5fa;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--ink); background: var(--bg); padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2.5rem; margin: 2rem 0 1rem; font-weight: 700; }
+h2 { font-size: 1.75rem; margin: 2rem 0 1rem; font-weight: 600; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+h3 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; font-weight: 600; }
+p { margin: 1rem 0; }
+ul, ol { margin: 1rem 0; padding-left: 2rem; }
+li { margin: 0.5rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+th { background: var(--bg-2); font-weight: 600; }
+code { background: var(--bg-2); padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: var(--bg-2); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin: 1rem 0; }
+.domain-tag { display: inline-block; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 500; }
+.domain-tag.se { background: #dbeafe; color: #1d4ed8; }
+.domain-tag.cs { background: #fce7f3; color: #be185d; }
+.fb-panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+.fb-panel h3 { margin-top: 0; font-size: 1.1rem; }
+.fb-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+.fb-form label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.fb-form textarea, .fb-form input, .fb-form select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); font-family: inherit; font-size: 0.9rem; }
+.fb-form textarea { min-height: 80px; resize: vertical; }
+.fb-form button { padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; align-self: flex-start; }
+.fb-form button:hover { opacity: 0.9; }
+.fb-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.fb-form .btn-regen { background: var(--bg); color: var(--accent); border: 1px solid var(--accent); }
+.fb-form .btn-regen:hover { background: var(--accent); color: white; }
+.fb-form .btn-followup { background: var(--bg); color: #059669; border: 1px solid #059669; }
+.fb-form .btn-followup:hover { background: #059669; color: white; }
+.fb-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-top: 0.75rem; }
+.fb-item-head { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.fb-type { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--accent); color: white; }
+.fb-date { font-size: 0.8rem; color: var(--muted); }
+.fb-status { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+.fb-status.ok { color: #10b981; border: 1px solid #10b981; }
+.fb-status.err { color: #ef4444; border: 1px solid #ef4444; }
+
+.af-panel { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2); }
+.af-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.af-row:last-child { border-bottom: none; }
+.af-idx { color: var(--muted); font-size: 0.75rem; min-width: 24px; text-align: right; }
+.af-info { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.15rem; }
+.af-title { font-size: 0.85rem; font-weight: 500; color: var(--ink); text-decoration: none; }
+.af-title:hover { color: var(--accent); text-decoration: underline; }
+.af-source { color: var(--muted); font-size: 0.7rem; }
+.af-btns { display: flex; gap: 0.3rem; }
+.af-btn { padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--ink); cursor: pointer; font-size: 0.7rem; white-space: nowrap; transition: border-color 0.15s; }
+.af-btn:hover:not(:disabled) { border-color: var(--accent); }
+.af-high:hover:not(:disabled) { border-color: #10b981; color: #10b981; }
+.af-mid:hover:not(:disabled) { border-color: #f59e0b; color: #f59e0b; }
+.af-low:hover:not(:disabled) { border-color: var(--muted); color: var(--muted); }
+.af-status { font-size: 0.7rem; min-width: 80px; }
+</style>
+</head>
+<body>
+<div class="meta">
+  <span class="domain-tag cs">网络安全</span> · 每日 Brief · 2026-05-06
+</div>
+<h1>网络安全每日 Brief — 2026-05-06</h1>
+<h2>最关注的事</h2>
+<h3>1. CISA 联合多国发布 Agentic AI 服务安全采用指南</h3>
+<p>CISA 与澳大利亚 ASD ACSC 等国际合作伙伴联合发布《谨慎采用 Agentic AI 服务》指南，这是全球首个针对自主决策型 AI 代理服务的系统性安全框架。指南重点阐述了 Agentic AI 的权限边界控制、数据隐私保护及供应链风险，直接回应了当前对 AI 系统安全与逻辑类漏洞防护的迫切需求。<a href="https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-ai-services">原文</a></p>
+<h3>2. Palo Alto 揭示前沿 AI 模型可自主发现零日漏洞</h3>
+<p>Unit 42 最新研究发现，前沿 AI 模型已能充当“全谱系安全研究员”，实现自主化的零日漏洞发现，并显著加速 N-day 补丁开发周期。该研究首次系统论证了 AI 在漏洞挖掘领域的实战能力，对理解 AI for 态势感知及防御范式转变具有里程碑意义。<a href="https://unit42.paloaltonetworks.com/ai-software-security-risks/">原文</a></p>
+<h3>3. Linux 内核“Copy Fail”漏洞：近年来最严重的 Linux 提权威胁</h3>
+<p>CVE-2026-31431 是一个影响数百万系统的 Linux 内核本地提权漏洞，允许攻击者隐蔽获取 root 权限。该漏洞已被列入 CISA KEV 目录，具有在野利用证据，且在云环境和 Kubernetes 集群中影响尤为严重，构成当前基础设施安全的重大威胁。<a href="https://unit42.paloaltonetworks.com/cve-2026-31431-copy-fail/">原文</a></p>
+<h2>值得一看的事</h2>
+<ul>
+<li><p><strong>CISA 连续发布多条工控安全警报</strong>：Hitachi Energy PCM600、ABB B&amp;R Automation Studio、Johnson Controls CEM AC2000 等多个工控产品被曝高危漏洞，涉及提权与未授权访问，凸显关键基础设施防护形势严峻。<a href="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-01">[1]</a> <a href="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-04">[2]</a> <a href="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-05">[3]</a></p>
+</li>
+<li><p><strong>DarkSword 恶意软件：疑似国家级 iOS 完整攻击链曝光</strong>：Google GTIG 发现针对 iOS 的全链攻击恶意软件，利用多个漏洞实现完全控制，其复杂度暗示背后存在国家级攻击者，对移动终端安全防护提出新挑战。<a href="https://www.schneier.com/blog/archives/2026/05/darksword-malware.html">原文</a></p>
+</li>
+<li><p><strong>微软披露大规模多阶段钓鱼活动：以“行为准则”为诱饵实施 AiTM 令牌窃取</strong>：攻击者利用“行为准则”主题诱饵，结合合法邮件服务实施多步攻击链，最终通过 AiTM 技术窃取令牌绕过 MFA，展示社会工程学与高级技术手段的融合趋势。<a href="https://www.microsoft.com/en-us/security/blog/2026/05/04/breaking-the-code-multi-stage-code-of-conduct-phishing-campaign-leads-to-aitm-token-compromise/">原文</a></p>
+</li>
+<li><p><strong>OWASP 基金会发布战略规划：迈向“无不安软件”的世界</strong>：OWASP 宣布进入转型期，将从一个被认可的安全声音升级为行业真正的变革力量，战略聚焦于标准化工具、人才培养与全球协作，对整个应用安全生态具有深远影响。<a href="http://owasp.org/blog/2026/05/05/owasp-unveils-strategic-plan-world-without-insecure-software.html">原文</a></p>
+</li>
+<li><p><strong>微软 Agent 365 正式 GA 上线，新增影子 AI 代理管理与本地 Agent 支持</strong>：包括对 OpenClaw 和 Claude Code 等本地 AI 代理的发现与管理功能，标志着企业级 AI 安全管控从云端拓展至本地开发环境，与重点关注主题中的“AI 系统安全”高度关联。<a href="https://www.microsoft.com/en-us/security/blog/2026/05/01/microsoft-agent-365-now-generally-available-expands-capabilities-and-integrations/">原文</a></p>
+</li>
+<li><p><strong>Trail of Bits 发布 C/C++ 安全编码挑战解析</strong>：通过 Linux ping 程序与 Windows 驱动注册表两个实例，展示系统编程中常见的隐蔽漏洞，为 C/C++ 安全编码最佳实践提供实战案例。<a href="https://blog.trailofbits.com/2026/05/05/c/c-checklist-challenges-solved/">原文</a></p>
+</li>
+<li><p><strong>Palo Alto 揭示 AI 多智能体系统可自主攻击云环境</strong>：Unit 42 构建的自主云攻击多智能体系统成功实施攻击，为理解 AI 驱动的攻击技术及如何构建前瞻性防御策略提供关键洞察。<a href="https://unit42.paloaltonetworks.com/autonomous-ai-cloud-attacks/">原文</a></p>
+</li>
+<li><p><strong>Claude Mythos 已发现 271 个 Firefox 零日漏洞</strong>：自 2 月以来，Firefox 团队利用前沿 AI 模型持续挖掘并修复浏览器潜在安全漏洞，其产出规模前所未有，标志 AI 辅助漏洞挖掘已进入规模化应用阶段。<a href="https://www.schneier.com/blog/archives/2026/04/claude-mythos-has-found-271-zero-days-in-firefox.html">原文</a></p>
+</li>
+</ul>
+
+
+<div class="af-panel">
+  <h2 style="font-size:1.1rem;margin-bottom:0.5rem">文章兴趣标注</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">标注你对各文章的兴趣程度，系统会学习你的偏好来优化未来的排名。</p>
+  <div class="af-row" data-url="https://simonwillison.net/2026/May/5/our-ai-started-a-cafe-in-stockholm/#atom-everything" data-title="Our AI started a cafe in Stockholm" data-source="Simon Willison (Security)">
+  <span class="af-idx">1</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/5/our-ai-started-a-cafe-in-stockholm/#atom-everything" target="_blank">Our AI started a cafe in Stockholm</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://unit42.paloaltonetworks.com/cve-2026-31431-copy-fail/" data-title="Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years" data-source="Unit 42 (Palo Alto)">
+  <span class="af-idx">2</span>
+  <div class="af-info">
+    <a class="af-title" href="https://unit42.paloaltonetworks.com/cve-2026-31431-copy-fail/" target="_blank">Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years</a>
+    <span class="af-source">Unit 42 (Palo Alto)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-01" data-title="Hitachi Energy PCM600" data-source="CISA Alerts">
+  <span class="af-idx">3</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-01" target="_blank">Hitachi Energy PCM600</a>
+    <span class="af-source">CISA Alerts</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-04" data-title="ABB B&R Automation Studio" data-source="CISA Alerts">
+  <span class="af-idx">4</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-04" target="_blank">ABB B&R Automation Studio</a>
+    <span class="af-source">CISA Alerts</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-05" data-title="Johnson Controls CEM AC2000" data-source="CISA Alerts">
+  <span class="af-idx">5</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-05" target="_blank">Johnson Controls CEM AC2000</a>
+    <span class="af-source">CISA Alerts</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-02" data-title="ABB B&R PVI" data-source="CISA Alerts">
+  <span class="af-idx">6</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.cisa.gov/news-events/ics-advisories/icsa-26-125-02" target="_blank">ABB B&R PVI</a>
+    <span class="af-source">CISA Alerts</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/5/datasette-referrer-policy/#atom-everything" data-title="datasette-referrer-policy 0.1" data-source="Simon Willison (Security)">
+  <span class="af-idx">7</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/5/datasette-referrer-policy/#atom-everything" target="_blank">datasette-referrer-policy 0.1</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://blog.trailofbits.com/2026/05/05/c/c-checklist-challenges-solved/" data-title="C/C++ checklist challenges, solved" data-source="Trail of Bits">
+  <span class="af-idx">8</span>
+  <div class="af-info">
+    <a class="af-title" href="https://blog.trailofbits.com/2026/05/05/c/c-checklist-challenges-solved/" target="_blank">C/C++ checklist challenges, solved</a>
+    <span class="af-source">Trail of Bits</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/5/datasette-llm/#atom-everything" data-title="datasette-llm 0.1a7" data-source="Simon Willison (Security)">
+  <span class="af-idx">9</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/5/datasette-llm/#atom-everything" target="_blank">datasette-llm 0.1a7</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/5/llm-echo/#atom-everything" data-title="llm-echo 0.5a0" data-source="Simon Willison (Security)">
+  <span class="af-idx">10</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/5/llm-echo/#atom-everything" target="_blank">llm-echo 0.5a0</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.schneier.com/blog/archives/2026/05/darksword-malware.html" data-title="DarkSword Malware" data-source="Schneier on Security">
+  <span class="af-idx">11</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.schneier.com/blog/archives/2026/05/darksword-malware.html" target="_blank">DarkSword Malware</a>
+    <span class="af-source">Schneier on Security</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="http://owasp.org/blog/2026/05/05/owasp-unveils-strategic-plan-world-without-insecure-software.html" data-title="OWASP Foundation Unveils Its Strategic Plan for a World Without Insecure Software" data-source="OWASP News">
+  <span class="af-idx">12</span>
+  <div class="af-info">
+    <a class="af-title" href="http://owasp.org/blog/2026/05/05/owasp-unveils-strategic-plan-world-without-insecure-software.html" target="_blank">OWASP Foundation Unveils Its Strategic Plan for a World Without Insecure Software</a>
+    <span class="af-source">OWASP News</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.microsoft.com/en-us/security/blog/2026/05/04/breaking-the-code-multi-stage-code-of-conduct-phishing-campaign-leads-to-aitm-token-compromise/" data-title="Breaking the code: Multi-stage ‘code of conduct’ phishing campaign leads to AiTM token compromise" data-source="Microsoft Security">
+  <span class="af-idx">13</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.microsoft.com/en-us/security/blog/2026/05/04/breaking-the-code-multi-stage-code-of-conduct-phishing-campaign-leads-to-aitm-token-compromise/" target="_blank">Breaking the code: Multi-stage ‘code of conduct’ phishing campaign leads to AiTM token compromise</a>
+    <span class="af-source">Microsoft Security</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/5/john-gruber/#atom-everything" data-title="Quoting John Gruber" data-source="Simon Willison (Security)">
+  <span class="af-idx">14</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/5/john-gruber/#atom-everything" target="_blank">Quoting John Gruber</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/4/granite-41-3b-svg-pelican-gallery/#atom-everything" data-title="Granite 4.1 3B SVG Pelican Gallery" data-source="Simon Willison (Security)">
+  <span class="af-idx">15</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/4/granite-41-3b-svg-pelican-gallery/#atom-everything" target="_blank">Granite 4.1 3B SVG Pelican Gallery</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/4/andy-masley/#atom-everything" data-title="Quoting Andy Masley" data-source="Simon Willison (Security)">
+  <span class="af-idx">16</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/4/andy-masley/#atom-everything" target="_blank">Quoting Andy Masley</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/4/april-newsletter/#atom-everything" data-title="April 2026 newsletter" data-source="Simon Willison (Security)">
+  <span class="af-idx">17</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/4/april-newsletter/#atom-everything" target="_blank">April 2026 newsletter</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/4/tre-python-binding/#atom-everything" data-title="TRE Python binding — ReDoS robustness demo" data-source="Simon Willison (Security)">
+  <span class="af-idx">18</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/4/tre-python-binding/#atom-everything" target="_blank">TRE Python binding — ReDoS robustness demo</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-ai-services" data-title="Careful Adoption of Agentic AI Services" data-source="CISA Alerts">
+  <span class="af-idx">19</span>
+  <div class="af-info">
+    <a class="af-title" href="https://www.cisa.gov/resources-tools/resources/careful-adoption-agentic-ai-services" target="_blank">Careful Adoption of Agentic AI Services</a>
+    <span class="af-source">CISA Alerts</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+<div class="af-row" data-url="https://simonwillison.net/2026/May/4/redis-array/#atom-everything" data-title="Redis Array Playground" data-source="Simon Willison (Security)">
+  <span class="af-idx">20</span>
+  <div class="af-info">
+    <a class="af-title" href="https://simonwillison.net/2026/May/4/redis-array/#atom-everything" target="_blank">Redis Array Playground</a>
+    <span class="af-source">Simon Willison (Security)</span>
+  </div>
+  <div class="af-btns">
+    <button class="af-btn af-high" onclick="rateArticle(this,'high')">▲ 高</button>
+    <button class="af-btn af-mid" onclick="rateArticle(this,'medium')">■ 中</button>
+    <button class="af-btn af-low" onclick="rateArticle(this,'low')">▼ 低</button>
+  </div>
+  <span class="af-status"></span>
+</div>
+</div>
+<hr>
+<div class="meta">本 Brief 由 DeepDive 洞察 Agent 自动生成</div>
+<script>
+const RDOMAIN = 'cybersecurity';
+async function rateArticle(btn, interest) {
+  const row = btn.closest('.af-row');
+  const statusEl = row.querySelector('.af-status');
+  const body = {
+    articleUrl: row.dataset.url,
+    articleTitle: row.dataset.title,
+    source: row.dataset.source,
+    domain: RDOMAIN,
+    interest: interest,
+  };
+  try {
+    const r = await fetch('/api/article-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error('提交失败');
+    row.querySelectorAll('.af-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.4'; });
+    btn.style.opacity = '1';
+    btn.style.fontWeight = 'bold';
+    const labels = { high: '已标注：高兴趣', medium: '已标注：中兴趣', low: '已标注：低兴趣' };
+    statusEl.textContent = labels[interest] || '已标注';
+    statusEl.style.color = 'var(--ok)';
+  } catch (err) {
+    statusEl.textContent = err.message;
+    statusEl.style.color = 'var(--err)';
+  }
+}
+</script>
+</body>
+</html>

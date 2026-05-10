@@ -15,7 +15,7 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000).unref();
 
-export function createSession({ topic, domain, timeRange }) {
+export function createSession({ topic, domain, timeRange, analysisDoc }) {
   const id = crypto.randomUUID();
   const session = {
     id,
@@ -28,7 +28,37 @@ export function createSession({ topic, domain, timeRange }) {
     markdown: '',
     snapshots: [],
     chatHistory: [],
+    analysisDoc: analysisDoc || '',
+    subQuestions: [],
+    researchRounds: [],
+    mode: 'chat',
+    events: new EventEmitter(),
+    _created: Date.now(),
+  };
+  sessions.set(id, session);
+  return id;
+}
+
+// Create a v3 deep research session with task-tree specific fields
+export function createDeepResearchV3Session({ topic, domain }) {
+  const id = crypto.randomUUID();
+  const session = {
+    id,
+    topic,
+    domain: domain || '',
+    stage: 'brainstorming',
+    items: [],
+    markdown: '',
+    chatHistory: [],
     analysisDoc: '',
+    mode: 'deep-v3',
+    // v3 specific fields
+    confirmMode: 'manual',          // 'manual' | 'auto'
+    analysisTasks: [],              // Brainstorm 产出的任务清单 [{id, title, description}]
+    taskTree: [],                   // 完整任务树 TaskNode[]
+    currentExecPath: [],            // 当前执行路径（nodeId 列表）
+    executeResults: {},             // { [nodeId]: TaskNode 执行结果 }
+    l1Summaries: {},                // { [nodeId]: string } L1 小结
     events: new EventEmitter(),
     _created: Date.now(),
   };

@@ -1,0 +1,16 @@
+{
+  "id": "46d08fa8-f912-48c0-8be1-52315d7207d0",
+  "title": "OpenAI 发布开源编排规范 Symphony，将 Issue 系统变成持续运行的智能体，具体链接如下https://openai.com/index/open-source-codex-orche",
+  "createdAt": "2026-05-05T10:40:22.950Z",
+  "type": "survey",
+  "domain": "software-engineering",
+  "parentReportId": null,
+  "tags": {
+    "user": [],
+    "auto": []
+  },
+  "metadata": {
+    "llmProvider": "DeepSeek"
+  },
+  "conversationHistory": []
+}

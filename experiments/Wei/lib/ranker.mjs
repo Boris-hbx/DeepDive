@@ -89,6 +89,41 @@ export function computeRuleScore(item, opts) {
   };
 }
 
+// Global TOP score — pure authority + heat + recency, NO domain relevance filter.
+// For "业界 TOP 科技新闻" — items that are globally important regardless of domain.
+export function computeGlobalScore(item, opts) {
+  const {
+    authMap = {},
+    now = new Date(),
+    timeHalfLifeHours = 48,
+    heatMaxPoints = 100,
+  } = opts;
+
+  const authority = computeAuthorityScore(item, authMap);
+  const time = computeTimeScore(item.publishedAt, now, timeHalfLifeHours);
+  const heat = computeHeatScore(item, heatMaxPoints);
+  // weights: authority 0.30, heat 0.40, timeDecay 0.30 — no relevance filter
+  return 0.30 * authority + 0.40 * heat + 0.30 * time;
+}
+
+// Focus topic relevance — lightweight keyword overlap with natural language focus topics
+export function computeFocusScore(item, focusTopics) {
+  if (!focusTopics || focusTopics.length === 0) return 0;
+  const itemText = `${item.title || ''} ${item.snippet || ''}`;
+  const itemTokens = tokenize(itemText);
+  if (itemTokens.length === 0) return 0;
+
+  let maxScore = 0;
+  for (const topic of focusTopics) {
+    const topicTokens = tokenize(topic);
+    if (topicTokens.length === 0) continue;
+    const intersection = topicTokens.filter(t => itemTokens.includes(t)).length;
+    const score = intersection / Math.min(topicTokens.length, itemTokens.length + 1);
+    if (score > maxScore) maxScore = score;
+  }
+  return maxScore;
+}
+
 // Full composite with optional LLM score and learning boost
 export function computeFinalScore(ruleScore, llmScore, learnBoost, wLLM = 0.15, wLearn = 0.10) {
   if (llmScore != null) {
@@ -123,7 +158,8 @@ export function computeLearningBoost(item, interestKeywordMap) {
   return totalInterest / matchCount;
 }
 
-// Batch rank: scores all items, then sorts descending by final score
+// Batch rank: scores all items, then sorts descending by final score.
+// Also computes _globalScore for unfiltered TOP news selection.
 export function rankItems(items, opts) {
   const {
     authMap = {},
@@ -132,8 +168,10 @@ export function rankItems(items, opts) {
     ranking: rankingConfig,
     interestKeywordMap = null,
     llmScores = null,
+    focusTopics = [],
     wLLM = 0.15,
     wLearn = 0.10,
+    wFocus = 0.10,
   } = opts;
 
   const weights = rankingConfig?.weights || { authority: 0.20, relevance: 0.25, timeDecay: 0.25, heat: 0.30 };
@@ -141,13 +179,24 @@ export function rankItems(items, opts) {
   const heatMaxPoints = rankingConfig?.heatMaxPoints ?? 100;
 
   const scored = items.map((item, i) => {
+    // Domain score (existing, with relevance)
     const rule = computeRuleScore(item, { authMap, domainKeywords, now, weights, timeHalfLifeHours, heatMaxPoints });
+    // Global TOP score (no relevance filter)
+    const globalScore = computeGlobalScore(item, { authMap, now, timeHalfLifeHours, heatMaxPoints });
+    // Focus topic match
+    const focus = computeFocusScore(item, focusTopics);
+    // Learning boost
     const llmScore = llmScores ? (llmScores[i] ?? null) : null;
     const learnBoost = computeLearningBoost(item, interestKeywordMap);
-    const score = computeFinalScore(rule._ruleScore, llmScore, learnBoost, wLLM, wLearn);
+    // Blend domain score + focus score
+    const blendedRule = rule._ruleScore * (1 - wFocus) + focus * wFocus;
+    const score = computeFinalScore(blendedRule, llmScore, learnBoost, wLLM, wLearn);
+
     return {
       ...item,
       ...rule,
+      _focusScore: focus,
+      _globalScore: globalScore,
       _llmScore: llmScore,
       _learnBoost: learnBoost,
       _score: score,

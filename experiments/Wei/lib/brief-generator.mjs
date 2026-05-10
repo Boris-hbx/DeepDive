@@ -43,9 +43,11 @@ async function generateDomainBrief(domainKey, domainConfig, provider) {
 
   // Merge ranking config from sources.json into domainConfig
   const sourcesConfig = loadSources();
+  const appConfig = loadAppConfig();
   const mergedConfig = {
     ...domainConfig,
     ranking: sourcesConfig.ranking || {},
+    focusTopics: (appConfig.focusTopics && appConfig.focusTopics[domainKey]) || [],
   };
 
   // Build stages list
@@ -68,7 +70,6 @@ async function generateDomainBrief(domainKey, domainConfig, provider) {
   ];
 
   // Conditionally inject LLM scoring stage
-  const appConfig = loadAppConfig();
   if (appConfig.llmScoring?.enabled) {
     stages.push(createLLMScoreStage(appConfig.llmScoring));
     stages.push({ name: 'persist-llm-scored', run: async (state) => {
@@ -79,7 +80,7 @@ async function generateDomainBrief(domainKey, domainConfig, provider) {
 
   stages.push(briefSummarizeStage(domainKey, label));
 
-  const run = createPipeline(stages, { provider, domain: domainKey });
+  const run = createPipeline(stages, { provider, domain: domainKey, focusTopics: mergedConfig.focusTopics || [] });
 
   const result = await run({ items: [], domain: domainKey });
   return result;

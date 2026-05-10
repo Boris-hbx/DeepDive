@@ -17,4 +17,14 @@ desktop.ini
 # Logs
 *.log
 
-# 待技术栈确定后再补充（node_modules/、dist/、__pycache__/ 等）
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.uv/

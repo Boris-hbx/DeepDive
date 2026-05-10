@@ -28,6 +28,7 @@ export function createPipeline(stages, opts = {}) {
       persistDir: opts.persistDir || null,
       provider: opts.provider || '',
       domain: opts.domain || '',
+      focusTopics: opts.focusTopics || [],
     };
 
     let state = { ...initialState };

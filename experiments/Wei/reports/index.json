@@ -205,5 +205,314 @@
       "auto": []
     },
     "path": "2026/04/29/brief-cybersecurity"
+  },
+  {
+    "id": "brief-2026-04-30-software-engineering",
+    "title": "软件工程每日 Brief — 2026-04-30",
+    "createdAt": "2026-04-30T08:57:25.943Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/30/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-04-30-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-04-30",
+    "createdAt": "2026-04-30T08:59:21.056Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/04/30/brief-cybersecurity"
+  },
+  {
+    "id": "46d08fa8-f912-48c0-8be1-52315d7207d0",
+    "title": "OpenAI 发布开源编排规范 Symphony，将 Issue 系统变成持续运行的智能体，具体链接如下https://openai.com/index/open-source-codex-orche",
+    "createdAt": "2026-05-05T10:40:22.950Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/05/openai-发布开源编排规范-symphony-将-issue-系统变成持续运行的智能体-具体链接如下https-op"
+  },
+  {
+    "id": "97aaa600-864f-46bf-a863-03dff7198667",
+    "title": "今天是2026年5月5日， 请基于https://martinfowler.com/recent-changes.html， https://martinfowler.com/bliki/ 以及其他公",
+    "createdAt": "2026-05-05T11:48:16.252Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/05/今天是2026年5月5日-请基于https-martinfowler-com-recent-changes-html-h"
+  },
+  {
+    "id": "9877f17e-e121-4e11-a0ce-5bd322d22644",
+    "title": "追问：请增加架构适配度函数 (Fitness Functions)的分析，并加入到合适的位置",
+    "createdAt": "2026-05-05T13:12:18.014Z",
+    "type": "follow-up",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/05/追问-请增加架构适配度函数-fitness-functions-的分析-并加入到合适的位置"
+  },
+  {
+    "id": "brief-2026-05-05-software-engineering",
+    "title": "软件工程每日 Brief — 2026-05-05",
+    "createdAt": "2026-05-05T14:03:40.993Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/05/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-05-05-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-05-05",
+    "createdAt": "2026-05-05T14:05:06.868Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/05/brief-cybersecurity"
+  },
+  {
+    "id": "2eb28de2-09d0-4e93-9852-a1a13d6a74c5",
+    "title": "martin fowler 提出了架构适配度函数，请分析架构适配度函数在 AI 辅助编程中的治理价值",
+    "createdAt": "2026-05-06T04:58:28.541Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/06/martin-fowler-提出了架构适配度函数-请分析架构适配度函数在-ai-辅助编程中的治理价值"
+  },
+  {
+    "id": "brief-2026-05-06-software-engineering",
+    "title": "软件工程每日 Brief — 2026-05-06",
+    "createdAt": "2026-05-06T07:40:29.143Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/06/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-05-06-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-05-06",
+    "createdAt": "2026-05-06T07:43:34.338Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/06/brief-cybersecurity"
+  },
+  {
+    "id": "00412afa-21ad-4bf8-a094-aa5c325f4d61",
+    "title": "Martin Fowler 与 Neal Ford 提出的架构适配度函数，请分析架构适配函数在AI coding 时代软件工程中的意义",
+    "createdAt": "2026-05-06T08:05:22.867Z",
+    "type": "deep-research",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/06/martin-fowler-与-neal-ford-提出的架构适配度函数-请分析架构适配函数在ai-coding-时代软"
+  },
+  {
+    "id": "4fd0f792-96e6-4f7b-8d57-a841fda7ec38",
+    "title": "Martin Fowler 与 Neal Ford 提出的架构适配度函数，请分析架构适配函数在AI coding 时代软件工程中的意义",
+    "createdAt": "2026-05-06T08:36:53.357Z",
+    "type": "survey",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": [
+        "架构适配度函数",
+        "自动化架构验证",
+        "AI编程治理",
+        "持续集成",
+        "代码质量门禁",
+        "演化架构",
+        "静态代码分析",
+        "运行时监控"
+      ]
+    },
+    "path": "2026/05/06/martin-fowler-与-neal-ford-提出的架构适配度函数-请分析架构适配函数在ai-coding-时代软"
+  },
+  {
+    "id": "brief-2026-05-07-software-engineering",
+    "title": "软件工程每日 Brief — 2026-05-07",
+    "createdAt": "2026-05-07T06:15:43.045Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/07/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-05-07-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-05-07",
+    "createdAt": "2026-05-07T06:17:53.926Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/07/brief-cybersecurity"
+  },
+  {
+    "id": "0fdbb491-98d8-46d4-a1b0-e953b2394d4e",
+    "title": "当前时间为2026年5月8日，RSAC 创新沙盒十强公司已经发布，请针对每个公司进行详细分析",
+    "createdAt": "2026-05-08T12:16:10.055Z",
+    "type": "deep-research",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/08/当前时间为2026年5月8日-rsac-创新沙盒十强公司已经发布-请针对每个公司进行详细分析"
+  },
+  {
+    "id": "brief-2026-05-08-software-engineering",
+    "title": "软件工程每日 Brief — 2026-05-08",
+    "createdAt": "2026-05-08T12:37:46.624Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/08/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-05-08-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-05-08",
+    "createdAt": "2026-05-08T12:39:20.188Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/08/brief-cybersecurity"
+  },
+  {
+    "id": "brief-2026-05-09-software-engineering",
+    "title": "软件工程每日 Brief — 2026-05-09",
+    "createdAt": "2026-05-09T03:11:48.549Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/09/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-05-09-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-05-09",
+    "createdAt": "2026-05-09T03:13:09.066Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/09/brief-cybersecurity"
+  },
+  {
+    "id": "4fa603cc-6bae-4129-94cf-ac0ffd100885",
+    "title": "请对2026年RSAC 创新沙盒十强公司进行分析，并对每个公司的创新点涉及的其他公司对对比分析",
+    "createdAt": "2026-05-09T03:16:22.412Z",
+    "type": "deep-research",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/09/请对2026年rsac-创新沙盒十强公司进行分析-并对每个公司的创新点涉及的其他公司对对比分析"
+  },
+  {
+    "id": "5c936316-43f3-4d29-ba27-d14bf6be8bb1",
+    "title": "当前时间是2026年5月9日，请分析RSAC 2026 创新沙盒十强的公司名单，并展开深度研究分析",
+    "createdAt": "2026-05-09T06:03:05.928Z",
+    "type": "deep-research",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/09/当前时间是2026年5月9日-请分析rsac-2026-创新沙盒十强的公司名单-并展开深度研究分析"
+  },
+  {
+    "id": "a697b203-d957-4928-98f5-fe85deeefbbf",
+    "title": "请分析RSAC 2026 十大创新沙盒企业，并对每个企业的创新点进行深度分析，包括技术突破点、架构、和相关的企业对比分析等",
+    "createdAt": "2026-05-10T01:56:08.531Z",
+    "type": "deep-research",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/10/请分析rsac-2026-十大创新沙盒企业-并对每个企业的创新点进行深度分析-包括技术突破点-架构-和相关的企业对比分析"
+  },
+  {
+    "id": "6f747493-adae-4c5f-a8d1-794b603b5fdf",
+    "title": "请分析RSAC 2026 十大创新沙盒企业，并对每个企业的创新点进行深度分析，包括技术突破点、架构、和相关的企业对比分析等",
+    "createdAt": "2026-05-10T05:47:36.226Z",
+    "type": "deep-research",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/10/请分析rsac-2026-十大创新沙盒企业-并对每个企业的创新点进行深度分析-包括技术突破点-架构-和相关的企业对比分析"
+  },
+  {
+    "id": "brief-2026-05-10-software-engineering",
+    "title": "软件工程每日 Brief — 2026-05-10",
+    "createdAt": "2026-05-10T12:52:26.794Z",
+    "type": "daily-brief",
+    "domain": "software-engineering",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/10/brief-software-engineering"
+  },
+  {
+    "id": "brief-2026-05-10-cybersecurity",
+    "title": "网络安全每日 Brief — 2026-05-10",
+    "createdAt": "2026-05-10T12:54:16.619Z",
+    "type": "daily-brief",
+    "domain": "cybersecurity",
+    "tags": {
+      "user": [],
+      "auto": []
+    },
+    "path": "2026/05/10/brief-cybersecurity"
   }
 ]

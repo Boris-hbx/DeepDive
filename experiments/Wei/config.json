@@ -210,6 +210,190 @@
         "software-engineering",
         "cybersecurity"
       ]
+    },
+    {
+      "time": "2026-04-30 00:24:46",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-30 01:09:11",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-04-30 08:57:51",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-05 04:09:36",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-05 06:35:21",
+      "status": "failed",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-05 10:27:54",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-05 11:44:07",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-05 14:05:06",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-06 00:15:51",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-06 07:43:34",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-07 00:21:03",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-07 01:23:31",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-07 06:17:53",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-08 00:03:52",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-08 05:01:17",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-08 12:39:20",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-09 00:29:01",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-09 03:13:09",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-10 00:02:58",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-10 00:17:04",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-10 00:28:03",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-10 05:36:36",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
+    },
+    {
+      "time": "2026-05-10 12:54:16",
+      "status": "success",
+      "domains": [
+        "software-engineering",
+        "cybersecurity"
+      ]
     }
   ],
   "llm": {
@@ -223,6 +407,14 @@
     "maxItems": 15,
     "model": "deepseek-chat"
   },
+  "focusTopics": {
+    "software-engineering": [
+      "AI coding， SPEC， skills， SDD驱动开发，AI 代码review，AI 驱动的Fuzz，AI for 漏洞挖掘"
+    ],
+    "cybersecurity": [
+      "AI 攻击， AI 系统的安全， 大模型安全， 逻辑类漏洞防护，端云协同的隐私计算，AI for 态势感知"
+    ]
+  },
   "email": {
     "smtp": {
       "host": "smtp.139.com",
@@ -231,7 +423,8 @@
     },
     "from": "",
     "recipients": [
-      "13509612680@139.com"
+      "13509612680@139.com",
+      "wilson.wangwei@huawei.com"
     ]
   }
 }

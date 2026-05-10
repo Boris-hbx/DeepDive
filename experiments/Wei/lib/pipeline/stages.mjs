@@ -72,6 +72,7 @@ export function rankStage(domainConfig) {
         now: new Date(),
         ranking: rankingConfig,
         interestKeywordMap,
+        focusTopics: domainConfig.focusTopics || [],
       });
 
       ctx.log(`  [rank] 排序完成 (${ranked.length} 条, 最高分: ${ranked[0]?._score?.toFixed(3) || 'N/A'})`);
@@ -95,10 +96,20 @@ export function briefSummarizeStage(domainKey, label) {
       }
 
       const llm = createProvider(ctx.provider);
-      const topItems = items.slice(0, 30);
-      const prompt = getBriefPrompt(domainKey, topItems) + (ctx.hooks ? '\n\n' + ctx.hooks : '');
 
-      ctx.log(`  [summarize] LLM 生成 brief (${topItems.length} 条输入) ...`);
+      // Separate global TOP items (sorted by _globalScore, regardless of domain)
+      const globalTop = [...items]
+        .filter(i => i._globalScore > 0.3)
+        .sort((a, b) => b._globalScore - a._globalScore)
+        .slice(0, 8);
+
+      // Domain + focus sorted items (already sorted by _score)
+      const domainItems = items.slice(0, 30);
+
+      const focusTopics = ctx.focusTopics || [];
+      const prompt = getBriefPrompt(domainKey, domainItems, globalTop, focusTopics) + (ctx.hooks ? '\n\n' + ctx.hooks : '');
+
+      ctx.log(`  [summarize] LLM 生成 brief (domain: ${domainItems.length} 条, global top: ${globalTop.length} 条) ...`);
       const result = await llm.generate(prompt);
       let markdown = result.text
         .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')

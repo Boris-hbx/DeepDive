@@ -58,5 +58,25 @@
     "saveAsSkill": false,
     "id": "48f4e814-7db9-4801-9960-29b0cfc9f0d7",
     "createdAt": "2026-04-29T04:29:49.013Z"
+  },
+  {
+    "reportId": "97aaa600-864f-46bf-a863-03dff7198667",
+    "reportTitle": "今天是2026年5月5日， 请基于https://martinfowler.com/recent-changes.html， https://martinfowler.com/bliki/ 以及其他公",
+    "type": "insight",
+    "content": "请对每个观点都增加具体的引用来源，引用来源要求是网站上具体存在的链接",
+    "keywords": [],
+    "saveAsSkill": false,
+    "id": "1cb1e1e3-eba6-4d40-aff7-fea5875879b3",
+    "createdAt": "2026-05-05T11:56:47.680Z"
+  },
+  {
+    "reportId": "00412afa-21ad-4bf8-a094-aa5c325f4d61",
+    "reportTitle": "Martin Fowler 与 Neal Ford 提出的架构适配度函数，请分析架构适配函数在AI coding 时代软件工程中的意义",
+    "type": "error",
+    "content": "分析报告中采用了很多健身、单词的语义区别等，和架构适配度函数没有关系，请重新思考",
+    "keywords": [],
+    "saveAsSkill": true,
+    "id": "fc81d933-e8d2-4f65-afb4-7ec92e110261",
+    "createdAt": "2026-05-06T08:36:53.349Z"
   }
 ]

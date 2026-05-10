@@ -1,0 +1,28 @@
+{
+  "id": "4fd0f792-96e6-4f7b-8d57-a841fda7ec38",
+  "title": "Martin Fowler 与 Neal Ford 提出的架构适配度函数，请分析架构适配函数在AI coding 时代软件工程中的意义",
+  "createdAt": "2026-05-06T08:36:53.357Z",
+  "type": "survey",
+  "domain": "software-engineering",
+  "parentReportId": null,
+  "tags": {
+    "user": [],
+    "auto": [
+      "架构适配度函数",
+      "自动化架构验证",
+      "AI编程治理",
+      "持续集成",
+      "代码质量门禁",
+      "演化架构",
+      "静态代码分析",
+      "运行时监控"
+    ]
+  },
+  "metadata": {
+    "inputTokens": 587,
+    "outputTokens": 3665,
+    "cost": 0.056735999999999995,
+    "llmProvider": ""
+  },
+  "conversationHistory": []
+}

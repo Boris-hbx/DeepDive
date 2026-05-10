@@ -95,6 +95,8 @@ header a{color:var(--accent);text-decoration:none;font-size:0.9rem}
       <select id="new-type" onchange="toggleUrlKw()">
         <option value="rss">RSS</option>
         <option value="hn">Hacker News</option>
+        <option value="x">X (Twitter)</option>
+        <option value="wechat">微信公众号</option>
       </select>
     </div>
     <div class="form-row" id="row-url">
@@ -132,6 +134,22 @@ header a{color:var(--accent);text-decoration:none;font-size:0.9rem}
     <div style="display:flex;gap:0.5rem;margin-top:1rem">
       <button class="btn primary" onclick="saveSchedule()">保存配置</button>
       <button class="btn" onclick="runNow()">立即执行</button>
+    </div>
+  </div>
+  <div class="schedule-section">
+    <h3>关注主题 · 软件工程</h3>
+    <div id="se-topics-list"><span style="color:var(--muted);font-size:0.85rem">暂无</span></div>
+    <div class="form-row" style="margin-top:0.5rem">
+      <input type="text" id="se-topic-input" placeholder="输入关注主题（自然语言）" style="flex:1">
+      <button class="btn primary" onclick="addFocusTopic('software-engineering')">添加</button>
+    </div>
+  </div>
+  <div class="schedule-section">
+    <h3>关注主题 · 网络安全</h3>
+    <div id="cs-topics-list"><span style="color:var(--muted);font-size:0.85rem">暂无</span></div>
+    <div class="form-row" style="margin-top:0.5rem">
+      <input type="text" id="cs-topic-input" placeholder="输入关注主题（自然语言）" style="flex:1">
+      <button class="btn primary" onclick="addFocusTopic('cybersecurity')">添加</button>
     </div>
   </div>
   <div class="schedule-section">
@@ -350,9 +368,10 @@ function toggleAddForm() {
 }
 
 function toggleUrlKw() {
-  const isHN = document.getElementById('new-type').value==='hn';
-  document.getElementById('row-url').style.display = isHN?'none':'flex';
-  document.getElementById('row-kw').style.display = isHN?'flex':'none';
+  const type = document.getElementById('new-type').value;
+  const isHN = type === 'hn';
+  document.getElementById('row-url').style.display = isHN ? 'none' : 'flex';
+  document.getElementById('row-kw').style.display = isHN ? 'flex' : 'none';
 }
 
 async function addSource() {
@@ -388,6 +407,8 @@ async function saveMaxItems() {
 }
 
 // === Schedule ===
+let focusTopicsData = {};
+
 async function loadSchedule() {
   const r = await fetch('/api/schedule');
   const d = await r.json();
@@ -396,7 +417,9 @@ async function loadSchedule() {
   document.getElementById('sch-hour').value = s.hour ?? 8;
   document.getElementById('sch-se').checked = (s.domains||[]).includes('software-engineering');
   document.getElementById('sch-cs').checked = (s.domains||[]).includes('cybersecurity');
+  focusTopicsData = d.focusTopics || {};
   renderHistory(d.history || []);
+  renderFocusTopics();
 }
 
 function renderHistory(list) {
@@ -418,8 +441,42 @@ async function saveSchedule() {
     hour: parseInt(document.getElementById('sch-hour').value) || 8,
     domains,
   };
-  await fetch('/api/schedule',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({schedule})});
+  await fetch('/api/schedule',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({schedule, focusTopics: focusTopicsData})});
   toast('定时配置已保存');
+}
+
+function renderFocusTopics() {
+  const seList = (focusTopicsData['software-engineering'] || []);
+  const csList = (focusTopicsData['cybersecurity'] || []);
+  document.getElementById('se-topics-list').innerHTML = seList.length
+    ? seList.map((t, i) => `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;border-bottom:1px solid var(--border)">
+        <span style="flex:1;font-size:0.85rem">${t}</span>
+        <button class="btn danger" onclick="removeFocusTopic('software-engineering',${i})" style="padding:0.2rem 0.5rem;font-size:0.75rem">删除</button>
+      </div>`).join('')
+    : '<span style="color:var(--muted);font-size:0.85rem">暂无</span>';
+  document.getElementById('cs-topics-list').innerHTML = csList.length
+    ? csList.map((t, i) => `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;border-bottom:1px solid var(--border)">
+        <span style="flex:1;font-size:0.85rem">${t}</span>
+        <button class="btn danger" onclick="removeFocusTopic('cybersecurity',${i})" style="padding:0.2rem 0.5rem;font-size:0.75rem">删除</button>
+      </div>`).join('')
+    : '<span style="color:var(--muted);font-size:0.85rem">暂无</span>';
+}
+
+function addFocusTopic(domain) {
+  const inputEl = document.getElementById(domain === 'software-engineering' ? 'se-topic-input' : 'cs-topic-input');
+  const text = inputEl.value.trim();
+  if (!text) { toast('请输入关注主题'); return; }
+  if (!focusTopicsData[domain]) focusTopicsData[domain] = [];
+  focusTopicsData[domain].push(text);
+  inputEl.value = '';
+  renderFocusTopics();
+  toast('已添加关注主题，请点击"保存配置"持久化');
+}
+
+function removeFocusTopic(domain, idx) {
+  if (!focusTopicsData[domain]) return;
+  focusTopicsData[domain].splice(idx, 1);
+  renderFocusTopics();
 }
 
 async function runNow() {

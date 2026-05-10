@@ -6,6 +6,8 @@ export async function fetchSource(source) {
   try {
     if (source.type === 'hn') return await fetchHN(source);
     if (source.type === 'rss') return await fetchRSS(source);
+    if (source.type === 'x') return await fetchX(source);
+    if (source.type === 'wechat') return await fetchWechat(source);
     console.log(`  未知源类型: ${source.type}，跳过`);
     return [];
   } catch (err) {
@@ -108,6 +110,54 @@ export async function fetchAllSources(sources) {
     if (r.status === 'fulfilled') items.push(...r.value);
   }
   return items;
+}
+
+// X (Twitter) via Nitter RSS bridge — public, no API key required
+// source.url should be like: https://nitter.net/{username}/rss
+async function fetchX(source) {
+  if (!source.url) {
+    console.log(`  X 源缺少 url，跳过 [${source.name}]`);
+    return [];
+  }
+  try {
+    const feed = await parser.parseURL(source.url);
+    return (feed.items || []).slice(0, 15).map(item => ({
+      title: item.title || '',
+      url: item.link || '',
+      source: source.name,
+      publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
+      snippet: stripHTML(item.contentSnippet || item.content || '').slice(0, 500),
+      points: null,
+      comments: null,
+    }));
+  } catch (err) {
+    console.log(`  X 源抓取失败 [${source.name}]: ${err.message}`);
+    return [];
+  }
+}
+
+// 微信公众号 via RSSHub or similar RSS bridge
+// source.url should be like: https://rsshub.example.com/wechat/mp/xxx
+async function fetchWechat(source) {
+  if (!source.url) {
+    console.log(`  微信公众号源缺少 url，跳过 [${source.name}]`);
+    return [];
+  }
+  try {
+    const feed = await parser.parseURL(source.url);
+    return (feed.items || []).slice(0, 15).map(item => ({
+      title: item.title || '',
+      url: item.link || '',
+      source: source.name,
+      publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
+      snippet: stripHTML(item.contentSnippet || item.content || '').slice(0, 500),
+      points: null,
+      comments: null,
+    }));
+  } catch (err) {
+    console.log(`  微信公众号源抓取失败 [${source.name}]: ${err.message}`);
+    return [];
+  }
 }
 
 function stripHTML(html) {

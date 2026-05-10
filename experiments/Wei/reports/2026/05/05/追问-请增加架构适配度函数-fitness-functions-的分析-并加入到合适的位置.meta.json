@@ -1,0 +1,24 @@
+{
+  "id": "9877f17e-e121-4e11-a0ce-5bd322d22644",
+  "title": "追问：请增加架构适配度函数 (Fitness Functions)的分析，并加入到合适的位置",
+  "createdAt": "2026-05-05T13:12:18.014Z",
+  "type": "follow-up",
+  "domain": "software-engineering",
+  "parentReportId": "97aaa600-864f-46bf-a863-03dff7198667",
+  "tags": {
+    "user": [],
+    "auto": []
+  },
+  "metadata": {
+    "inputTokens": 1152,
+    "outputTokens": 2207,
+    "cost": 0.036561,
+    "llmProvider": ""
+  },
+  "conversationHistory": [
+    {
+      "question": "请增加架构适配度函数 (Fitness Functions)的分析，并加入到合适的位置",
+      "answerSummary": "# 补充分析：架构适配度函数在 AI 辅助编程中的治理价值\n\n**报告日期**：2026年5月5日  \n**分析周期**：2025年11月 – 2026年5月  \n**核心信源**：martinfowler.com（Bliki, 文章）、ThoughtWorks 技术雷达、《Building Evolutionary Architectures》（Ford, Parsons, Kua 著）及 Martin Fowler 近期公开评论\n\n## 1. 关键发现：从静态审查到动态守护的架构治理\n\n架构适配度函数（Fitness Functions）是一种可执行的自动化测试，用于持续验证系统是否满足预"
+    }
+  ]
+}

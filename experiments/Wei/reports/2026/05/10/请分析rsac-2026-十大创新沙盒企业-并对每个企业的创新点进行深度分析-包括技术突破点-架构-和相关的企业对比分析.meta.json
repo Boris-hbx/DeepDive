@@ -1,0 +1,16 @@
+{
+  "id": "6f747493-adae-4c5f-a8d1-794b603b5fdf",
+  "title": "请分析RSAC 2026 十大创新沙盒企业，并对每个企业的创新点进行深度分析，包括技术突破点、架构、和相关的企业对比分析等",
+  "createdAt": "2026-05-10T05:47:36.226Z",
+  "type": "deep-research",
+  "domain": "software-engineering",
+  "parentReportId": null,
+  "tags": {
+    "user": [],
+    "auto": []
+  },
+  "metadata": {
+    "llmProvider": "DeepSeek"
+  },
+  "conversationHistory": []
+}
