@@ -3,7 +3,7 @@
 import requests
 import feedparser
 from datetime import datetime, timedelta
-from .config import SOURCES, TOPIC_KEYWORDS
+from .config import SOURCES, TOPIC_KEYWORDS, PRIORITY_SOURCES, PRIORITY_KEYWORDS
 
 
 def fetch_hn_stories(source):
@@ -73,6 +73,10 @@ def fetch_github_trending(source):
 def is_relevant(article):
     """Check if an article title is relevant to our topic."""
     title_lower = article["title"].lower()
+    if article.get("source") in PRIORITY_SOURCES:
+        return True
+    if any(kw.lower() in title_lower for kw in PRIORITY_KEYWORDS):
+        return True
     return any(kw.lower() in title_lower for kw in TOPIC_KEYWORDS)
 
 

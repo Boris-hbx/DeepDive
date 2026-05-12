@@ -1,6 +1,7 @@
 """LLM-based relevance filter: use a cheap model to judge article relevance."""
 
 import anthropic
+from .config import PRIORITY_SOURCES, PRIORITY_KEYWORDS
 
 RELEVANCE_MODEL = "claude-opus-4-6"
 
@@ -22,20 +23,35 @@ Reply with ONLY "yes" or "no". Nothing else."""
 def judge_relevance_batch(articles):
     """Judge relevance for a batch of articles using LLM.
 
+    Priority source articles and priority keyword matches bypass LLM filtering.
     Returns list of articles deemed relevant.
     """
     if not articles:
         return []
 
+    # Split: priority articles skip LLM, rest go through filter
+    priority = []
+    to_judge = []
+    for a in articles:
+        if a.get("source") in PRIORITY_SOURCES:
+            priority.append(a)
+        elif any(kw.lower() in a["title"].lower() for kw in PRIORITY_KEYWORDS):
+            priority.append(a)
+        else:
+            to_judge.append(a)
+
+    if not to_judge:
+        return priority
+
     client = anthropic.Anthropic()
-    relevant = []
+    relevant = list(priority)
 
     articles_text = "\n".join(
         f"{i+1}. [{a['title']}] (source: {a['source']})"
-        for i, a in enumerate(articles)
+        for i, a in enumerate(to_judge)
     )
 
-    batch_prompt = f"""Here are {len(articles)} articles. For each one, reply with its number followed by "yes" or "no".
+    batch_prompt = f"""Here are {len(to_judge)} articles. For each one, reply with its number followed by "yes" or "no".
 Example format:
 1. yes
 2. no
@@ -62,8 +78,8 @@ Articles:
             try:
                 idx = int(parts[0].strip()) - 1
                 answer = parts[1].strip().lower()
-                if answer.startswith("yes") and 0 <= idx < len(articles):
-                    relevant.append(articles[idx])
+                if answer.startswith("yes") and 0 <= idx < len(to_judge):
+                    relevant.append(to_judge[idx])
             except ValueError:
                 continue
 

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Brief — 2026-05-12</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+        a { color: #2563eb; }
+        blockquote { border-left: 3px solid #ddd; padding-left: 12px; color: #555; }
+    </style>
+</head>
+<body>
+    <a href="index.html">&larr; Back</a>
+    <h1>Daily Brief — 2026-05-12</h1>
+<br>
+<blockquote>一句话摘要：今天最值得关注的方向是 AI Agent 生成的 PR 如何审查，以及企业级私有网络环境下的 AI 代码审查落地方案。</blockquote>
+<p>></p>
+<blockquote>数据源：7 个 / 已扫条目：117 / 入选条目：8</blockquote>
+<br>
+<h2>最关注的事</h2>
+<br>
+<h3>1. GitHub 发文指导如何审查 AI Agent 提交的 Pull Request</h3>
+<br>
+<p>随着 Copilot、Codex 等 Agent 自动生成 PR 成为常态，GitHub 官方博客发布了一篇实操指南，讨论 Agent PR 与人类 PR 的审查差异、需要额外关注的风险点（如幻觉代码、过度工程、缺乏上下文理解）以及推荐的审查流程。这对所有已经或即将在团队中引入 Agentic 工作流的工程组织来说是必读材料。</p>
+<br>
+<p>来源：<a href="https://github.blog/ai-and-ml/generative-ai/agent-pull-requests-are-everywhere-heres-how-to-review-them/" target="_blank">Agent pull requests are everywhere. Here's how to review them.</a></p>
+<br>
+<h3>2. CodeRabbit 推出 Reverse Tunnel，让私有网络企业也能用上 AI 代码审查</h3>
+<br>
+<p>CodeRabbit 发布反向隧道功能，允许部署在私有网络（无公网入口）的自托管 Git 实例接入 CodeRabbit 的 AI 审查服务，无需开放防火墙或暴露代码仓库。这解决了大型企业和金融/医疗等合规行业采用 AI 代码审查的最大阻碍之一——网络隔离问题。</p>
+<br>
+<p>来源：<a href="https://coderabbit.ai/blog/introducing-coderabbit-reverse-tunnel" target="_blank">Introducing CodeRabbit Reverse Tunnel: AI code review for private-network enterprises</a></p>
+<br>
+<h3>3. GitHub 探讨如何验证非确定性 Agent 行为的正确性</h3>
+<br>
+<p>当 AI Agent 的输出不再有唯一正确答案时，传统的断言式测试失效了。GitHub 这篇文章讨论了在 Agentic 工作流中验证行为正确性的方法论，包括基于约束的验证、LLM-as-judge、以及统计置信度等策略。这是 Agentic 工程走向生产级可靠性的关键课题。</p>
+<br>
+<p>来源：<a href="https://github.blog/ai-and-ml/generative-ai/validating-agentic-behavior-when-correct-isnt-deterministic/" target="_blank">Validating agentic behavior when "correct" isn't deterministic</a></p>
+<br>
+<h2>值得一看的事</h2>
+<br>
+<li>CodeRabbit 提出 Policy-as-Code 是 AI 辅助开发中被忽视的关键层，用声明式策略约束 Agent 行为 — <a href="https://coderabbit.ai/blog/policy-as-code-the-missing-layer-in-ai-assisted-development" target="_blank">CodeRabbit Blog</a></li>
+<li>Simon Willison 观察到 vibe coding 和 agentic engineering 的边界正在模糊化，引发对工程严谨性的担忧 — <a href="https://simonwillison.net/2026/May/6/vibe-coding-and-agentic-engineering/" target="_blank">Simon Willison</a></li>
+<li>GitHub 分享在 Agentic 工作流中优化 token 消耗的实践经验 — <a href="https://github.blog/ai-and-ml/github-copilot/improving-token-efficiency-in-github-agentic-workflows/" target="_blank">GitHub Blog</a></li>
+<li>有人发现 Claude 在应该直接 import 库时却自己重写了 3000 行代码，暴露了 Agent "假建设"问题 — <a href="https://fireflysentinel.github.io/posts/fake-building-claude-3000-lines/" target="_blank">Hacker News</a></li>
+<li>CodeRabbit 讨论"你是否信任你的 AI Agent"，探讨 Agent 信任度的评估框架 — <a href="https://coderabbit.ai/blog/do-you-trust-your-ai-agent" target="_blank">CodeRabbit Blog</a></li>
+</body>
+</html>

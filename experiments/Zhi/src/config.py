@@ -28,6 +28,11 @@ SOURCES = [
         "url": "https://github.blog/feed/",
     },
     {
+        "name": "CodeRabbit Blog",
+        "type": "rss",
+        "url": "https://www.coderabbit.ai/feed",
+    },
+    {
         "name": "GitHub Trending",
         "type": "github_trending",
         "url": "https://api.github.com/search/repositories",
@@ -40,6 +45,17 @@ TOPIC_KEYWORDS = [
     "code generation", "LLM", "Claude", "GPT", "software engineering",
     "developer tools", "AI tools", "multi-agent", "MCP",
     "function calling", "tool use", "prompt engineering",
+    "code review", "coderabbit",
+]
+
+# Priority sources: articles from these sources bypass keyword filtering
+# and get boosted weight in brief generation (3-5x more likely to appear)
+PRIORITY_SOURCES = ["CodeRabbit Blog"]
+
+PRIORITY_KEYWORDS = [
+    "code review", "code quality", "testing", "test automation",
+    "static analysis", "linting", "CI/CD", "pull request",
+    "coderabbit", "reviewer", "审查",
 ]
 
 MODEL = "claude-opus-4-6"
